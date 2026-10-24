@@ -183,7 +183,7 @@
       "whole_version_PASS": false,
       "no_old_EXE_runtime_rebinding": true
     },
-    "current_targeted_runtime": {
+    "observed_7bb_ccde_targeted_runtime": {
       "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
       "release_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
       "debug_sha256": "E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A",
@@ -204,6 +204,32 @@
         "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
       "evidence_sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
+      "whole_version_PASS": false,
+      "no_old_EXE_runtime_rebinding": true
+    },
+    "current_targeted_runtime": {
+      "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "release_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "debug_sha256": "E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A",
+      "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "driver_release_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "run_ids": [
+        "f46db2a72f624ad8baafc7a81c2f3090",
+        "bea0a2a7322e4120a7d7d35420d27364",
+        "108d96d1689a466791759c0c533e7631"
+      ],
+      "latest_product_runtime_run_id": "108d96d1689a466791759c0c533e7631",
+      "latest_geometry_run_id": "f46db2a72f624ad8baafc7a81c2f3090",
+      "latest_ordinary_portable_run_id": "bea0a2a7322e4120a7d7d35420d27364",
+      "status": "ACTUAL_F46_NINE_GEOMETRY_SCOPED_PASS_SIZING_PREFERENCE_MISMATCH_BEA0_ENTRY_PASS_HC_RESTORE_FAIL",
+      "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。 ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。 ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。",
+      "ordinary_portable_current_EXE_entry": true,
+      "portable_package_id": "2579fb78cf3446bf986d9cdf9963828e",
+      "evidence_paths": [
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
+      ],
+      "evidence_sha256": "0E8CDA4A8D9341A1D7C30F9A837C7FCCE43BD95F780680CE285ABA76CDD64A76",
       "whole_version_PASS": false,
       "no_old_EXE_runtime_rebinding": true
     },
@@ -233,8 +259,8 @@
     },
     "observed_product_42ab_build_and_portable": {
       "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
-      "current_verified_product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
-      "current_verified_portable_package_id": "d5f5a2a6138049a5b4a1a76340904027",
+      "current_verified_product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "current_verified_portable_package_id": "2579fb78cf3446bf986d9cdf9963828e",
       "last_verified_portable_product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "implementation_status": "IMPLEMENTED_SUCCESSFUL_HC_GET_OWNED_NONNULL_BUFFER_UNIQUE_LOCALFREE_ONLY",
       "build": "ROOT_ACTUAL_DEBUG_RELEASE_PRODUCT_DRIVER_BUILD_PASS_SEVEN_AFFECTED_OFFLINE_EACH7_OF7_PASS",
@@ -308,19 +334,19 @@
       "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
       "current_verified_product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "current_verified_portable_package_id": "d5f5a2a6138049a5b4a1a76340904027",
-      "implementation_status": "IMPLEMENTED_BUILD_PASS_RUNTIME_SEVEN_GEOMETRY_MINIMUM_SCOPED_PASS_TRAY_BLOCKED",
+      "implementation_status": "IMPLEMENTED_BUILD_PASS_ACTUAL_NINE_GEOMETRY_ENTRY_SCOPEPASS_SIZING_AND_HC_RESTORE_GAPS",
       "build": "DEBUG_RELEASE_BUILD_PASS_EACH8_OF8_OFFLINE_PASS",
       "build_directory": "out/v1-nf02-tray-ccde014",
       "debug_sha256": "E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A",
       "release_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-      "driver_debug_sha256": "D7FA0CC055CF36F96A0FB6AA0AB141E4D69A1C292BD74FB164B32296BE054BB5",
-      "driver_release_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-      "native_runtime": "ACTUAL_7BB_SEVEN_GEOMETRY_MINIMUM_NORMALUP_SCOPED_PASS_NOT_WHOLE_CONTRACT",
+      "driver_debug_sha256": "808AE77332D6B48DF2765AAE50E6A6D8780C482DC63B53A476206FB4F53A7C68",
+      "driver_release_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "native_runtime": "ACTUAL_F46_NINE_GEOMETRY_SCOPED_PASS_SIZING_PREFERENCE_MISMATCH_BEA0_ENTRY_PASS_HC_RESTORE_FAIL",
       "package": "GUEST13A_GENERATED_DEPLOYED_RUN_COLLECTED_EXACT_CLEANED",
-      "ordinary_portable_verified": false,
+      "ordinary_portable_verified": true,
       "whole_version_PASS": false,
       "old_runtime_rebound": false,
-      "next_action": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。",
+      "next_action": "已验证的ccde/2579普通包入口、f46九代几何/真实UP及108 HC子范围不再写NOT_RUN。f46具体R/C提案差异由新生产liveResize接线修复中，最新源码9ec7e63e08c5137a5954bf6809d8c461ac902796正在构建/未现场；不得把ccde日志换绑后继EXE。保留108 exact scheme恢复FAIL，无新依据不改SET或重试空scheme路线。托盘providerPID0和客户cmd失败路线停止无变量重试；继续有前置的真实应用/显示/完整链缺项。旧44/22与modules0不增，有限性能子样本不关闭NF02。",
       "previous_compile_failure": {
         "source_sha": "96cbf8e7c14174453fe061285ce883a80c9f6d43",
         "configuration": "Debug",
@@ -350,16 +376,25 @@
       },
       "actual_run_ids": [
         "13a2871f78024e8984c1c21f9e3b22ba",
-        "7bb387ddc9ac4ca69aa1539a53320bd1"
+        "7bb387ddc9ac4ca69aa1539a53320bd1",
+        "f46db2a72f624ad8baafc7a81c2f3090",
+        "bea0a2a7322e4120a7d7d35420d27364",
+        "108d96d1689a466791759c0c533e7631"
       ],
       "actual_runtime_evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "actual_runtime_evidence_sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
+      "actual_runtime_evidence_sha256": "0E8CDA4A8D9341A1D7C30F9A837C7FCCE43BD95F780680CE285ABA76CDD64A76",
       "actual_guest_package": {
-        "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
-        "packaging_head": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-        "zip_sha256": "D93DACB5A6BB6D1CCFF52A067BA537E0BC4A37F9975E711AF0D7187F432ECE4B",
-        "manifest_sha256": "037AB22D25C668CAE198A0177568427626C1A701498E20BC3F232BCDA668ADD6",
-        "wsb_sha256": "1A0D832EB422FA3D3BA077C430EA25DEAE3D350EAF37BEBD3E9015627919094E"
+        "run_id": "108d96d1689a466791759c0c533e7631",
+        "receipt": {
+          "path": "uat/v1-sandbox/108d96d1689a466791759c0c533e7631/package-receipt.json",
+          "bytes": 13335,
+          "sha256": "1C8FF8BC87C20D68BFE8EE5897C1BCF041E491DDE2ED3BAF3CB971633314E20D"
+        },
+        "zip_sha256": "A955E584541F12D66A59BA0EEC7781DB464E622C05ABF71FDC411E6C55EE2AB0",
+        "manifest_sha256": "6B654DCE00A74F3E41092996E31D3E34EEB4A5344B3D2B9FBFC29D094BB63D2D",
+        "wsb_sha256": "4100FDFDA40FF94BCC2A1B1EF1E04CD9648B5B69AAD1A03287FB7D95D8B43F86",
+        "actual_container_pins_match": true,
+        "package_time_metadata_not_rewritten": true
       },
       "prepared_ordinary_portable": {
         "package_id": "2579fb78cf3446bf986d9cdf9963828e",
@@ -409,16 +444,18 @@
             "hash_match": true
           }
         ],
-        "ordinary_GUI_started": false,
-        "clean_guest_portable_validation": "NOT_RUN",
-        "historical_42ab_d5f5_f78_not_rebound": true
+        "ordinary_GUI_started": true,
+        "clean_guest_portable_validation": "ACTUAL_BEA0_ORDINARY_ENTRY_SETTINGS_TWO_NORMALUP_NORMAL_EXIT_SCOPE_PASS_NOT_WHOLE_I12",
+        "historical_42ab_d5f5_f78_not_rebound": true,
+        "validation_run_id": "bea0a2a7322e4120a7d7d35420d27364",
+        "scope": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。"
       },
-      "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
-      "runtime_driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+      "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。 ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。 ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。",
+      "runtime_driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
       "runtime_driver_build_receipt": {
-        "path": "uat/v1-control/driver-isolated-target-354def7-c74f66788cae41daaf6f681e6fe9529e/receipt.json",
-        "bytes": 2330,
-        "sha256": "36004AE21DD3C87CE12558E38388D75B015B8E7FABCC82EF2BE24F050F675EF6"
+        "path": "uat/v1-control/driver-sizing-ehsc-bigobj-24a25ab-4b7377ca6a304d4a81c3e2e45225462f/receipt.json",
+        "bytes": 2574,
+        "sha256": "1D4341B7F1E5F9A9C7A83D6D0B8959F9C7A24DD9DBE9771ECBCEF9215A1C69CB"
       }
     },
     "observed_product_4f7": {
@@ -585,7 +622,7 @@
       "followup_driver": "TEST_ONLY_FIX_PENDING_NEW_IDENTITY_BUILD_RUNTIME",
       "next_action": "保持ccde产品EXE冻结，不重建/不重绑2787旧实测。新TEST-only bottom expected4修正及blank独立own UI线程安排尚待新driver身份/构建/新Run定向验证实际Terminal min/后继Move及NF；同STA和一次native15.613ms是已观察耦合事实，不预定根因或改善。不重跑Full/900或无变量cmd/托盘路线。ccde普通portable2579仅生成/identity/dependency/七文件校验，普通GUI NOT_RUN；当前已验仍42ab/d5f5/f78。44/22、modules0不增。"
     },
-    "pending_driver_candidate": {
+    "observed_354_7bb_driver_candidate": {
       "source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
       "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
       "status": "D_R_DRIVER_BUILD_GUEST_PATH1OF1_EACH_PASS_ACTUAL7BB_SCOPED",
@@ -630,6 +667,40 @@
       },
       "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
       "next_action": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。"
+    },
+    "pending_driver_candidate": {
+      "source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "status": "ACTUAL24A_EHSC_BIGOBJ_BUILD_D_R_AND_GUEST_PATH1OF1_EACH_PASS_THREE_RUNS_REVIEWED",
+      "debug_sha256": "808AE77332D6B48DF2765AAE50E6A6D8780C482DC63B53A476206FB4F53A7C68",
+      "release_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "product_rebuilt": false,
+      "actual_build_receipt": {
+        "path": "uat/v1-control/driver-sizing-ehsc-bigobj-24a25ab-4b7377ca6a304d4a81c3e2e45225462f/receipt.json",
+        "bytes": 2574,
+        "sha256": "1D4341B7F1E5F9A9C7A83D6D0B8959F9C7A24DD9DBE9771ECBCEF9215A1C69CB"
+      },
+      "actual_original_ctest_sha256": {
+        "Debug": "C4ECC8A7289741456FA863B561AAAF24A18DE2349834F9944C9C7377C2085177",
+        "Release": "9420AC2D8BF98F0580C52A58AA8E7AE29BD03E554E8CD05FB1AF4AAE8A6AF71C"
+      },
+      "actual_host_guard": {
+        "path": "uat/v1-host-guard/ac8a82e49072444c9e52c3fb9195cf59/receipt.json",
+        "sha256": "FD87A0A1CDCA361F2868324CA8ADC54FCDCAC05D9F6DC9C0151CC80BB9244CFD",
+        "full_argv_exit78_count": 4,
+        "host_test_input": 0,
+        "ordinary_host_product_launch": 0
+      },
+      "actual_host_full_argv_exit78_count": 4,
+      "runtime_validation": "ACTUAL_F46_BEA0_108_SCOPES_NOT_WHOLE_PASS",
+      "actual_run_ids": [
+        "f46db2a72f624ad8baafc7a81c2f3090",
+        "bea0a2a7322e4120a7d7d35420d27364",
+        "108d96d1689a466791759c0c533e7631"
+      ],
+      "tool_failure_history_ref": "20261024-targeted-guest-review.tooling_followup.correct_24a_driver_build",
+      "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。 ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。 ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。",
+      "next_action": "已验证的ccde/2579普通包入口、f46九代几何/真实UP及108 HC子范围不再写NOT_RUN。f46具体R/C提案差异由新生产liveResize接线修复中，最新源码9ec7e63e08c5137a5954bf6809d8c461ac902796正在构建/未现场；不得把ccde日志换绑后继EXE。保留108 exact scheme恢复FAIL，无新依据不改SET或重试空scheme路线。托盘providerPID0和客户cmd失败路线停止无变量重试；继续有前置的真实应用/显示/完整链缺项。旧44/22与modules0不增，有限性能子样本不关闭NF02。"
     },
     "observed_driver_eea": {
       "source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
@@ -963,7 +1034,7 @@
     "main_function_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
     "historical_pending_runtime_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
     "pending_runtime_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
-    "pending_runtime_status": "CURRENTCCDE_ACTUAL7BB_SEVEN_GEOMETRY_MINIMUM_NORMALUP_SCOPE_PASS_TRAY_BLOCKED",
+    "pending_runtime_status": "ACTUAL_F46_NINE_GEOMETRY_SCOPED_PASS_SIZING_PREFERENCE_MISMATCH_BEA0_ENTRY_PASS_HC_RESTORE_FAIL",
     "final_sha": null,
       "full_release_deployment": {
         "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
@@ -984,9 +1055,20 @@
         "evidence_id": "EV-DFDD-RELEASE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
         "next_action": "本Full部署保留11ae/dfdd历史身份；当前4f7 callback/Focus/规则和5f87普通包实际范围另见current_targeted_runtime/current_package，不能改绑此Full。新CurrentCore TEST仅构建，后续按影响执行必要当前链，不重跑独立900秒或旧专项。"
       },
-    "implementation_inspected": "CURRENTCCDE_PRODUCT_UNCHANGED_DRIVER354_ACTUAL7BB_SEVEN_GEOMETRY_MINIMUM_NORMALUP_SCOPE_PASS",
-    "note": "当前独立DEV44/60、22/40=55%、modules0/PARTIAL。M05-F04/B05依据当前42ab实际G04 D/R组合、f06a真8向/约束、750 fixed黑盒和4ff真实Terminal Resize→Move闭合。42ab/d5f5/f78普通无参包及4ff诊断观测分开，旧744e/212/25b/55f保身份。托盘菜单、Terminal客户语义、Explorer非elevated资格/单条精确路径、其它应用和显示硬门仍缺；不将当前子范围当普通完整Medium桌面或整版通过。",
-    "pending_product_note": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。 复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。",
+    "implementation_inspected": "CURRENTCCDE_ACTUAL_F46_BEA0_108_SCOPES_FOLLOWUP9EC7_BUILDING_NOT_RUN",
+    "note": "独立DEV44/60、22/40=55%、modules0/PARTIAL保持原合同/身份。当前ccde/2579在bea0实际普通无参包入口/两Move真实UP/正常退出限定通过；42ab/d5f5/f78及4ff诊断证据保历史不改绑。f46九代几何/UP与WM_SIZING R/C差异、108 HC真实状态/恢复FAIL分开，均不授完整Medium桌面/五应用/托盘/HC/整版。",
+    "pending_product_note": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。 ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。 ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。 已验证的ccde/2579普通包入口、f46九代几何/真实UP及108 HC子范围不再写NOT_RUN。f46具体R/C提案差异由新生产liveResize接线修复中，最新源码9ec7e63e08c5137a5954bf6809d8c461ac902796正在构建/未现场；不得把ccde日志换绑后继EXE。保留108 exact scheme恢复FAIL，无新依据不改SET或重试空scheme路线。托盘providerPID0和客户cmd失败路线停止无变量重试；继续有前置的真实应用/显示/完整链缺项。旧44/22与modules0不增，有限性能子样本不关闭NF02。",
+
+    "successor_live_Resize_candidate": {
+      "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
+      "implementation_source_sha": "7b3dccf",
+      "build": "BUILD_IN_PROGRESS_ROOT_ACTUAL",
+      "binary_hashes": null,
+      "native_runtime": "NOT_RUN",
+      "reason": "f46 observed single WM_SIZING C differs from rawR; production liveResize correction is a new candidate, not a retag of ccde.",
+      "current_verified_product_and_portable": "ccde/2579/bea0",
+      "feature_or_score_PASS": false
+    },
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1911,7 +1993,7 @@
       "ordinary_host_trial_allowed": false
     },
     "latest_observed_runtime_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
-    "latest_observed_run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+    "latest_observed_run_id": "108d96d1689a466791759c0c533e7631",
     "historical_R7_candidate": {
       "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
       "implementation_source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
@@ -2355,14 +2437,17 @@
             "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-review.json",
             "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-excerpt.jsonl",
             "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
-            "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl"
+            "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl",
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
           ],
           "observation_ids": [
             "PO-714C-DIAGNOSTIC-PORTABLE",
             "PO-C01-INDEPENDENT",
             "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
             "PO-E4B9-CURRENT744E-TRUE-PORTABLE-ENTRY-SETTINGS-MOVE-UP-EXIT-SCOPED",
-            "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED"
+            "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED",
+            "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
           "observed": "267实际HKCU Run精确本EXE --startup；276/279实际保存enabled=false与startup=true，285原进程正常退出/实际客户恢复；286执行该登录模拟参数，287新身份、288/289实际status enabled=false/无自动设置，290–292空参二启退出0且主PID/birth/唯一owner/状态不变并显示同主设置；313/314移除自有Run值与恢复原设置，320正常退出，324/329范围PASS。中文空格原98fc普通入口808–813另证无参二启同主设置/唯一owner，658–663本R2损坏说明/备份/默认恢复已齐。 普通GUI子系统/asInvoker/Medium包身份已核，二进程在生产mutex既有分支退出；不宣称全桌面hook实测数量。"
@@ -2387,7 +2472,9 @@
         "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-review.json",
         "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-excerpt.jsonl",
         "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
-        "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl"
+        "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -2443,16 +2530,15 @@
         "metadata_validator_current_run_required": false
       },
       "latest_runtime_component_observation": {
-        "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
-        "binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
-        "driver_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
-        "driver_binary_sha256": "8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44",
-        "run_id": "f78dc3fdd39241e2aa212d1aeb9cc112",
+        "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "bea0a2a7322e4120a7d7d35420d27364",
         "configuration": "Release",
-        "observation_id": "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED",
-        "evidence_path": "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
-        "scope": "CURRENT42AB_TRUE_PORTABLE_ZIP_GUI_SETTINGS_EFFECT_TWO_BASIC_OWNED_MOVE_NORMALUP_NORMAL_EXIT_ONLY",
-        "result": "PASS_SCOPED_NOT_WHOLE_I12_TRAY_HC_OR_VERSION",
+        "observation_id": "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY",
+        "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "scope": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。",
         "not_complete_contract_PASS": true
       }
     },
@@ -2505,7 +2591,8 @@
             "PO-20261024-2787-TARGETED-GUEST-SCOPES",
             "PO-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
             "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+            "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -2605,13 +2692,13 @@
       "latest_runtime_component_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-        "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-        "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-        "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
         "configuration": "Release",
-        "observation_id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-        "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
         "not_complete_contract_PASS": true
       }
     },
@@ -2919,12 +3006,15 @@
             "docs/reports/v1-evidence/c01-release-components.jsonl",
             "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
             "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
+            "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl",
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
             "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-            "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
+            "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+            "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
           "observed": "267实际HKCU Run精确本EXE --startup；276/279实际保存enabled=false与startup=true，285原进程正常退出/实际客户恢复；286执行该登录模拟参数，287新身份、288/289实际status enabled=false/无自动设置，290–292空参二启退出0且主PID/birth/唯一owner/状态不变并显示同主设置；313/314移除自有Run值与恢复原设置，320正常退出，324/329范围PASS。中文空格原98fc普通入口808–813另证无参二启同主设置/唯一owner，658–663本R2损坏说明/备份/默认恢复已齐。 普通GUI子系统/asInvoker/Medium包身份已核，二进程在生产mutex既有分支退出；不宣称全桌面hook实测数量。"
@@ -2944,7 +3034,9 @@
         "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl",
-        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl"
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -2991,15 +3083,16 @@
         "metadata_validator_current_run_required": false
       },
       "latest_runtime_component_observation": {
-        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
-        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
-        "driver_source_sha": "22d6e601a444d4af0ca853459abfb3168b661dd7",
-        "driver_binary_sha256": "26542BC55B723153D15A5AF811FA3D365792CFD37C16B2E456B5471C67C9CE65",
+        "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "bea0a2a7322e4120a7d7d35420d27364",
         "configuration": "Release",
-        "packaging_head": "717a1bb0a0cb4686690b780ca6055fb9f5a777a4",
-        "run_id": "e5f5db36888d476cac48b5be9f454a28",
-        "observation_id": "PO-E5F5-R8-ENTRY-STARTUP-PORTABLE-RAPID-REVALIDATION",
-        "scope": "actual startup/ordinary ZIP/rapid native-passthrough scoped evidence; whole tray-blocked FAIL; historical PASS identity unchanged"
+        "observation_id": "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY",
+        "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "scope": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3597,13 +3690,13 @@
       "latest_runtime_component_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-        "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-        "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-        "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
         "configuration": "Release",
-        "observation_id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-        "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
         "not_complete_contract_PASS": true
       },
       "historical_failure": {
@@ -3650,7 +3743,8 @@
             "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
             "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
             "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+            "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -3664,7 +3758,9 @@
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
-        "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
+        "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
       "defects": [
         "V1-D01",
@@ -3673,12 +3769,12 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "CURRENT_11AE_SCOPED_OBSERVATIONS_NOT_COMPLETE_FEATURE_PASS",
       "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
-      "observed": "【ccde/354/7bb真实应用最小值子合同】D1881实际native min714×152及frame18/9；D1888 rawheight142被独立oracle钳至143，P201一次native exact、无递归，D1891实际NormalUp；D1901/1904后继Move(+24,+18)和真实NormalUp成立。实际应用grid/WM_SIZING提案未验证，不授完整M03F03。【13a原失败及历史】【ccde/13a实际自声明最小值】D1529应用返回native714×152与frame差18/9，独立visible最小696×143及customheight已知；g6真实bottom4被TEST right2断言误拒，未完成clamp/后继Move，不授此合同PASS。【历史】当前212/e7 grid4105实际拒绝与后继恢复、477实际START/cancel/END后fresh geometry拒绝且零新placement已观察；不将这些已测子项再写为待跑。 【历史观察保留】c01 seq1957/1958 grid实际单次API TRUE/non-exact后停止；1964原代UP缺失，后续恢复不关闭原失败。 【当前11ae】3f8及dfdd真实grid API TRUE但nonexact拒绝、实际尺寸回读/零递归、后继Move/Ctrl与实际UP已验证；旧c01缺UP原FAIL只属其原构建。当前未发现同类owned产品失败，完整真实应用约束合同仍BLOCKED。",
+      "observed": "【当前ccde/24a/f46】ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。【历史】【ccde/354/7bb真实应用最小值子合同】D1881实际native min714×152及frame18/9；D1888 rawheight142被独立oracle钳至143，P201一次native exact、无递归，D1891实际NormalUp；D1901/1904后继Move(+24,+18)和真实NormalUp成立。实际应用grid/WM_SIZING提案未验证，不授完整M03F03。【13a原失败及历史】【ccde/13a实际自声明最小值】D1529应用返回native714×152与frame差18/9，独立visible最小696×143及customheight已知；g6真实bottom4被TEST right2断言误拒，未完成clamp/后继Move，不授此合同PASS。【历史】当前212/e7 grid4105实际拒绝与后继恢复、477实际START/cancel/END后fresh geometry拒绝且零新placement已观察；不将这些已测子项再写为待跑。 【历史观察保留】c01 seq1957/1958 grid实际单次API TRUE/non-exact后停止；1964原代UP缺失，后续恢复不关闭原失败。 【当前11ae】3f8及dfdd真实grid API TRUE但nonexact拒绝、实际尺寸回读/零递归、后继Move/Ctrl与实际UP已验证；旧c01缺UP原FAIL只属其原构建。当前未发现同类owned产品失败，完整真实应用约束合同仍BLOCKED。",
       "remaining_conditions": [
-        "Owned min/max/grid拒绝恢复及当前ccde/7bb真实应用自声明最小高度钳制→后继Move已实测，不再笼统记真实应用min未验。",
-        "完整真实应用约束合同中的grid/WM_SIZING提案合法集合尚未观察/验证，application_grid_known=false；后继有界TEST方案未构建运行，不能以最小高度一次钳制或孤立solver授完整PASS。"
+        "真实Terminal已完成最小高度143 clamp及后继Move/UP；f46单次WM_SIZING C_native bottom592与rawR593不同，产品g8 actual visible584=R非C583。该明确live Resize偏好缺口待新生产候选实际修复，不把当前native exact=true改成false，不推任意应用栅格/非法尺寸。",
+        "固定/minmax/grid历史证据各留身份；当前候选其它真实应用约束与完整合同尚未齐，M03-F03不升PASS。"
       ],
-      "next_action": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。",
+      "next_action": "已验证的ccde/2579普通包入口、f46九代几何/真实UP及108 HC子范围不再写NOT_RUN。f46具体R/C提案差异由新生产liveResize接线修复中，最新源码9ec7e63e08c5137a5954bf6809d8c461ac902796正在构建/未现场；不得把ccde日志换绑后继EXE。保留108 exact scheme恢复FAIL，无新依据不改SET或重试空scheme路线。托盘providerPID0和客户cmd失败路线停止无变量重试；继续有前置的真实应用/显示/完整链缺项。旧44/22与modules0不增，有限性能子样本不关闭NF02。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -4109,13 +4205,13 @@
       "latest_runtime_component_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-        "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-        "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-        "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
         "configuration": "Release",
-        "observation_id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-        "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
         "not_complete_contract_PASS": true
       },
       "historical_failure": {
@@ -4210,7 +4306,8 @@
             "PO-20261024-2787-TARGETED-GUEST-SCOPES",
             "PO-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
             "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+            "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
           ],
           "assessment_ref": "parent_feature_current_contract_revalidation"
         }
@@ -4770,18 +4867,15 @@
         "next_action": "e86已关闭具体GUI匹配UP误分链，原fafa/745失败保持historical，不重开D29专项；真实重复/迟到与其它合同分别按实际证据判定。"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
-        "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-        "driver_binary_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
-        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
         "configuration": "Release",
-        "observation_id": "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-        "evidence_paths": [
-          "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
-          "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
-        ],
-        "scope": "Current exact owned scopes and per-PID original receipts only; Full/application/display contract remains incomplete",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
+        "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
         "not_complete_contract_PASS": true
       },
       "historical_failure": {
@@ -5100,7 +5194,8 @@
             "PO-20261024-2787-TARGETED-GUEST-SCOPES",
             "PO-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
             "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+            "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
           ],
           "assessment_ref": "parent_feature_current_contract_revalidation"
         }
@@ -5231,13 +5326,13 @@
       "latest_runtime_component_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-        "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-        "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-        "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
         "configuration": "Release",
-        "observation_id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-        "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
         "not_complete_contract_PASS": true
       },
       "historical_failure": {
@@ -5286,7 +5381,8 @@
             "PO-20261024-2787-TARGETED-GUEST-SCOPES",
             "PO-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
             "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+            "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
           ],
           "assessment_ref": "parent_feature_current_contract_revalidation"
         }
@@ -5515,7 +5611,8 @@
             "PO-20261024-2787-TARGETED-GUEST-SCOPES",
             "PO-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
             "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+            "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
           "scope_note": "当前42ab f06a八方向、750固定黑盒、4ff真实Terminal Resize→Move和G04 Debug/Release组合共同闭合独立合同；旧fcf/5d45/fafa原身份与原失败不变。非M05模块或完整环境通过。"
@@ -5545,6 +5642,18 @@
         "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
         "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
+      "latest_runtime_component_observation": {
+        "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
+        "configuration": "Release",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
+        "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
+        "not_complete_contract_PASS": true
+      },
       "defects": [],
       "candidate_identity_ref": "source_identity.current_targeted_runtime",
       "assessment_scope": "PASS_INDEPENDENT_M05_F04_FEATURE_CONTRACT_NOT_MODULE_FIVE_APPS_ENVIRONMENT_OR_WHOLE_VERSION",
@@ -5751,13 +5860,13 @@
       "latest_runtime_component_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-        "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-        "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-        "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
         "configuration": "Release",
-        "observation_id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-        "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
         "not_complete_contract_PASS": true
       },
       "historical_failure": {
@@ -5810,7 +5919,8 @@
             "PO-20261024-2787-TARGETED-GUEST-SCOPES",
             "PO-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
             "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+            "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -6064,7 +6174,8 @@
             "PO-20261024-2787-TARGETED-GUEST-SCOPES",
             "PO-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
             "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+            "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+            "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
           ],
           "assessment_ref": "parent_feature_current_contract_revalidation"
         }
@@ -6148,13 +6259,13 @@
       "latest_runtime_component_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-        "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-        "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-        "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
         "configuration": "Release",
-        "observation_id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-        "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
         "not_complete_contract_PASS": true
       },
       "historical_pre_independent_contract_assessment": {
@@ -7332,7 +7443,9 @@
         "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
         "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
         "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
-        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl",
+        "docs/reports/v1-evidence/21a5-settings-controls-review.json",
+        "docs/reports/v1-evidence/21a5-settings-controls-excerpt.jsonl"
       ],
       "defects": [
         "V1-D02",
@@ -8445,7 +8558,9 @@
           "status": "BLOCKED",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/c01-release-components.jsonl"
+            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/21a5-settings-controls-review.json",
+            "docs/reports/v1-evidence/21a5-settings-controls-excerpt.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT"
@@ -8472,11 +8587,12 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01屏边preview/离开取消/真实提交单屏子项成立。",
+      "observed": "c01原屏边preview子项保留；另21a5/4f7原EXE9790B38A...实际150% owned preview：D219 alpha255、非激活/透明命中样式与source前台/自有shield实际命中；D222实际屏像素RGB(32,96,160)，D226离区取消、D228真实UP后D231仍隐藏。其原身份/字面证据不改为ccde运行；该批没有真实Dock提交后的preview/final几何对照，不推全矩阵PASS。",
       "remaining_conditions": [
-        "真实跨屏/100%/200%和穿透/退出全部反馈门槛未齐。"
+        "21a5已实际覆盖颜色/alpha/像素、非激活命中、离区取消及真实UP后隐藏，不再把这些子项一律NOT_RUN。",
+        "当前候选真实Dock preview与final actual对照、停止/退出全部自有overlay消失及受影响整链仍未齐；跨屏/100%/200%实际条件未提供，21a5不是当前ccde重跑。"
       ],
-      "next_action": "补真实显示矩阵与独立preview/actual对照。",
+      "next_action": "复用21a5原4f7子范围并保来源，不重复controls；只在可用前置下完成当前真实Dock最终几何/退出反馈及显示矩阵，不升级M10-F01/模块。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -8839,11 +8955,14 @@
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
-            "docs/reports/v1-evidence/714c-release-scoped.jsonl"
+            "docs/reports/v1-evidence/714c-release-scoped.jsonl",
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
-            "PO-714C-DIAGNOSTIC-PORTABLE"
+            "PO-714C-DIAGNOSTIC-PORTABLE",
+            "PO-108D-CCDE-HIGH-CONTRAST-RESTORE-FAILURE"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -8858,7 +8977,9 @@
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
       "defects": [
         "V1-D04"
@@ -8874,9 +8995,24 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "8d8a当前4f7/9d实际142D/32P完整运行：原flags126/off/空scheme→SET/GET flags127/ON；真实144DPI中文设置页0/3已读BMP，Tab/Enter/Esc/焦点与草稿保留子范围通过。restore SET真实成功，最终flags126/off及六颜色恢复，但scheme成为高对比黑色≠原空字符串，故完整恢复断言FAIL；一个distinct保留系统buffer在全部读取后真实LocalFree一次成功，产品正常shutdown与driver exit1/无强制收尾成立。旧34f/aa2e heap失败保持原身份，本批未复现heap不证明旧根因。",
-      "remaining_conditions": ["200% UI和高对比完整恢复仍未通过；8d8a实际144DPI只覆盖已读图的主要设置页/键盘子范围。真实恢复SET成功但scheme不精确，不能删除比较或用flags/颜色/free/退出子结果替代HC完整恢复。"],
-      "next_action": "保留8d8a exact scheme恢复FAIL及实际UI/键盘/最终free/正常退出子结果；现有HC路线已完成有界定位，无新官方支持的空/default scheme恢复依据不再叠API或无变量重跑。200%及其他完整UI条件独立列出，继续不受阻合同。",
+      "observed": "【当前ccde/24a/108必要影响复验】ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。【历史原身份】8d8a当前4f7/9d实际142D/32P完整运行：原flags126/off/空scheme→SET/GET flags127/ON；真实144DPI中文设置页0/3已读BMP，Tab/Enter/Esc/焦点与草稿保留子范围通过。restore SET真实成功，最终flags126/off及六颜色恢复，但scheme成为高对比黑色≠原空字符串，故完整恢复断言FAIL；一个distinct保留系统buffer在全部读取后真实LocalFree一次成功，产品正常shutdown与driver exit1/无强制收尾成立。旧34f/aa2e heap失败保持原身份，本批未复现heap不证明旧根因。",
+      "remaining_conditions": [
+        "当前108 exact恢复仍FAIL（flags/六颜色已恢复，空scheme变高对比黑色）；不能删除scheme比较或以free/exit/销guest补PASS。",
+        "150%两静态页实读不替代全页动态/200%/完整HC视觉；生产LocalFree实际API轨迹未观察，TEST的单次free不改名产品计数。"
+      ],
+      "next_action": "保存108与旧8d8a各自exact scheme恢复失败；无新官方依据不叠SET/API/无变量重跑。当前ccde HC settings、真实键盘和正常退出子范围已验，200%/完整视觉仍缺，独立继续其余有前置合同。",
+      "latest_runtime_component_observation": {
+        "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "108d96d1689a466791759c0c533e7631",
+        "configuration": "Release",
+        "observation_id": "PO-108D-CCDE-HIGH-CONTRAST-RESTORE-FAILURE",
+        "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "scope": "ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。",
+        "not_complete_contract_PASS": true
+      },
       "current_contract_review": "docs/reports/v1-evidence/8d8a-HC-UI-and-scheme-restore-review.json",
       "current_scope_evidence_ids": ["EV-34F1-ORDINARY-NOTICE-AND-TEST-HC-HEAP-EXIT"],
       "latest_product_observation": {
@@ -9760,7 +9896,9 @@
             "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-review.json",
             "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-excerpt.jsonl",
             "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
-            "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl"
+            "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl",
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
           ],
           "observed": "当前bfb实际ZIP/manifest/七载荷按a014原件核对；25b普通空参可见中文GUI/二启同PID6872/第6页新保存取消说明与实际viewport/公开Save前后Move差异、真UP及正常Quit/资源和客户配对通过。ZIP未包含在本地collection，不称另做本地ZIP复哈希；原ec2f/2432保持身份，不授完整I12/托盘/整版或真人。",
           "historical_status": "PASS_R408_2632_9E5",
@@ -9769,7 +9907,8 @@
             "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
             "PO-2432-11AE-PORTABLE-NORMAL-ENTRY",
             "PO-E4B9-CURRENT744E-TRUE-PORTABLE-ENTRY-SETTINGS-MOVE-UP-EXIT-SCOPED",
-            "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED"
+            "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED",
+            "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY"
           ]
         }
       ],
@@ -9788,7 +9927,9 @@
         "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-review.json",
         "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-excerpt.jsonl",
         "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
-        "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl"
+        "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -9874,16 +10015,15 @@
         "metadata_validator_current_run_required": false
       },
       "latest_runtime_component_observation": {
-        "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
-        "binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
-        "driver_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
-        "driver_binary_sha256": "8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44",
-        "run_id": "f78dc3fdd39241e2aa212d1aeb9cc112",
+        "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "bea0a2a7322e4120a7d7d35420d27364",
         "configuration": "Release",
-        "observation_id": "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED",
-        "evidence_path": "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
-        "scope": "CURRENT42AB_TRUE_PORTABLE_ZIP_GUI_SETTINGS_EFFECT_TWO_BASIC_OWNED_MOVE_NORMALUP_NORMAL_EXIT_ONLY",
-        "result": "PASS_SCOPED_NOT_WHOLE_I12_TRAY_HC_OR_VERSION",
+        "observation_id": "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY",
+        "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "scope": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。",
         "not_complete_contract_PASS": true
       },
       "historical_pre_20261022_contract_assessment": {
@@ -13514,16 +13654,17 @@
         "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
         "docs/reports/v1-evidence/048a-r10-interruption-hotkey-and-actor-foreground-abort-selected.jsonl",
         "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json",
-        "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "docs/reports/v1-evidence/a575-recovery-metadata.json"
       ],
       "defects": [
         "V1-D08",
         "V1-D11"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "当前212/e7原Hotkey即时receipt679 FAIL保留；e21仅配置准备失败、I08未跑；048/d2已实际WM_HOTKEY whilepressed通过，actor g13在8890ms因未知起因FG131910实际FocusLost撤权，资源正常退出但非30秒Deadline/NormalUp。 【历史观察保留】c01真实actor默认Deadline30031ms、撤权、后继Move/Resize及UP通过；sourceclose原代UP1217仍缺失，phase1327 FAIL。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R7/4e9 actor653真实默认30031ms Deadline及684同进程Move/Resize恢复通过，source-close616实际本代UP仍FAIL，wholeI08未过。；34bf actor默认Deadline30047ms与资源idle/overlayhidden成立，紧随g24实际nativepending但未见START、1702FAIL；sourceclose1648真实UP仍失败，不授中断恢复完整PASS。 当前证据：11ae/3f8及dfdd四实际中断原因、真实WM_HOTKEY、每次新Move/Resize恢复已执行；dfdd默认30000ms Deadline实测30015ms，并非NormalUp。历史actor FocusLost保留但不作为当前timer未跑。",
+      "observed": "当前212/e7原Hotkey即时receipt679 FAIL保留；e21仅配置准备失败、I08未跑；048/d2已实际WM_HOTKEY whilepressed通过，actor g13在8890ms因未知起因FG131910实际FocusLost撤权，资源正常退出但非30秒Deadline/NormalUp。 【历史观察保留】c01真实actor默认Deadline30031ms、撤权、后继Move/Resize及UP通过；sourceclose原代UP1217仍缺失，phase1327 FAIL。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R7/4e9 actor653真实默认30031ms Deadline及684同进程Move/Resize恢复通过，source-close616实际本代UP仍FAIL，wholeI08未过。；34bf actor默认Deadline30047ms与资源idle/overlayhidden成立，紧随g24实际nativepending但未见START、1702FAIL；sourceclose1648真实UP仍失败，不授中断恢复完整PASS。 当前证据：11ae/3f8及dfdd四实际中断原因、真实WM_HOTKEY、每次新Move/Resize恢复已执行；dfdd默认30000ms Deadline实测30015ms，并非NormalUp。历史actor FocusLost保留但不作为当前timer未跑。【已有a575/11ae直接证据】D24 exact no-own capture-loss本分支及同实例后继Move/Resize已定向闭合（RecoveryContractsOnly，非当前ccde新运行）；不能继续写该分支从未触发。",
       "remaining_conditions": [
-        "driver通道断开、队列溢出、hook/会话/锁屏等具体剩余合同未全部现场覆盖；exact no-own capture-loss后同实例恢复仍缺直接证据。"
+        "已有a575/11ae exact no-own capture-loss与同实例恢复证据；driver断连、队列溢出、hook/会话/锁屏等其余具体合同并未全部现场覆盖，仍不授whole I08。"
       ],
       "next_action": "复用已实测四因/实际热键/默认Deadline与后继操作；只补确切剩余中断合同，不重跑设置或900替代。",
       "partial_observation_ids": [
@@ -13540,7 +13681,8 @@
         "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
         "PO-048A-R10-INTERRUPTION-HOTKEY-PASS-ACTOR-FOREGROUND-ABORT",
         "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
-        "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES"
+        "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
+        "PO-A575-REVOKED-PAIR-AND-CAPTURE-LOSS-RECOVERY"
       ],
       "status_basis": "CURRENT_11AE_SCOPED_RUNTIME_OBSERVED_COMPLETE_CHAIN_GAPS_BLOCKED_HISTORY_RETAINED",
       "historical_pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -13801,17 +13943,19 @@
         "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-review.json",
         "docs/reports/v1-evidence/e4b9-current-744e-portable-entry-excerpt.jsonl",
         "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
-        "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl"
+        "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-excerpt.jsonl",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
       "defects": [
         "V1-D03"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "744e/3c565/e4b9真实be7a ZIP在中文空格目录无参可见GUI/二启同实例、Save/Cancel中文实控件、10DIP默认吸附与真实保存0后的Move几何不同；两代均有实际Raw/legacy NormalUp、release/detach/Gone与idle，正常Quit/客户输入恢复及原载荷字节有scope。setupPID6252与ZIP PID6812物理日志分别保留，不合成全时序。原D182本地I12 PASS只指PortableEntryOnly，不授整I12/Tray/Full/五应用，包内NOT_RUN元数据不回写。 【历史观察保留】当前25b/bfb在a014实际普通无参首启/可见中文GUI/二启同PID/第6页新用户说明及viewport、默认10DIP与公开保存0的实际Move差异、真UP/正常Quit/客户配对和资源恢复通过。raw I12标签只该入口子流程，不授guide整链；旧ec2f/5f87与2432/528a全部保留身份。",
+      "observed": "【当前ccde/2579/bea0】ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。【历史原身份】744e/3c565/e4b9真实be7a ZIP在中文空格目录无参可见GUI/二启同实例、Save/Cancel中文实控件、10DIP默认吸附与真实保存0后的Move几何不同；两代均有实际Raw/legacy NormalUp、release/detach/Gone与idle，正常Quit/客户输入恢复及原载荷字节有scope。setupPID6252与ZIP PID6812物理日志分别保留，不合成全时序。原D182本地I12 PASS只指PortableEntryOnly，不授整I12/Tray/Full/五应用，包内NOT_RUN元数据不回写。 【历史观察保留】当前25b/bfb在a014实际普通无参首启/可见中文GUI/二启同PID/第6页新用户说明及viewport、默认10DIP与公开保存0的实际Move差异、真UP/正常Quit/客户配对和资源恢复通过。raw I12标签只该入口子流程，不授guide整链；旧ec2f/5f87与2432/528a全部保留身份。",
       "remaining_conditions": [
         "独立便携功能M12-F03已通过，不再作为本链缺口；本链完整操作顺序及所有规定入口尚未齐备。"
       ],
-      "next_action": "复用当前be7/744e/e4b9普通ZIP子流程，不单独重复入口；继续实际托盘、全部规定入口与最终同候选整版顺序，不把D182本地I12标签或历史组合授完整I12。42ab只建未测，必须自己的身份和受影响证据。",
+      "next_action": "复用ccde/2579/bea0普通入口实测和42ab/f78历史，不再称42ab只建未测或2579未运行；托盘、全部规定入口、同候选完整操作链及硬门仍未齐，D182只PortableEntryOnly本地标签，不授整I12。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-408AC52-UP-DISPATCH",
@@ -13830,21 +13974,21 @@
         "PO-34BF-R8-INDEPENDENT-ENTRY-OWNED-TWO-ROUNDS-15MIN-AND-FAILURES",
         "PO-DD02-R11-ENTRY-SETTINGS-PORTABLE-SCOPES-TRAY-BLOCKED",
         "PO-E4B9-CURRENT744E-TRUE-PORTABLE-ENTRY-SETTINGS-MOVE-UP-EXIT-SCOPED",
-        "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED"
+        "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED",
+        "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_runtime_component_observation": {
-        "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
-        "binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
-        "driver_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
-        "driver_binary_sha256": "8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44",
-        "run_id": "f78dc3fdd39241e2aa212d1aeb9cc112",
+        "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "bea0a2a7322e4120a7d7d35420d27364",
         "configuration": "Release",
-        "observation_id": "PO-F78D-CURRENT42AB-TRUE-PORTABLE-ENTRY-SETTINGS-TWO-NORMALUP-EXIT-SCOPED",
-        "evidence_path": "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
-        "scope": "CURRENT42AB_TRUE_PORTABLE_ZIP_GUI_SETTINGS_EFFECT_TWO_BASIC_OWNED_MOVE_NORMALUP_NORMAL_EXIT_ONLY",
-        "result": "PASS_SCOPED_NOT_WHOLE_I12_TRAY_HC_OR_VERSION",
+        "observation_id": "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY",
+        "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "scope": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。",
         "not_complete_contract_PASS": true
       }
     }
@@ -14701,13 +14845,11 @@
         "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
         "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
       ],
-      "observed": "【当前ccde/354/7bb七代实测】ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。 【13a及旧身份历史】【当前ccde/13a实际】ccde/13a同PID6132真实Move→右Resize→后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap与两成员Ctrl均exact；五代有Raw+legacy NormalUp/release/detach/Gone，9native完整postcontext。P203 callback35/p99桶999us/max885us仅本scope通过，native9/p95桶99999us/max51639us仍FAIL。D1529真实WM_GETMINMAXINFO返回min714×152、frame差18/9→visible696×143，customheight/oracleknown；g6实际bottom region4，经START/cancel/END/ATI/captureReady到gesture_start，但TEST把Resize硬编码right2而D1533拒绝，g6没有placement/UP或min clamp/后继Move结论。D1533/1540 test_pair_unknown/cleanup=false，Default回切未确认；P204产品自身resources/worker/shield停止不补pair/Default/全树PASS。客户内容/托盘本批未执行。 【原2787及旧身份历史】【当前2787/ffb/c14限定实测】2787/ffb/c14同PID5320真实Move→右Resize→后继Move、五阶段Free/XY吸附/Hold真实noop/Detach/Resnap及两成员Ctrl、五代Raw+legacy NormalUp/release/detach/Gone限定PASS；9native exact/identity/完整postcontext成立。P186 callback33/p99桶999us/max851us仅本scope通过，native9/p95桶99999us/max50498us仍FAIL，不四舍五入为50ms。UIA providerPID0无click、客户内容NOT_RUN；Terminal held正常exit0/rootGone及产品publicquit/resources与Shell树/wrapper forced UNKNOWN分开。c80产品未启动，cmd CPtrue但实际exit0xC0000142/0B，child桌面UNKNOWN；Terminal仍ready0/0xd0000022，停止无变化route。c14原两Collect失败保留，精确Run v2恢复后8artifact哈希稳定，原A4/owner/expect/launch未改。 【既有原身份历史】【后继ffb/c80真实前置】c80/ffb已真实CreateProcess成功，child Medium8192/nonElev/sameSID/session已核，但actual child desktop仍UNKNOWN；held cmd实际exit0xC0000142、独立输出0B，不能称no-window cmd可运行。后续Terminal仍ready0/截图cmd错误0xd0000022，客户零输入、产品未启动；exact Terminal held正常0/rootGone与Shell树UNKNOWN分开。旧8ffa已有同类nonzero，不推首次系统根因，不重复同route或加API/调token。c14当时待恢复检查点已由本条后继实际结果接续。 【前三批与历史按各身份保留】【当前2787／72bd＋4511】2787/983普通无参GUI和Esc已观察，但UIA providerPID0、无托盘click。4511产品未启动，Terminal ready0/截图cmd错误0xd0000022，客户零输入；held进程正常0/rootGone仅本scope。72bd同PID3392五代Move/右Resize/后继Move/五阶段磁吸/两成员Ctrl及真实Raw+legacy NormalUp、release/detach/Gone通过限定范围；新完整后验端点NF02 max82011us/p95桶99999未达50ms。产品本身退出、Default回切与Shell后代/wrapper forced分别判定。 【既有不同身份历史】【历史42ab/4ff实际补齐】同exact Medium Run/同产品实例真实Move→Resize→后继Move后，再Free→XY吸附→Hold真实noop→Detach→Resnap、实际邻接Terminal+owned blank两成员Ctrl均exact；五代均实际Raw/legacy NormalUp与release/detach/Gone。入口是现有同EXE --settings --diagnostic，普通无参入口另f78保留。D1098仅该几何/两成员Ctrl子scope PASS；D1116托盘仍失败。实际publicquit exit0、产品自身资源stop及独立Default回切成立，Terminal rootGone但进程wait258/Shellalive/wrapperdesc1+forcedtrue，不能全进程树cleanup PASS。客户nonce/内容语义、五应用混合组、全Terminal类别仍未通过。 744e载荷未启动，driver40a/bb23新exact Medium Terminal真实root/响应成立；bootstrap启动API返回true但不证明cmd已执行，actual8328ms/一次native WAIT_TIMEOUT258、context accepted，ready预留仍0B，未发送客户键鼠/未启动产品。正常rootGone与非原子processwait258/exit0、Shellchild存活/forcedjob分列；完整9file稳定收集已恢复且原owner不变，不再待collection，不推系统或产品根因。 【原应用几何/客户观察保持原身份】744e/5211/af4f：同一普通无参Medium产品在exact active Run对精确新Terminal真实Move→Resize→后继Move三代，各有几何、Raw/legacy NormalUp、capture release/detach/Gone及idle；D606在真实START后丢弃尚未发出的阈值kick，D626只通过该几何子链。普通成功per-call placement回执UNKNOWN，不授全磁吸、Ctrl、客户内容或五应用。随后真实UID1右键菜单D643 FAIL；P1..88完整只见注册P1false/P6ADD+VERSIONtrue、零tray ingress/menu API记录行，非根因证明。公共quit/资源stop/Default返回真实成立，但Terminal退出及Shell后代全退出未证，wrapper强制TEST清理原值保留。 744e/85ba/ab827：产品从未启动；458 Unicode与2 Enter包完整插入后实际等待tick3000ms/QPC3.0026056s、最后context accepted、2次native wait/WAIT_TIMEOUT258/no追加输入，nonce仍未生成。不是即刻拒绝或产品拦截。正常rootGone与非原子processWait258/exit0、liveShellchild/forcedjob分列，Default返回/自有观察清理是有限scope，不授全进程清理或客户语义PASS。 744e/85ba/6670：首个精确Terminal自由Move/真实Raw+legacy NormalUp及自有capture释放、detach/Gone通过有限scope。第二代Resize真实START/交接已发生，但TEST阈值过渡门拒绝，未完成目标/正常UP/后继Move，held-pair及独立Default输入回切未证。原driverFAIL/强制测试收尾保持，不当产品Resize FAIL，也不由后续新driver通过改写。 【历史观察保留】R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，1753 exact根关闭确认，1754类别仍FAIL。旧8ffa在产品真正未启动的Default对照中direct cmd CreateProcess成功但exit0xC0000142、nonce缺失；Terminal客户点HTCAPTION2，未发客户输入，截图cmd错误0xD0000022与direct cmd码分列，根正常关闭子项保留。新abb1/0605在新exact active同SID/session/Medium桌面中、冻结25b产品未启动：实际新Terminal PID5844/birth134371331198589148，1.859秒内取得双完整HDESK成员的可见CASCADIA根131874/TID6044及实际矩形；一次WM_NULL有响应、一次正常WM_CLOSE后实际根消失，自有观察资源退出和独立Default回切已核。Foreign GetThreadDesktop仍NULL/error5，未伪造桌面或产品权限；客户输入、cmd内容及产品Move/Resize/Ctrl未运行，不把root关闭外推为所有Terminal后代退出或完整兼容PASS。 0072/dcab在产品未启动的新active Medium Run上重新精确绑定Terminal66382/PID5536，双GTI均成功且idle、单窗VDM S_OK/current=true。真实客户中心点WindowFromPoint仍root66382、WM_NCHITTEST=2；首个光标/鼠标/键盘包全部未发送，nonce未执行。一次WM_CLOSE后root确已消失；Wait258与后来exit0保留非原子采样，所有后代退出未证。 当前55f/6d20新键盘路径已核Terminal同PID/TID焦点InputSite、实际foreign Run名/双GTI idle/VDM current；focus矩形[190,191,190,191]零面积被TEST正面积门拒绝，所有输入0、nonce未执行，不是客户语义失败或Terminal不可用证明。 最新55f/3e2/e657产品未启动：existing同PID/TID零面积键盘焦点经身份门接受，458 Unicode及2 Enter实际完整插入，但exact nonce未见，客户语义UNKNOWN_OR_BLOCKED；鼠标客户未运行。外层Enter完成到卸钩约3.416s包含等待/清理，不把缓冲emit同tick当立即失败或编造专用等待全时长。原driverFAIL/后代未证与有限root关闭/Default返回分列。",
+      "observed": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。【历史】【当前ccde/354/7bb七代实测】ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。 【13a及旧身份历史】【当前ccde/13a实际】ccde/13a同PID6132真实Move→右Resize→后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap与两成员Ctrl均exact；五代有Raw+legacy NormalUp/release/detach/Gone，9native完整postcontext。P203 callback35/p99桶999us/max885us仅本scope通过，native9/p95桶99999us/max51639us仍FAIL。D1529真实WM_GETMINMAXINFO返回min714×152、frame差18/9→visible696×143，customheight/oracleknown；g6实际bottom region4，经START/cancel/END/ATI/captureReady到gesture_start，但TEST把Resize硬编码right2而D1533拒绝，g6没有placement/UP或min clamp/后继Move结论。D1533/1540 test_pair_unknown/cleanup=false，Default回切未确认；P204产品自身resources/worker/shield停止不补pair/Default/全树PASS。客户内容/托盘本批未执行。 【原2787及旧身份历史】【当前2787/ffb/c14限定实测】2787/ffb/c14同PID5320真实Move→右Resize→后继Move、五阶段Free/XY吸附/Hold真实noop/Detach/Resnap及两成员Ctrl、五代Raw+legacy NormalUp/release/detach/Gone限定PASS；9native exact/identity/完整postcontext成立。P186 callback33/p99桶999us/max851us仅本scope通过，native9/p95桶99999us/max50498us仍FAIL，不四舍五入为50ms。UIA providerPID0无click、客户内容NOT_RUN；Terminal held正常exit0/rootGone及产品publicquit/resources与Shell树/wrapper forced UNKNOWN分开。c80产品未启动，cmd CPtrue但实际exit0xC0000142/0B，child桌面UNKNOWN；Terminal仍ready0/0xd0000022，停止无变化route。c14原两Collect失败保留，精确Run v2恢复后8artifact哈希稳定，原A4/owner/expect/launch未改。 【既有原身份历史】【后继ffb/c80真实前置】c80/ffb已真实CreateProcess成功，child Medium8192/nonElev/sameSID/session已核，但actual child desktop仍UNKNOWN；held cmd实际exit0xC0000142、独立输出0B，不能称no-window cmd可运行。后续Terminal仍ready0/截图cmd错误0xd0000022，客户零输入、产品未启动；exact Terminal held正常0/rootGone与Shell树UNKNOWN分开。旧8ffa已有同类nonzero，不推首次系统根因，不重复同route或加API/调token。c14当时待恢复检查点已由本条后继实际结果接续。 【前三批与历史按各身份保留】【当前2787／72bd＋4511】2787/983普通无参GUI和Esc已观察，但UIA providerPID0、无托盘click。4511产品未启动，Terminal ready0/截图cmd错误0xd0000022，客户零输入；held进程正常0/rootGone仅本scope。72bd同PID3392五代Move/右Resize/后继Move/五阶段磁吸/两成员Ctrl及真实Raw+legacy NormalUp、release/detach/Gone通过限定范围；新完整后验端点NF02 max82011us/p95桶99999未达50ms。产品本身退出、Default回切与Shell后代/wrapper forced分别判定。 【既有不同身份历史】【历史42ab/4ff实际补齐】同exact Medium Run/同产品实例真实Move→Resize→后继Move后，再Free→XY吸附→Hold真实noop→Detach→Resnap、实际邻接Terminal+owned blank两成员Ctrl均exact；五代均实际Raw/legacy NormalUp与release/detach/Gone。入口是现有同EXE --settings --diagnostic，普通无参入口另f78保留。D1098仅该几何/两成员Ctrl子scope PASS；D1116托盘仍失败。实际publicquit exit0、产品自身资源stop及独立Default回切成立，Terminal rootGone但进程wait258/Shellalive/wrapperdesc1+forcedtrue，不能全进程树cleanup PASS。客户nonce/内容语义、五应用混合组、全Terminal类别仍未通过。 744e载荷未启动，driver40a/bb23新exact Medium Terminal真实root/响应成立；bootstrap启动API返回true但不证明cmd已执行，actual8328ms/一次native WAIT_TIMEOUT258、context accepted，ready预留仍0B，未发送客户键鼠/未启动产品。正常rootGone与非原子processwait258/exit0、Shellchild存活/forcedjob分列；完整9file稳定收集已恢复且原owner不变，不再待collection，不推系统或产品根因。 【原应用几何/客户观察保持原身份】744e/5211/af4f：同一普通无参Medium产品在exact active Run对精确新Terminal真实Move→Resize→后继Move三代，各有几何、Raw/legacy NormalUp、capture release/detach/Gone及idle；D606在真实START后丢弃尚未发出的阈值kick，D626只通过该几何子链。普通成功per-call placement回执UNKNOWN，不授全磁吸、Ctrl、客户内容或五应用。随后真实UID1右键菜单D643 FAIL；P1..88完整只见注册P1false/P6ADD+VERSIONtrue、零tray ingress/menu API记录行，非根因证明。公共quit/资源stop/Default返回真实成立，但Terminal退出及Shell后代全退出未证，wrapper强制TEST清理原值保留。 744e/85ba/ab827：产品从未启动；458 Unicode与2 Enter包完整插入后实际等待tick3000ms/QPC3.0026056s、最后context accepted、2次native wait/WAIT_TIMEOUT258/no追加输入，nonce仍未生成。不是即刻拒绝或产品拦截。正常rootGone与非原子processWait258/exit0、liveShellchild/forcedjob分列，Default返回/自有观察清理是有限scope，不授全进程清理或客户语义PASS。 744e/85ba/6670：首个精确Terminal自由Move/真实Raw+legacy NormalUp及自有capture释放、detach/Gone通过有限scope。第二代Resize真实START/交接已发生，但TEST阈值过渡门拒绝，未完成目标/正常UP/后继Move，held-pair及独立Default输入回切未证。原driverFAIL/强制测试收尾保持，不当产品Resize FAIL，也不由后续新driver通过改写。 【历史观察保留】R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，1753 exact根关闭确认，1754类别仍FAIL。旧8ffa在产品真正未启动的Default对照中direct cmd CreateProcess成功但exit0xC0000142、nonce缺失；Terminal客户点HTCAPTION2，未发客户输入，截图cmd错误0xD0000022与direct cmd码分列，根正常关闭子项保留。新abb1/0605在新exact active同SID/session/Medium桌面中、冻结25b产品未启动：实际新Terminal PID5844/birth134371331198589148，1.859秒内取得双完整HDESK成员的可见CASCADIA根131874/TID6044及实际矩形；一次WM_NULL有响应、一次正常WM_CLOSE后实际根消失，自有观察资源退出和独立Default回切已核。Foreign GetThreadDesktop仍NULL/error5，未伪造桌面或产品权限；客户输入、cmd内容及产品Move/Resize/Ctrl未运行，不把root关闭外推为所有Terminal后代退出或完整兼容PASS。 0072/dcab在产品未启动的新active Medium Run上重新精确绑定Terminal66382/PID5536，双GTI均成功且idle、单窗VDM S_OK/current=true。真实客户中心点WindowFromPoint仍root66382、WM_NCHITTEST=2；首个光标/鼠标/键盘包全部未发送，nonce未执行。一次WM_CLOSE后root确已消失；Wait258与后来exit0保留非原子采样，所有后代退出未证。 当前55f/6d20新键盘路径已核Terminal同PID/TID焦点InputSite、实际foreign Run名/双GTI idle/VDM current；focus矩形[190,191,190,191]零面积被TEST正面积门拒绝，所有输入0、nonce未执行，不是客户语义失败或Terminal不可用证明。 最新55f/3e2/e657产品未启动：existing同PID/TID零面积键盘焦点经身份门接受，458 Unicode及2 Enter实际完整插入，但exact nonce未见，客户语义UNKNOWN_OR_BLOCKED；鼠标客户未运行。外层Enter完成到卸钩约3.416s包含等待/清理，不把缓冲emit同tick当立即失败或编造专用等待全时长。原driverFAIL/后代未证与有限root关闭/Default返回分列。",
       "remaining_conditions": [
-        "当前ccde/354/7bb真实Terminal七代几何/UP已完成，含应用自声明最小高度钳制及后继Move；不能继续写这些子项未运行。",
-        "客户内容、实际grid/WM_SIZING提案、完整A06类别及五应用混合链仍未过；托盘仍providerPID0/noClick，不能因几何通过授类别/托盘PASS。",
-        "本7bb几何配对和Default回切均已实际确认；Shell后代/wrapper仍alive1/forced，整体树UNKNOWN。13a配对/Default原未知不回写；ccde普通2579尚未普通运行，不替代42ab/f78。"
+        "真实Terminal几何/最小值/后继操作已测；客户内容未满足Shell前置，托盘provider0、单次WM_SIZING R/C差异和完整应用类别仍未齐，旧Shell/整树UNKNOWN不授PASS。"
       ],
-      "next_action": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。",
+      "next_action": "已验证的ccde/2579普通包入口、f46九代几何/真实UP及108 HC子范围不再写NOT_RUN。f46具体R/C提案差异由新生产liveResize接线修复中，最新源码9ec7e63e08c5137a5954bf6809d8c461ac902796正在构建/未现场；不得把ccde日志换绑后继EXE。保留108 exact scheme恢复FAIL，无新依据不改SET或重试空scheme路线。托盘providerPID0和客户cmd失败路线停止无变量重试；继续有前置的真实应用/显示/完整链缺项。旧44/22与modules0不增，有限性能子样本不关闭NF02。",
       "latest_bounded_environment_observation": {
         "packaged_product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
         "packaged_product_binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
@@ -14768,7 +14910,8 @@
         "PO-C80B-FFB-DIRECT-CMD-INITIALIZATION-FAILURE-NO-PRODUCT",
         "PO-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
         "PO-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
-        "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED"
+        "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+        "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE"
       ],
       "historical_744e_latest_product_observation": {
         "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
@@ -14807,24 +14950,24 @@
         "run_id": "0224765c54b548aa8a32c6391ed14fb3",
         "observed": "同R2/022真实Terminal五阶段Move、实际UP/NormalUp保持、Resize/UP、Center/Dock/Undo/Stretch/Undo、Esc恢复及终端客户输入通过；114 exact根关闭、115本类别范围PASS。30bf同R2原通过与b49/7cd历史失败各留身份，不授其余四类/混合组。"
       },
-      "current_candidate_state": "CURRENTCCDE_DRIVER354_SEVEN_TERMINAL_GEOMETRY_MINIMUM_NORMALUP_SCOPE_PASS_CLIENT_GRID_TRAY_STILL_INCOMPLETE",
+      "current_candidate_state": "CCDE_24A_F46_NINE_GEOMETRY_NORMALUP_SCOPE_PASS_INTERACTIVE_PREFERENCE_MISMATCH_CLIENT_TRAY_INCOMPLETE",
       "latest_product_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-        "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-        "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-        "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
         "configuration": "Release",
-        "observation_id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+        "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-        "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+        "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
         "not_complete_contract_PASS": true,
         "product_arguments": [
           "--settings",
           "--diagnostic"
         ],
         "client_semantics": "NOT_RUN_THIS_RUN",
-        "tray_menu": "BLOCKED_NO_CLICK",
+        "tray_menu": "BLOCKED_PROVIDER_PID0_NO_CLICK",
         "all_process_cleanup": "UNKNOWN"
       },
       "historical_previous_native_preflight": {
@@ -14915,7 +15058,7 @@
       "id": "NF02",
       "requirement": "hook回调p99目标<1ms；输入到回读p95目标<50ms，不称为物理显示延迟。",
       "dev_status": "FAIL",
-      "observed": "保留11ae同构建既有统计：0a66/2c8各17次hook到回读p95为10.5895/25.2265ms（<50ms），dfdd单次1017.4899ms对应明确自有1000ms阻塞，非正常placement尾值。当前4f7/5b两个实际producer分开：830a callback n50/max1755us/p99 bucket2000us，最近秩p99为样本最大1755us，未达<1ms；6e1f n71/max966us/p99 bucket999us，有限本批预算通过但不能覆盖830a失败。不同producer JSONL顺序不作共同原生时序，以上非物理显示延迟。 当前4f7/c249的1a62实际callback521样本/p99桶上界999us/max1287us；hook到后验118样本、discard38（缺时钟）、p95桶上界20000us/max161869us。四个>100ms为角双击g22/23/48/49，包含动作分流，最大样本nativeAPI部分9503.3us，不能叫连续Move/nativeAPI161ms或物理显示延迟；此本批预算不覆盖830a失败。当前仅保留物理P1000–1977/978条加早期driver嵌入receipt，不从不完整记录重算全样本分位数。 新25b/001c的540f现成summary：callback522样本/p99上界999us/max934us；hook到后验118样本/discard38/p95上界20000us/max173950us。最大g48为离散double_click_stretch，DOWN到后验173949.5us中nativeAPI13043.5us；不是连续Move173ms native调用或物理显示延迟。本批预算不覆盖830a历史FAIL，未从不完整产品文件重算分位数。 当前42ab/e869/4ff物理P192为同一producer原summary：callback39样本，p99桶上界500us/max447us；native hook→postverify9样本，p95桶上界99999us/max79352us。后者当前样本未达<50ms目标，不能择优只报callback或旧小值；不是物理显示延迟、不从JSONL到达顺序推原生时序。 当前2787/72bd/P187新完整geometry+postcontext端点：callback33/p99桶999us/max660us仅本scope预算通过；native9/p95桶99999us/max82011us仍未达50ms。P167/168同H串行，第二member H→S含前member；apply整批返回后才写placement日志，不支持把间隔归placement日志I/O。旧数值/FAIL和不等价端点保留。 【后继同产品2787/ffb/c14实际】2787/ffb/c14同PID5320真实Move→右Resize→后继Move、五阶段Free/XY吸附/Hold真实noop/Detach/Resnap及两成员Ctrl、五代Raw+legacy NormalUp/release/detach/Gone限定PASS；9native exact/identity/完整postcontext成立。P186 callback33/p99桶999us/max851us仅本scope通过，native9/p95桶99999us/max50498us仍FAIL，不四舍五入为50ms。UIA providerPID0无click、客户内容NOT_RUN；Terminal held正常exit0/rootGone及产品publicquit/resources与Shell树/wrapper forced UNKNOWN分开。c80产品未启动，cmd CPtrue但实际exit0xC0000142/0B，child桌面UNKNOWN；Terminal仍ready0/0xd0000022，停止无变化route。c14原两Collect失败保留，精确Run v2恢复后8artifact哈希稳定，原A4/owner/expect/launch未改。 【新ccde/13a实际】P203 callback35/p99桶999us/max885us仅此scope；native9完整端点p95桶99999us/max51639us仍FAIL。Move真实carried preflight limits非fresh，Resize P60仍查询；member2单次native15.613ms及串行成本不证明唯一根因。 【ccde/354/7bb新有限范围】P254 callback44/p99桶999us/max506us、native11完整后验p95桶49999us/max25259us均仅本scope达预算。最大P60 Resize full25.2590ms；同产品不同TEST owner/sample改变不能独立证明旧全部原因，旧13a/c14/72bd/830a失败保留，NF02不关闭。",
+      "observed": "保留11ae同构建既有统计：0a66/2c8各17次hook到回读p95为10.5895/25.2265ms（<50ms），dfdd单次1017.4899ms对应明确自有1000ms阻塞，非正常placement尾值。当前4f7/5b两个实际producer分开：830a callback n50/max1755us/p99 bucket2000us，最近秩p99为样本最大1755us，未达<1ms；6e1f n71/max966us/p99 bucket999us，有限本批预算通过但不能覆盖830a失败。不同producer JSONL顺序不作共同原生时序，以上非物理显示延迟。 当前4f7/c249的1a62实际callback521样本/p99桶上界999us/max1287us；hook到后验118样本、discard38（缺时钟）、p95桶上界20000us/max161869us。四个>100ms为角双击g22/23/48/49，包含动作分流，最大样本nativeAPI部分9503.3us，不能叫连续Move/nativeAPI161ms或物理显示延迟；此本批预算不覆盖830a失败。当前仅保留物理P1000–1977/978条加早期driver嵌入receipt，不从不完整记录重算全样本分位数。 新25b/001c的540f现成summary：callback522样本/p99上界999us/max934us；hook到后验118样本/discard38/p95上界20000us/max173950us。最大g48为离散double_click_stretch，DOWN到后验173949.5us中nativeAPI13043.5us；不是连续Move173ms native调用或物理显示延迟。本批预算不覆盖830a历史FAIL，未从不完整产品文件重算分位数。 当前42ab/e869/4ff物理P192为同一producer原summary：callback39样本，p99桶上界500us/max447us；native hook→postverify9样本，p95桶上界99999us/max79352us。后者当前样本未达<50ms目标，不能择优只报callback或旧小值；不是物理显示延迟、不从JSONL到达顺序推原生时序。 当前2787/72bd/P187新完整geometry+postcontext端点：callback33/p99桶999us/max660us仅本scope预算通过；native9/p95桶99999us/max82011us仍未达50ms。P167/168同H串行，第二member H→S含前member；apply整批返回后才写placement日志，不支持把间隔归placement日志I/O。旧数值/FAIL和不等价端点保留。 【后继同产品2787/ffb/c14实际】2787/ffb/c14同PID5320真实Move→右Resize→后继Move、五阶段Free/XY吸附/Hold真实noop/Detach/Resnap及两成员Ctrl、五代Raw+legacy NormalUp/release/detach/Gone限定PASS；9native exact/identity/完整postcontext成立。P186 callback33/p99桶999us/max851us仅本scope通过，native9/p95桶99999us/max50498us仍FAIL，不四舍五入为50ms。UIA providerPID0无click、客户内容NOT_RUN；Terminal held正常exit0/rootGone及产品publicquit/resources与Shell树/wrapper forced UNKNOWN分开。c80产品未启动，cmd CPtrue但实际exit0xC0000142/0B，child桌面UNKNOWN；Terminal仍ready0/0xd0000022，停止无变化route。c14原两Collect失败保留，精确Run v2恢复后8artifact哈希稳定，原A4/owner/expect/launch未改。 【新ccde/13a实际】P203 callback35/p99桶999us/max885us仅此scope；native9完整端点p95桶99999us/max51639us仍FAIL。Move真实carried preflight limits非fresh，Resize P60仍查询；member2单次native15.613ms及串行成本不证明唯一根因。 【ccde/354/7bb新有限范围】P254 callback44/p99桶999us/max506us、native11完整后验p95桶49999us/max25259us均仅本scope达预算。最大P60 Resize full25.2590ms；同产品不同TEST owner/sample改变不能独立证明旧全部原因，旧13a/c14/72bd/830a失败保留，NF02不关闭。【当前f46/24a有限子范围】P32413native/full max33148us/p95桶49999、callback55/max489/p99桶500；只是本样本达到预算，不关旧尾延迟FAIL或整NF02，不推线程耦合为唯一根因。",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
@@ -14929,10 +15072,10 @@
       ],
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "新7bb有限11native和44callback预算通过，但不覆盖旧830acallback及13a/c14/72bd尾延迟失败/不同端点，不能自动关闭完整NF02。",
-        "所有时钟为同机QPC软件观察，非物理显示；独立blank UI线程是TEST对照事实，不证明唯一根因，不扩无变量压力/计数矩阵。"
+        "f46与7bb有限样本达到预算，但不抹830a callback及13a/c14/72bd尾延迟/旧端点，NF02仍未完整闭合。",
+        "QPC软件端点非物理显示；不追加无变量压力/计数矩阵，后继生产新候选按影响另记。"
       ],
-      "next_action": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。",
+      "next_action": "已验证的ccde/2579普通包入口、f46九代几何/真实UP及108 HC子范围不再写NOT_RUN。f46具体R/C提案差异由新生产liveResize接线修复中，最新源码9ec7e63e08c5137a5954bf6809d8c461ac902796正在构建/未现场；不得把ccde日志换绑后继EXE。保留108 exact scheme恢复FAIL，无新依据不改SET或重试空scheme路线。托盘providerPID0和客户cmd失败路线停止无变量重试；继续有前置的真实应用/显示/完整链缺项。旧44/22与modules0不增，有限性能子样本不关闭NF02。",
       "current_serial_timing_review": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
       "current_contract_review": "docs/reports/v1-evidence/830a-focus-successor-review.json",
       "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
@@ -14956,7 +15099,7 @@
         "physical_display_latency": false,
         "verdict": "CURRENT_SMALL_SAMPLE_TARGET_NOT_MET_HISTORICAL_FAIL_RETAINED"
       },
-      "latest_current_candidate_measurement": {
+      "historical_7bb_finite_candidate_measurement": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
         "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
@@ -14969,6 +15112,25 @@
         "native_samples": 11,
         "hook_to_postverify_p95_bucket_upper_us": 49999,
         "hook_to_postverify_max_us": 25259,
+        "endpoint": "geometry_and_post_context_complete",
+        "below_50ms_target": true,
+        "physical_display_latency": false,
+        "verdict": "FINITE_CURRENT_SCOPE_TARGETS_MET_NOT_WHOLE_NF02_PASS_HISTORICAL_FAILURES_RETAINED",
+        "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json"
+      },
+      "latest_current_candidate_measurement": {
+        "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
+        "product_sequence": 324,
+        "callback_samples": 55,
+        "callback_p99_bucket_upper_us": 500,
+        "callback_max_us": 489,
+        "callback_target_met_this_scope": true,
+        "native_samples": 13,
+        "hook_to_postverify_p95_bucket_upper_us": 49999,
+        "hook_to_postverify_max_us": 33148,
         "endpoint": "geometry_and_post_context_complete",
         "below_50ms_target": true,
         "physical_display_latency": false,
@@ -17297,7 +17459,7 @@
     "previous_scoped_portable_identity_ref": "historical_25b_a014_package",
     "note": "Current actual ordinary ZIP candidate is be7/744e. SetupPID6252 and ZIP PID6812 remain separate physical producer logs. Native Terminal af4 context is a separate same-product scope; tray/Explorer/whole gates remain incomplete."
   },
-  "current_package": {
+  "historical_42ab_f78d_package": {
     "run_id": "f78dc3fdd39241e2aa212d1aeb9cc112",
     "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
     "release_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
@@ -17312,6 +17474,23 @@
     "human_uat": "NOT_RUN",
     "previous_scoped_portable_identity_ref": "historical_744e_e4b9_package",
     "note": "SetupPID3464 and actualZIP PID6864 are separate physical lifetimes/logs. 42ab only adds successful GET buffer ownership cleanup; no HC theme/matrix or tray/real-app PASS inferred."
+  },
+  "current_package": {
+    "run_id": "bea0a2a7322e4120a7d7d35420d27364",
+    "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+    "release_binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+    "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+    "release_fixture_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+    "packaging_head": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+    "portable_package_id": "2579fb78cf3446bf986d9cdf9963828e",
+    "zip_sha256": "2664A6444ADB7FCE40AC7FC68B02D0493A751E7DC9DA03793E8986538188F272",
+    "manifest_sha256": "4E1208A3966FD375AA761D280F77D0F2E398DDEF7383D0EE9A1629BBA8D2C9C4",
+    "status": "ACTUAL_CCDE_2579_ORDINARY_ENTRY_SETTINGS_TWO_NORMALUP_EXIT_SCOPED_PASS_NOT_WHOLE_I12",
+    "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+    "human_uat": "NOT_RUN",
+    "previous_scoped_portable_identity_ref": "historical_42ab_f78d_package",
+    "note": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。",
+    "evidence_sha256": "0E8CDA4A8D9341A1D7C30F9A837C7FCCE43BD95F780680CE285ABA76CDD64A76"
   },
   "historical_scoped_ec2f_package": {
     "run_id": "ec2f4c491dc24dc5a6012d5c1a7a3a3c",
@@ -17391,7 +17570,7 @@
     "human_uat": "NOT_RUN",
     "note": "Actual be7 ZIP/extracted files and ordinary GUI/second instance/saved effect/two NormalUp/normal exit reverified; packaged NOT_RUN metadata remains original. Old25b/bfb kept under its historical alias, not rebound. New42ab source/EXE not tested by this package."
   },
-  "portable_candidate": {
+  "historical_d5f5_42ab_portable_candidate": {
     "package_id": "d5f5a2a6138049a5b4a1a76340904027",
     "source_commit": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
     "packaging_head": "8d81702e1eaab89d1c7255e81bb4fbe8416b902b",
@@ -17406,6 +17585,22 @@
     "validation_evidence_path": "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json",
     "human_uat": "NOT_RUN",
     "note": "Current42ab/d5f5 actualf78d scope only; previous744e/be7/e4b9 and all previous packages keep original bytes/Run/source. Packaged NOT_RUN metadata is not rewritten. No host trial or whole acceptance."
+  },
+  "portable_candidate": {
+    "package_id": "2579fb78cf3446bf986d9cdf9963828e",
+    "source_commit": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+    "packaging_head": "881a15c4ce3657775f5c1948814b3af77f0a7706",
+    "receipt_path": "uat/v1-portable/2579fb78cf3446bf986d9cdf9963828e/package-receipt.json",
+    "manifest_path": "uat/v1-portable/2579fb78cf3446bf986d9cdf9963828e/PaneBindV1/manifest.json",
+    "zip_sha256": "2664A6444ADB7FCE40AC7FC68B02D0493A751E7DC9DA03793E8986538188F272",
+    "manifest_sha256": "4E1208A3966FD375AA761D280F77D0F2E398DDEF7383D0EE9A1629BBA8D2C9C4",
+    "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+    "status": "ACTUAL_CCDE_2579_BEA0_ORDINARY_ENTRY_SCOPED_PASS_NOT_WHOLE_I12",
+    "actual_ordinary_no_argument_entry": "PASS_SCOPED_BEA0_NOT_WHOLE_I12_TRAY_OR_HC_MATRIX",
+    "validation_run_id": "bea0a2a7322e4120a7d7d35420d27364",
+    "validation_evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+    "human_uat": "NOT_RUN",
+    "note": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。"
   },
   "historical_portable_5f87_candidate": {
     "package_id": "5f87dc1c56704592a164a4d8c4c3a6b4",
@@ -18157,6 +18352,149 @@
     }
   ],
   "evidence": [
+    {
+      "id": "EV-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
+      "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
+      "configuration": "Release",
+      "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+      "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "product_binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "packaging_head": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+      "sha256": "0E8CDA4A8D9341A1D7C30F9A837C7FCCE43BD95F780680CE285ABA76CDD64A76",
+      "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+      "repository_excerpt_sha256": "93774E92DEC0587B8CC209C91EC5541B729A0A900FB1C9438EA546873499181D",
+      "original_raw_sources": [
+        {
+          "path": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/collection-20261024T111701161Z-da06813bf0d541f59cbadba0681eeed5/f46db2a72f624ad8baafc7a81c2f3090-release-fixture.jsonl",
+          "bytes": 128405486,
+          "sha256": "1F0503485603949D885EFD4AA823914E509CDD0EAC5A11890D6092B8F1F51871"
+        },
+        {
+          "path": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/collection-20261024T111701161Z-da06813bf0d541f59cbadba0681eeed5/f46db2a72f624ad8baafc7a81c2f3090-product-Release/panebind.log.jsonl",
+          "bytes": 409091,
+          "sha256": "476DA60DABA9CFB721BA20F3CAE858B2F803EC62895CF7CEBD8D0CBD71D3295C"
+        }
+      ],
+      "result": "NINE_GEOMETRY_NORMALUP_SCOPE_PASS_SINGLE_WM_SIZING_PREFERENCE_MISMATCH_TRAY_BLOCKED",
+      "scope": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
+      "observation_id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
+      "new_feature_or_B_PASS": false,
+      "cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/cleanup-receipt.json",
+          "bytes": 9979,
+          "sha256": "F6B4E0E53D5ED8DF54F9FAFE7A6C4BB4AD31B71FDB2F1AF497D0BC94D8A2B94A"
+        },
+        "utc": "2026-10-24T11:19:16.0308295Z",
+        "own_guest_PID": 35424,
+        "start_ticks_decimal": "639284373023968335",
+        "task_removed": true,
+        "guest_exited": true,
+        "evidence_unchanged": true,
+        "other_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      }
+    },
+    {
+      "id": "EV-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY",
+      "run_id": "bea0a2a7322e4120a7d7d35420d27364",
+      "configuration": "Release",
+      "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+      "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "product_binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "packaging_head": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+      "sha256": "0E8CDA4A8D9341A1D7C30F9A837C7FCCE43BD95F780680CE285ABA76CDD64A76",
+      "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+      "repository_excerpt_sha256": "93774E92DEC0587B8CC209C91EC5541B729A0A900FB1C9438EA546873499181D",
+      "original_raw_sources": [
+        {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-release-fixture.jsonl",
+          "bytes": 132659,
+          "sha256": "128D6C1CD743898C6DD39EA01BD46AE851F8B494F40B9F828CB8C21D2FDD61A3"
+        },
+        {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-product-Release/panebind.log.jsonl",
+          "bytes": 24080,
+          "sha256": "79B61FAB423E32CFA85F77EA2C42D98F75C1A146217702DBA3DA23C1666B935A"
+        },
+        {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+          "bytes": 75587,
+          "sha256": "4DA34B4502F04AB45962BAFE5E8B0A22C5C1B8A7A18F18E97BF844A80A22D25F"
+        }
+      ],
+      "result": "CURRENT_CCDE_2579_ORDINARY_PORTABLE_ENTRY_SCOPED_PASS_NOT_WHOLE_I12",
+      "scope": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。",
+      "observation_id": "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY",
+      "new_feature_or_B_PASS": false,
+      "cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/cleanup-receipt.json",
+          "bytes": 19308,
+          "sha256": "BCF007F44F287A3994DD18D3626AE6C3D7099C34BDDD8137D9CB6EB75E49F17B"
+        },
+        "utc": "2026-10-24T11:26:38.3271327Z",
+        "own_guest_PID": 35564,
+        "start_ticks_decimal": "639284375763855989",
+        "task_removed": true,
+        "guest_exited": true,
+        "evidence_unchanged": true,
+        "other_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      }
+    },
+    {
+      "id": "EV-108D-CCDE-HIGH-CONTRAST-RESTORE-FAILURE",
+      "run_id": "108d96d1689a466791759c0c533e7631",
+      "configuration": "Release",
+      "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+      "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "product_binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "packaging_head": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+      "sha256": "0E8CDA4A8D9341A1D7C30F9A837C7FCCE43BD95F780680CE285ABA76CDD64A76",
+      "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+      "repository_excerpt_sha256": "93774E92DEC0587B8CC209C91EC5541B729A0A900FB1C9438EA546873499181D",
+      "original_raw_sources": [
+        {
+          "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/108d96d1689a466791759c0c533e7631-release-fixture.jsonl",
+          "bytes": 77100,
+          "sha256": "5AFF54AFDC6BBD6BC8B35055F94770D330902A3AD92868F31E1C7EA2F399371B"
+        },
+        {
+          "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/108d96d1689a466791759c0c533e7631-product-Release/panebind.log.jsonl",
+          "bytes": 29645,
+          "sha256": "BB2FC46F61994974C5734DCDB81F600B9B9E684439A0499D2C6EAFC6DECF9814"
+        }
+      ],
+      "result": "HC_ON_KEYBOARD_GUI_SCOPES_PASS_EXACT_RESTORE_EMPTY_TO_NAMED_SCHEME_FAIL",
+      "scope": "ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。",
+      "observation_id": "PO-108D-CCDE-HIGH-CONTRAST-RESTORE-FAILURE",
+      "new_feature_or_B_PASS": false,
+      "cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/cleanup-receipt.json",
+          "bytes": 11733,
+          "sha256": "90EFBE619669FF2B7D3CAE4E13BFE0AB71B636A845E4BB795B2796177DD82698"
+        },
+        "utc": "2026-10-24T11:36:38.7040346Z",
+        "own_guest_PID": 37272,
+        "start_ticks_decimal": "639284381105822237",
+        "task_removed": true,
+        "guest_exited": true,
+        "evidence_unchanged": true,
+        "other_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      }
+    },
     {
       "id": "EV-69F4-EXPLORER-PHYSICAL-ROOT-MEDIUM-ELEVATED-AND-SHELL-INCOMPLETE-NO-AUTHORITY",
       "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
@@ -23175,6 +23513,69 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
+      "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
+      "configuration": "Release",
+      "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "evidence_id": "EV-F46-CCDE-TERMINAL-NINE-GENERATION-SIZING-PREFERENCE",
+      "evidence_paths": [
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
+      ],
+      "observed": "ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。",
+      "status": "NINE_GEOMETRY_NORMALUP_SCOPE_PASS_SINGLE_WM_SIZING_PREFERENCE_MISMATCH_TRAY_BLOCKED",
+      "feature_contract_PASS": false,
+      "benchmark_contract_PASS": false,
+      "whole_version_PASS": false,
+      "ordinary_portable_entry": false,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY",
+      "run_id": "bea0a2a7322e4120a7d7d35420d27364",
+      "configuration": "Release",
+      "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "evidence_id": "EV-BEA0-CCDE-2579-ORDINARY-PORTABLE-ENTRY",
+      "evidence_paths": [
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
+      ],
+      "observed": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。",
+      "status": "CURRENT_CCDE_2579_ORDINARY_PORTABLE_ENTRY_SCOPED_PASS_NOT_WHOLE_I12",
+      "feature_contract_PASS": false,
+      "benchmark_contract_PASS": false,
+      "whole_version_PASS": false,
+      "ordinary_portable_entry": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-108D-CCDE-HIGH-CONTRAST-RESTORE-FAILURE",
+      "run_id": "108d96d1689a466791759c0c533e7631",
+      "configuration": "Release",
+      "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "driver_binary_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "evidence_id": "EV-108D-CCDE-HIGH-CONTRAST-RESTORE-FAILURE",
+      "evidence_paths": [
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
+      ],
+      "observed": "ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。",
+      "status": "HC_ON_KEYBOARD_GUI_SCOPES_PASS_EXACT_RESTORE_EMPTY_TO_NAMED_SCHEME_FAIL",
+      "feature_contract_PASS": false,
+      "benchmark_contract_PASS": false,
+      "whole_version_PASS": false,
+      "ordinary_portable_entry": false,
+      "human_UAT": "NOT_RUN"
+    },
     {
       "id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
       "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",

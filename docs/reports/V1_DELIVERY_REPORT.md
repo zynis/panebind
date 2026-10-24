@@ -1,6 +1,20 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：ccde／354／7bb七代限定通过，托盘与整版合同未过（2026-10-24）
+## 当前接续：应用尺寸提案修复候选已构建，接续现场验证（2026-10-24）
+
+**生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0、整链0；整版PARTIAL，真人UAT PENDING。** 当前新源码`9ec7e63e08c5137a5954bf6809d8c461ac902796`仅live Resize查询应用尺寸提案；单窗合法C可采用，耦合布局若被单独修正则首次placement前拒绝。仍须完整新鲜权限、原始DOWN锚点、Raw UP撤权和单一writer；Move／离散命令未启用该回调。7b3首构建的测试局部重名错误保留，9ec7仅修正命名。新D/R及受影响offline各8/8通过，四完整argv宿主保护实际78；新产品现场NOT_RUN。
+
+新EXE Debug `671FA6ACCBB9D1487C274067A774B0D8CDA247998E9D13284941560681199309`／Release `8B3E350F2CC5E60C25DA4CFFE87027B57D930BF6DEE719B2ABC3C5B95A517226`；实际构建回执`uat/v1-control/build-sizing-9ec7e63-5edcd453fa1745ca8129556d55b2cddb/receipt.json` SHA-256 `F2C908DBBB5069C51A940BBD72F6232E020446C8EF01434DBBF010E62DB73F56`。旧ccde EXE字节未变，旧运行不换绑；尚不授权宿主试用。
+
+此前三项新增实际结果已归入同一[集中review](v1-evidence/20261024-targeted-guest-review.json)及433条字面摘录：
+
+- **f46／ccde／24a**：九代真实NormalUp、几何／磁吸／Ctrl／最小高度及后继通过；单次TEST提案R native bottom593→C592，而g8仍写R（visible bottom584而非C583）。该明确偏好差异不是native exact失败或全局栅格证明；新修复须现场复验。托盘仍拒绝、全Run FAIL，历史不改。
+- **bea0／ccde原2579包**：同一未改ZIP实际空参GUI、二启同实例、GUI保存影响Move、两代真实NormalUp及正常退出限定PASS。包内封包时NOT_RUN保留；现在不再称该ccde普通入口未运行。不是整I12、托盘、五应用或真人PASS。
+- **108／ccde／24a**：高对比ON flags127及真实150%两页设置／键盘／退出有据；恢复flags126和六颜色相同，但scheme空字符串变“高对比黑色”，exact恢复仍FAIL。TEST GET buffer实际LocalFree不冒生产allocation轨迹；两个静态BMP可读不等于全部页面／200%或真人通过。不再无变量重试该SET路线。
+
+旧21a5只证明预览矩形／颜色／alpha／非激活与leave／UP隐藏等子范围，不证明preview等于最终Dock commit，M10-F01／B30不升级。I08已依据a575关闭D24缺证据描述，仍保真实前台／会话等剩余合同。下一步仅验证新Resize调用链与受影响连续操作，并封定新普通便携入口；不重跑历史Full／900或停用路线。
+
+## 历史：ccde／354／7bb七代限定通过（后续由上文接续）
 
 **生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。本轮不增加分数。** 最新实际定向产品仍是冻结`ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3`／Release `D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3`，7bb TEST为`354def7cad4ef88d9d2eed96a6300379b8e32b7f`／R `C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B`，包装`354def7cad4ef88d9d2eed96a6300379b8e32b7f`。只改TEST未重建产品；原13a、2787五Run各保原身份和失败。**已验普通入口仍是42ab／d5f5／f78；同ccde新普通2579包仅已生成、普通GUI NOT_RUN，不授宿主、完整Medium或整版PASS。**
 

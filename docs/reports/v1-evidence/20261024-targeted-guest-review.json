@@ -13,12 +13,12 @@
   "review_date": "2026-10-24",
   "scope": "Concentrated actual review of the three original exact guest runs; subsequent separately identified runs may append here without rebinding earlier evidence. This is not a new task list or acceptance framework.",
   "new_execution_by_review": false,
-  "last_reviewed_run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+  "last_reviewed_run_id": "108d96d1689a466791759c0c533e7631",
   "excerpt": {
     "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-    "bytes": 404912,
-    "lines": 316,
-    "sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
+    "bytes": 548750,
+    "lines": 433,
+    "sha256": "93774E92DEC0587B8CC209C91EC5541B729A0A900FB1C9438EA546873499181D",
     "format": "Original UTF-8 JSONL lines without parsing/re-serializing the literals; LF terminators in this derived file. Segment offsets below distinguish runs and producers.",
     "large_integer_policy": "Birth FILETIME and start_ticks in review identities are decimal strings extracted from original literals by regex. JSONL numeric bytes remain unchanged; do not round-trip them through floating-point JSON numbers.",
     "order_is_not_shared_native_time": true
@@ -6445,6 +6445,1385 @@
           ]
         }
       ]
+    },
+    {
+      "run_id": "f46db2a72f624ad8baafc7a81c2f3090",
+      "review_state": "SEALED_ACTUAL_SCOPES_ORIGINAL_VERDICT_PRESERVED",
+      "configuration": "Release",
+      "suite": "MediumDesktopUiOnly",
+      "collection_directory": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/collection-20261024T111701161Z-da06813bf0d541f59cbadba0681eeed5",
+      "identity": {
+        "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "product_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "packaging_head": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "fixture_PID": 6328,
+        "fixture_birth_filetime_decimal": "134373141158203792",
+        "product_PID": 5924,
+        "product_birth_filetime_decimal": "134373141260607736",
+        "product_arguments": [
+          "--settings",
+          "--diagnostic"
+        ],
+        "ordinary_entry_inferred": false,
+        "Terminal_PID": 1200,
+        "Terminal_birth_filetime_decimal": "134373141282900818",
+        "Terminal_root": 131932,
+        "Terminal_TID": 3524
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/collection-20261024T111701161Z-da06813bf0d541f59cbadba0681eeed5/f46db2a72f624ad8baafc7a81c2f3090-release-fixture.jsonl",
+          "bytes": 128405486,
+          "sha256": "1F0503485603949D885EFD4AA823914E509CDD0EAC5A11890D6092B8F1F51871",
+          "lines": 2316,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "all_source_matches": true
+        },
+        {
+          "path": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/collection-20261024T111701161Z-da06813bf0d541f59cbadba0681eeed5/f46db2a72f624ad8baafc7a81c2f3090-product-Release/panebind.log.jsonl",
+          "bytes": 409091,
+          "sha256": "476DA60DABA9CFB721BA20F3CAE858B2F803EC62895CF7CEBD8D0CBD71D3295C",
+          "lines": 325,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "all_source_matches": true
+        }
+      ],
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/f46db2a72f624ad8baafc7a81c2f3090/package-receipt.json",
+          "bytes": 13338,
+          "sha256": "776026E0BFEA36E513CEB01079381CC432A1AB179FC12DF1239391E88AE4B5E8"
+        },
+        "zip_sha256": "014F65A13C0F48D23108ADF89FFA73722833C5CCE93A9FA4C3A78E90B346A3B3",
+        "manifest_sha256": "CE0B2D5B4351F7106757830F2D66F5C1280E8AD0C5B22D283F2664A6EE9917D2",
+        "wsb_sha256": "6E01645CAE8E8937035496D46A6464626C889570F61EDC1F69B0387E2D3B5D3C",
+        "actual_container_pins_match": true,
+        "package_time_metadata_not_rewritten": true
+      },
+      "original_driver_result": "FAIL",
+      "wrapper": {
+        "wait_result": 0,
+        "fixture_exit_code": 1,
+        "descendants_alive_at_fixture_exit": 1,
+        "forced_test_cleanup": true,
+        "raw_product_cleanup_pass": false
+      },
+      "artifact_verification": {
+        "receipt": {
+          "path": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/collection-20261024T111701161Z-da06813bf0d541f59cbadba0681eeed5/collection-receipt.json",
+          "bytes": 8875,
+          "sha256": "C5CA334F9413D95B54B6E606D9ECEA41EF0D46368CA4D990D230F0E631DB49C4"
+        },
+        "artifacts": [
+          {
+            "relative_path": "f46db2a72f624ad8baafc7a81c2f3090-Release-launch.json",
+            "bytes": 9882,
+            "sha256": "0E5E22D7D32B3ED238FE79C06F2AE84EB6F1561619F927DE0AAFDA81F04086C1",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "f46db2a72f624ad8baafc7a81c2f3090-release-fixture.jsonl",
+            "bytes": 128405486,
+            "sha256": "1F0503485603949D885EFD4AA823914E509CDD0EAC5A11890D6092B8F1F51871",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "4F568AC672F66386BBE043CED3ED9350C2E323D112DB243CA71E8B8EE0201697",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "f46db2a72f624ad8baafc7a81c2f3090-terminal-asset.json",
+            "bytes": 1205,
+            "sha256": "3A817D133E53C2AA4904A0F854ADB2033EB5FE090FA63BAFF0C89A802D1C8F90",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "f46db2a72f624ad8baafc7a81c2f3090-product-Release\\panebind.log.jsonl",
+            "bytes": 409091,
+            "sha256": "476DA60DABA9CFB721BA20F3CAE858B2F803EC62895CF7CEBD8D0CBD71D3295C",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "f46db2a72f624ad8baafc7a81c2f3090-product-Release\\panebind.exe",
+            "bytes": 1222144,
+            "sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "f46db2a72f624ad8baafc7a81c2f3090-guest-summary.json",
+            "bytes": 22706,
+            "sha256": "ECC551BF399B1FCBE919444A880D5AF3686DB3BCCE21E7AC33AAD81B714695FF",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "f46db2a72f624ad8baafc7a81c2f3090-product-Release\\portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "count": 8,
+        "all_hashes_sizes_and_stable_inventory_match": true
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/cleanup-receipt.json",
+          "bytes": 9979,
+          "sha256": "F6B4E0E53D5ED8DF54F9FAFE7A6C4BB4AD31B71FDB2F1AF497D0BC94D8A2B94A"
+        },
+        "utc": "2026-10-24T11:19:16.0308295Z",
+        "own_guest_PID": 35424,
+        "start_ticks_decimal": "639284373023968335",
+        "task_removed": true,
+        "guest_exited": true,
+        "evidence_unchanged": true,
+        "other_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "observations": {
+        "geometry": {
+          "summary_D": 2289,
+          "scope_result": "PASS_SINGLE_EXACT_Terminal_GEOMETRY_ONLY",
+          "completed_generations": 9,
+          "actual_NormalUp": [
+            {
+              "D": 2162,
+              "generation": 1,
+              "phase": "Move1",
+              "Raw_P": 31,
+              "legacy_P": 33,
+              "end_P": 41,
+              "gone_P": 39,
+              "actual_NormalUp_release_detach_destroy": true
+            },
+            {
+              "D": 2174,
+              "generation": 2,
+              "phase": "Resize",
+              "Raw_P": 66,
+              "legacy_P": 68,
+              "end_P": 76,
+              "gone_P": 74,
+              "actual_NormalUp_release_detach_destroy": true
+            },
+            {
+              "D": 2186,
+              "generation": 3,
+              "phase": "SuccessorMove",
+              "Raw_P": 100,
+              "legacy_P": 102,
+              "end_P": 110,
+              "gone_P": 108,
+              "actual_NormalUp_release_detach_destroy": true
+            },
+            {
+              "D": 2214,
+              "generation": 4,
+              "phase": "MagnetFivePhase",
+              "Raw_P": 138,
+              "legacy_P": 140,
+              "end_P": 148,
+              "gone_P": 146,
+              "actual_NormalUp_release_detach_destroy": true
+            },
+            {
+              "D": 2230,
+              "generation": 5,
+              "phase": "CtrlAdjacentMove",
+              "Raw_P": 173,
+              "legacy_P": 175,
+              "end_P": 183,
+              "gone_P": 181,
+              "actual_NormalUp_release_detach_destroy": true
+            },
+            {
+              "D": 2245,
+              "generation": 6,
+              "phase": "DeclaredMinimumResize",
+              "Raw_P": 207,
+              "legacy_P": 209,
+              "end_P": 217,
+              "gone_P": 215,
+              "actual_NormalUp_release_detach_destroy": true
+            },
+            {
+              "D": 2258,
+              "generation": 7,
+              "phase": "AfterMinimumMove",
+              "Raw_P": 241,
+              "legacy_P": 243,
+              "end_P": 251,
+              "gone_P": 249,
+              "actual_NormalUp_release_detach_destroy": true
+            },
+            {
+              "D": 2272,
+              "generation": 8,
+              "phase": "SingleSizingProposalResize",
+              "Raw_P": 276,
+              "legacy_P": 278,
+              "end_P": 286,
+              "gone_P": 284,
+              "actual_NormalUp_release_detach_destroy": true
+            },
+            {
+              "D": 2285,
+              "generation": 9,
+              "phase": "AfterSingleSizingProposalMove",
+              "Raw_P": 310,
+              "legacy_P": 312,
+              "end_P": 320,
+              "gone_P": 318,
+              "actual_NormalUp_release_detach_destroy": true
+            }
+          ],
+          "actual_native_calls": 13,
+          "all_native_exact_postcontext": true,
+          "real_minimum_height143_clamp_and_successor_Move": true,
+          "two_member_Ctrl_only": true
+        },
+        "interactive_proposal": {
+          "D": 2261,
+          "comparison_D": 2274,
+          "API_return": 1,
+          "LRESULT": 1,
+          "R_native": [
+            339,
+            440,
+            2155,
+            593
+          ],
+          "C_native": [
+            339,
+            440,
+            2155,
+            592
+          ],
+          "context_unchanged": true,
+          "actual_visible": [
+            348,
+            440,
+            2146,
+            584
+          ],
+          "R_visible": [
+            348,
+            440,
+            2146,
+            584
+          ],
+          "C_visible": [
+            348,
+            440,
+            2146,
+            583
+          ],
+          "matches_R": true,
+          "matches_C": false,
+          "result": "MISMATCH",
+          "actual_g8_NormalUp_and_g9_successor_Move": true,
+          "application_grid_known": false,
+          "programmatic_size_illegal_inferred": false,
+          "whole_M03_F03_PASS": false,
+          "pending_production_fix": "Current ccde writes rawR exact but does not honor this observed interactive preferenceC. New liveResize adapter source/build/native not yet assigned; future results must not retag this failure."
+        },
+        "NF02": {
+          "product_P": 324,
+          "schema": "panebind-v1/1",
+          "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+          "sequence": 324,
+          "process_id": 5924,
+          "tick": 50718,
+          "type": "timing_summary",
+          "qpc_frequency": 10000000,
+          "clock_scope": "same_machine_QPC_software_observation_cross_thread_one_tick_quantization",
+          "mouse_callback": {
+            "samples": 55,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 500,
+            "maximum_us": 489,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 13,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 49999,
+            "maximum_us": 33148,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          },
+          "finite_sample_targets_met": true,
+          "whole_NF02_PASS": false,
+          "historical_failures_retained": true
+        },
+        "cleanup": {
+          "geometry_pair_known": true,
+          "independent_blank_owner_stopped": true,
+          "Terminal_held_exit0_rootGone": true,
+          "product_own_shutdown": {
+            "schema": "panebind-v1/1",
+            "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+            "sequence": 325,
+            "process_id": 5924,
+            "tick": 50734,
+            "type": "shutdown",
+            "own_hooks_stopped": true,
+            "own_overlay_destroyed": true,
+            "native_worker_exited": true,
+            "issued_native_completion_unknown": false,
+            "visual_recovery_stopped": true,
+            "visual_restore_confirmed": true,
+            "guest_capture_route_used": true,
+            "capture_resource_route_used": true,
+            "capture_resource_route": "exact_guest",
+            "own_input_resources_stopped": true,
+            "own_capture_released": true,
+            "own_input_association_detached": true,
+            "mouse_up_callbacks": {
+              "snapshot_known": true,
+              "callback_count": 9,
+              "last": {
+                "hook_observed_qpc": 504347429,
+                "button": 1,
+                "generation_at_entry": 9,
+                "consumed_before": false,
+                "aborted_before": false,
+                "matching_branch_taken": true,
+                "push_attempted": false,
+                "push_succeeded": false
+              }
+            }
+          },
+          "Default_return_confirmed": true,
+          "Shell_tree_UNKNOWN": true,
+          "wrapper_forced_is_not_product_cleanup_PASS": true
+        },
+        "tray": {
+          "D": 2291,
+          "provider_PID": 0,
+          "semantic_guard": false,
+          "click_sent": false,
+          "menu_observed": false,
+          "cause": "UNKNOWN"
+        },
+        "whole_feature_or_matrix_PASS": false
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "raw_log": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/collection-20261024T111701161Z-da06813bf0d541f59cbadba0681eeed5/f46db2a72f624ad8baafc7a81c2f3090-release-fixture.jsonl",
+          "excerpt_line_start": 317,
+          "excerpt_line_end": 347,
+          "original_sequences": [
+            3,
+            17,
+            2144,
+            2150,
+            2151,
+            2162,
+            2174,
+            2186,
+            2214,
+            2230,
+            2235,
+            2242,
+            2245,
+            2247,
+            2258,
+            2261,
+            2269,
+            2272,
+            2274,
+            2282,
+            2285,
+            2288,
+            2289,
+            2291,
+            2292,
+            2293,
+            2298,
+            2304,
+            2307,
+            2309,
+            2316
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "BEF70966D560F00027CA88B19505882B0EA9B6B5772AF56785369B2851CFB44C",
+            "C65ED77CDD8E637E227A03DE18C9484351D2CDD86C3AE670DC037E0C98983BAD",
+            "B182C987A7EF08EE9BB5735C5F84D5421EEB1AB25ACC98F963CED6EC3EA996F8",
+            "24538D2E84F65BD95A057FC55C1242BC38E519EA44D39290FAD93D45E0B5FDF7",
+            "911FD16C67B57CBEC7F119AE74D053F4F53FA5EFE29DE8E1028944732A150C42",
+            "BB059A10E56EE5C6A8457185EC2553C8FBD7935222873ADBD26CDADDF5A009C1",
+            "886562FDBCF1E38B34312867F43E4490BA038E0C36C795D10792051F80021F11",
+            "AD5DE0EE39C06C692352CADBCED963C91C4E5032549B4181E9554C3E0F2D9A37",
+            "3B2274A6DD06B72CBF85735F020DAEDB1D7CE3A681507A6B2B4BDBB6270ACEF3",
+            "38F3CCEB6A84C1119567027B2349972AFD68929CED558A3DD76FC0F237350AF8",
+            "ED2A0D98118931E6604F994B1BDCBC350B7078CDCA05EDD233D700B5E5A1AD9B",
+            "6C280DA8A063FC09206DDFEA11B735A001D88A61DE16642E35DDB29D9505AE27",
+            "A5F2E0A4053CF955A761D4DD2ED8A4B67E55E515749304821D5B031DF08115E1",
+            "17A62FBA5ED66FC245817E05B309D282D6F59BF8E72F7FE0DFCAD2E6E21AE4FA",
+            "24233B39E799CFC90E7C2142220F020C6A0DB22F8022FD672246755F20F07B8D",
+            "1F4E430480EFCADE8B9DF8EEF817696EDB169698083285B2E5D7964DFF10E5D9",
+            "5B1CF390649CA18B883CECA7E1E8CE00C2D387BD2FE8B29C81D4CD827803ECA6",
+            "5A260320FD2CB50D95E524597FD2C59039E01AD883D778ADB1752D7CEBC1BAF8",
+            "211223DE62EE9E68DB6AEAC2666F1B0CBD63D42290A0C78CA68EF0C03CB21F8E",
+            "E42F6986608FE2B51339D413EE4FD6B72EDA6A8891C9BFF45DE29612AF16F274",
+            "E883D269ED73D15442578B038B6D7DDF191758355D9FAB7395CA39E5E5BB3F7A",
+            "AB7519B57EF6039BB1F239579D5E2841233A95D16A2A285541CBD1F7F046837A",
+            "F63512572971C1F3B60856345B215EDAFDC932A87DCB88177110F68602DE02F9",
+            "F68CD13D50C9E38240F93486B7911B763CD0C73A6CD1474DB7F912D7DFABF580",
+            "682E22DB9D767C470869B810DE5463F4B8CEDBC64BF77F6E19CCDCBEEF76ED36",
+            "DDEE48357C695D667A849C8956CD89793559FD2E4BCABAD05878C4C3356C9568",
+            "958689D7C6AA51EDE7D08CA39EEFC1E1E7CC6A5706ED6170D714F474E193A03B",
+            "9864EAD416E81D2EF64FF3D56FAD5DDC59C4B3FB4C98FF1F5CA132C8043E3D1B",
+            "D969C424F1496328DD91C9E500FDFEF43B6616B178B4AC2A9C6E8C47ACB444E2",
+            "86E44D4356082640CD6683A75171085B3EFE25B928FD5874252131D4CAB8B00E",
+            "57A5E54A13E5AE2CBDE7F80FEEDD597670CF825C15A11B51F1BC6893AB510447"
+          ]
+        },
+        {
+          "producer": "product",
+          "raw_log": "uat/v1-control/f46db2a72f624ad8baafc7a81c2f3090/collection-20261024T111701161Z-da06813bf0d541f59cbadba0681eeed5/f46db2a72f624ad8baafc7a81c2f3090-product-Release/panebind.log.jsonl",
+          "excerpt_line_start": 348,
+          "excerpt_line_end": 365,
+          "original_sequences": [
+            3,
+            4,
+            26,
+            60,
+            95,
+            128,
+            131,
+            133,
+            134,
+            135,
+            167,
+            168,
+            202,
+            236,
+            271,
+            305,
+            324,
+            325
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "4E34A51F198E9A473F1295DA60E2D1E3AB56586A8020363A7E5D64AB4A55C192",
+            "AA71C31B3C3B8AF15B79572665D1A7E3AF8D11B0C2DC8420CAD7963901581A70",
+            "4725483363A50917410E01D3631C518BBB8FAF54C30C1BDF9E6026EFAF77C332",
+            "D16F59570A9AE349D105EB25AFE990C7A3C31891B7CEA2FB23CC0EC32352B612",
+            "547C378938D97251B9EA9D4DE50EBC89CF14AA154801B2C1E95A7449E11658AD",
+            "9CCDEC5D39AEDCE8AB9945AF9EC053495F576E5CE2A6A800B46F3E8841FCA48C",
+            "4491296BDB8CCB2E7DA57674AB95BA17BFE3F680384948E4BF1DB2F590BCAA32",
+            "3DC0A0A8512B648B6971AE11FE3B14B3099BF6BE1903985EAB97D620B9ACDAC8",
+            "863CAB08B00CB7D711D2941802E647D83B99A53D38B237F1272DE2C82A9D6941",
+            "31DF66F3E8D74B026D6D2F9650B23E0FAE2E9D92FBD1457D61FF7304EA83B0FC",
+            "79DFE6CDB999F6AB9CA0AD29A981E592FE6F89E99FFB95F70EE118343AE30200",
+            "3A46061F665A014FD4DEF296A16DE5EC48448464D0AB10B7D0785C258C07E1B9",
+            "0B536FF3FB0856E15CD96D4B2435DC4C8AC14FBC6229F10ED6F324981E927E59",
+            "2E71A87F66AF6FCCFE5D64B9CBB5A283525896DB3BF83FF1262C3C538628561D",
+            "378DFD951C9FD9C6F9F29F625B6108AD6E57B6FCCDCB3F2EB403537745C7C46C",
+            "2308B4DF4CB08158D00C33D1E05E3A888A56D947180C7B17368A246A57B6E0EE",
+            "DE40B3EDE80EAFDAE5790E09C4BAB8D4533A3B2F8822492DC3EE3CEC13072AD7",
+            "A4BC7474B5DEE5A7C56B5CFFDCC27927782A0207C818443D7E5DB491CEAECAC9"
+          ]
+        }
+      ],
+      "result": "NINE_GEOMETRY_NORMALUP_SCOPE_PASS_SINGLE_WM_SIZING_PREFERENCE_MISMATCH_TRAY_BLOCKED"
+    },
+    {
+      "run_id": "bea0a2a7322e4120a7d7d35420d27364",
+      "review_state": "SEALED_ACTUAL_SCOPES_ORIGINAL_VERDICT_PRESERVED",
+      "configuration": "Release",
+      "suite": "PortableEntryOnly",
+      "collection_directory": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76",
+      "identity": {
+        "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "product_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "packaging_head": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "fixture_PID": 3964,
+        "fixture_birth_filetime_decimal": "134373143894374928",
+        "setup_PID": 3460,
+        "setup_birth_filetime_decimal": "134373143897440937",
+        "ordinary_ZIP_PID": 5808,
+        "ordinary_ZIP_birth_filetime_decimal": "134373143913886719",
+        "ordinary_arguments": [],
+        "setup_and_ZIP_physical_logs_not_spliced": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-release-fixture.jsonl",
+          "bytes": 132659,
+          "sha256": "128D6C1CD743898C6DD39EA01BD46AE851F8B494F40B9F828CB8C21D2FDD61A3",
+          "lines": 188,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "all_source_matches": true
+        },
+        {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-product-Release/panebind.log.jsonl",
+          "bytes": 24080,
+          "sha256": "79B61FAB423E32CFA85F77EA2C42D98F75C1A146217702DBA3DA23C1666B935A",
+          "lines": 24,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "all_source_matches": true
+        },
+        {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+          "bytes": 75587,
+          "sha256": "4DA34B4502F04AB45962BAFE5E8B0A22C5C1B8A7A18F18E97BF844A80A22D25F",
+          "lines": 62,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "all_source_matches": true
+        }
+      ],
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/bea0a2a7322e4120a7d7d35420d27364/package-receipt.json",
+          "bytes": 13336,
+          "sha256": "9641C99724DED6CB8A544077FF3FEB20B41B716161526063E2434FF9374F8A9A"
+        },
+        "zip_sha256": "0ABE5D654DCD2930D62CF65BF9846A51B9C33EF074D163543997422C5EF0F698",
+        "manifest_sha256": "702B1D3AFB35045C0FFC48790D68ADE089B354F735B0F60F77B06C5F839A3688",
+        "wsb_sha256": "AAFE33423F55B7292AB1278343877C3CD70620B4A68E7F37C84F1CB52AC2929C",
+        "actual_container_pins_match": true,
+        "package_time_metadata_not_rewritten": true
+      },
+      "original_driver_result": "PASS",
+      "wrapper": {
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "raw_product_cleanup_pass": false
+      },
+      "artifact_verification": {
+        "receipt": {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/collection-receipt.json",
+          "bytes": 19163,
+          "sha256": "0DC0F65FA345589EF535546D85BF018518A7A02CC5F4B314C4AEA97219F68179"
+        },
+        "artifacts": [
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\已知问题.md",
+            "bytes": 6705,
+            "sha256": "A8273485955333646DD2D9E4F551493CA34ABF81E33D3E72FDB458B55ACDA211",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\配置说明.md",
+            "bytes": 3063,
+            "sha256": "2791AF1C4A92139BC68492D8546C5CE90D61B54FBB776A6C44714053628275CA",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\settings.ini",
+            "bytes": 1215,
+            "sha256": "E86D405B7D8544117387CAC6C34A8F5EF07C55FA4ABEEAC5D044499E456010AC",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\中文快速入门.md",
+            "bytes": 14758,
+            "sha256": "E6DBE9AA88D9CF17495F84F5119C5CACA5D5E64DA49DC24E014AF62053385BDC",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-guest-summary.json",
+            "bytes": 21733,
+            "sha256": "A720E0AFBD77D744201CE55AEE92B268B44759D05A4FAFAD2A381784200D2858",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-Release-launch.json",
+            "bytes": 9920,
+            "sha256": "A9DEB20E63196E829E9C1A2108B1D151469E81CE1F6CD3B52F1DD4155B92603E",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "2D57B96B5C8C4DB492DDCE937F3A833D57CF410656184772CF44305B2E1E57EF",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-portable-ready.marker",
+            "bytes": 302,
+            "sha256": "111F493CC9A103CA690B5269AA911B0E67CC2D9129E3919A6BD4F80213F432E3",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-release-fixture.jsonl",
+            "bytes": 132659,
+            "sha256": "128D6C1CD743898C6DD39EA01BD46AE851F8B494F40B9F828CB8C21D2FDD61A3",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-product-Release\\portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-product-Release\\settings.ini",
+            "bytes": 1216,
+            "sha256": "11BC81A7C74D940C9B1A51A04A315B06748D5A844B069565FC482C445B8E3C34",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-product-Release\\panebind.exe",
+            "bytes": 1222144,
+            "sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-product-Release\\panebind.log.jsonl",
+            "bytes": 24080,
+            "sha256": "79B61FAB423E32CFA85F77EA2C42D98F75C1A146217702DBA3DA23C1666B935A",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\LICENSE",
+            "bytes": 1099,
+            "sha256": "F024AABB093CF44DC8A93EC30E22A7A43BB208E5CEDC06448E5262CD657C899C",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\panebind.log.jsonl",
+            "bytes": 75587,
+            "sha256": "4DA34B4502F04AB45962BAFE5E8B0A22C5C1B8A7A18F18E97BF844A80A22D25F",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\portable.flag",
+            "bytes": 31,
+            "sha256": "E34DC6330A1F436DCAA38AD7E33E33C6993CEB4BCB9DB3BC43AE83B1BC8D6E97",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\manifest.json",
+            "bytes": 6239,
+            "sha256": "4E1208A3966FD375AA761D280F77D0F2E398DDEF7383D0EE9A1629BBA8D2C9C4",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格\\PaneBindV1\\panebind.exe",
+            "bytes": 1222144,
+            "sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "count": 18,
+        "all_hashes_sizes_and_stable_inventory_match": true
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/cleanup-receipt.json",
+          "bytes": 19308,
+          "sha256": "BCF007F44F287A3994DD18D3626AE6C3D7099C34BDDD8137D9CB6EB75E49F17B"
+        },
+        "utc": "2026-10-24T11:26:38.3271327Z",
+        "own_guest_PID": 35564,
+        "start_ticks_decimal": "639284375763855989",
+        "task_removed": true,
+        "guest_exited": true,
+        "evidence_unchanged": true,
+        "other_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "observations": {
+        "portable_package": {
+          "package_id": "2579fb78cf3446bf986d9cdf9963828e",
+          "receipt": {
+            "path": "uat/v1-portable/2579fb78cf3446bf986d9cdf9963828e/package-receipt.json",
+            "bytes": 3652,
+            "sha256": "FB2719EFD5AC8CCC843707C5E011C19F07CF77DD86C4717DA6D3D514883E4D68"
+          },
+          "zip_sha256": "2664A6444ADB7FCE40AC7FC68B02D0493A751E7DC9DA03793E8986538188F272",
+          "manifest_sha256": "4E1208A3966FD375AA761D280F77D0F2E398DDEF7383D0EE9A1629BBA8D2C9C4",
+          "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+          "seven_files_verified": true,
+          "chinese_space_directory": true,
+          "configuration_preseeded": false,
+          "old_42ab_f78_not_rebound": true
+        },
+        "ordinary_entry": {
+          "launch_D": 75,
+          "arguments_empty": true,
+          "GUI_D": 79,
+          "empty_secondary_D": 82,
+          "single_exact_instance_D": 84,
+          "SaveCancel_help_D": 96,
+          "default_Move": {
+            "schema": "panebind-v1-owned-driver/1",
+            "source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+            "sequence": 123,
+            "tick": 33015,
+            "automated_guest_driver": true,
+            "type": "case",
+            "case": "portable_ordinary_entry_actual_Move_effect",
+            "result": "PASS",
+            "stage": "fresh_default_10_DIP",
+            "source_dpi": 144,
+            "generation": 1,
+            "expected": [
+              140,
+              80,
+              540,
+              440
+            ],
+            "actual": [
+              140,
+              80,
+              540,
+              440
+            ],
+            "evidence_kind": "independent_actual_geometry_and_real_START_UP",
+            "native_API_receipt_claimed": false
+          },
+          "actual_GUI_save_D": 153,
+          "saved_attraction0_Move": {
+            "schema": "panebind-v1-owned-driver/1",
+            "source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+            "sequence": 165,
+            "tick": 34734,
+            "automated_guest_driver": true,
+            "type": "case",
+            "case": "portable_ordinary_entry_actual_Move_effect",
+            "result": "PASS",
+            "stage": "GUI_saved_attraction_zero_actual_effect",
+            "source_dpi": 144,
+            "generation": 2,
+            "expected": [
+              134,
+              83,
+              534,
+              443
+            ],
+            "actual": [
+              134,
+              83,
+              534,
+              443
+            ],
+            "evidence_kind": "independent_actual_geometry_and_real_START_UP",
+            "native_API_receipt_claimed": false
+          },
+          "actual_UP": [
+            {
+              "D": 130,
+              "generation": 1,
+              "Raw_P": 23,
+              "legacy_P": 25,
+              "gone_P": 31,
+              "end_P": 32,
+              "normal_up_release_detach": true
+            },
+            {
+              "D": 172,
+              "generation": 2,
+              "Raw_P": 50,
+              "legacy_P": 52,
+              "gone_P": 58,
+              "end_P": 59,
+              "normal_up_release_detach": true
+            }
+          ],
+          "per_call_native_attempt_NOT_CLAIMED": true
+        },
+        "cleanup": {
+          "previous_setup_exit0_D": 65,
+          "ZIP_exit0_D": 174,
+          "ZIP_shutdown": {
+            "schema": "panebind-v1/1",
+            "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+            "sequence": 62,
+            "process_id": 5808,
+            "tick": 35468,
+            "type": "shutdown",
+            "own_hooks_stopped": true,
+            "own_overlay_destroyed": true,
+            "native_worker_exited": true,
+            "issued_native_completion_unknown": false,
+            "visual_recovery_stopped": true,
+            "visual_restore_confirmed": true,
+            "guest_capture_route_used": true,
+            "capture_resource_route_used": true,
+            "capture_resource_route": "exact_guest",
+            "own_input_resources_stopped": true,
+            "own_capture_released": true,
+            "own_input_association_detached": true,
+            "mouse_up_callbacks": {
+              "snapshot_known": true,
+              "callback_count": 3,
+              "last": {
+                "hook_observed_qpc": 347693162,
+                "button": 1,
+                "generation_at_entry": 2,
+                "consumed_before": false,
+                "aborted_before": false,
+                "matching_branch_taken": true,
+                "push_attempted": false,
+                "push_succeeded": false
+              }
+            }
+          },
+          "poststop_actual_client_D": 179,
+          "counts_before": [
+            1,
+            1
+          ],
+          "counts_after": [
+            2,
+            2
+          ],
+          "retained_bytes_D": 181
+        },
+        "scope": {
+          "raw_driver_I12": "PASS",
+          "actual_summary_D": 184,
+          "actual_summary": "PASS",
+          "whole_I12_or_tray_or_version_PASS": false,
+          "skipped_D183_not_failed_repeat": true,
+          "human_UAT": "NOT_RUN"
+        }
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "raw_log": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-release-fixture.jsonl",
+          "excerpt_line_start": 366,
+          "excerpt_line_end": 393,
+          "original_sequences": [
+            3,
+            17,
+            24,
+            63,
+            65,
+            73,
+            74,
+            75,
+            79,
+            80,
+            82,
+            84,
+            96,
+            100,
+            108,
+            123,
+            130,
+            153,
+            165,
+            172,
+            174,
+            179,
+            180,
+            181,
+            182,
+            183,
+            184,
+            188
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "5CFE866C4ED3F528944C2909E5324F1065CD3CA6A113B0A6D602BA0D5543BFF9",
+            "0D70941096BCA4E4A75583ABA000DFD663DC1B9DD300A5C2980414B2D3641844",
+            "617ACB8DB8858F16E77C41E41FDD7D550AA7764A43880CCE7EC292CBEAF02565",
+            "6254C23F8786BE3D4C270EA4167C23758616C6E730D6EF6FEFEAB77E92D469C8",
+            "830AA8B66F9807F158A14E7C46645DEDF7E2A32D9801868535892D7C5D437E15",
+            "59961D054D73FD6D49332C4E875A84F4E1691FA59D4E50464C4A639CA7B55709",
+            "48BD3992196B8CBE61CA6F27EEF4EBE947BA0E5ADC18DC16DAD2A010CE2B80E6",
+            "25415FBBA5F510F30CDCE0291F0150F7956780919BA56BF7422111850C9DD280",
+            "20CB2A7453AB60CF43FF90C47B57D76CB6895E4DFD43BD222E6A37004448C78F",
+            "92DD1F9585B3ED628E4FCB9738537C931A9FCEBCE8A0AED33E212014043A00BD",
+            "8D1E7B4D0BC42E4BC784D208C801074347B2B28558AE4A02FA39C0E545C61EC7",
+            "DCF056EE6A3BDF95DA639780451B7C537670083A690AF8AF4A62FBBCB4B5D606",
+            "4E0E94D5949EF4CF94C625EA5F7E16CAC51612DB8971A66F013F285A45559E0E",
+            "B6AC70174B6A2B39390B528708B212E7B5CA2480476ACF074FF5ECFEDA629CCB",
+            "AF533CF4AC251DCE308CC49445B3DB006395B2AEB05942FC3E5A99A2B2226FF3",
+            "042DCCD72CDBFE19DEBE536D7354F800981FF9568740CF60DA066EFD34EE3EDA",
+            "1D41FC1C4D53E96B8F467E0D85210BFB15588942F8DFEAD5ED9BE422F00EFC4B",
+            "D80A2F77C74A55F84D0C45689B0DB451F81D36DF93A971C6008D6084349BEFF8",
+            "ECB6F308AE65AC614DF198CC576BCC3A73A1E4F62C1B7702A7A90AA76E107E9C",
+            "AE63B775AED4F6EF2B02C0A0DFABC107C3EEFD861961D6EB7A5ADC81A5E958AD",
+            "15CE66C2E1776D2815BB5452185702A5094E45B988C665E11D049B29A2E22BAB",
+            "EAA976E355F5C349098F7DDD1C1303CA6918A98EA0B1743B1D6AD606DC6C9736",
+            "893C807E1733AF55740B3A3204E77B78C251640ECD7EE0590F6BC038491BEB91",
+            "AF449A786F4D2B2B162C9108710629A00A4DDDD0E4D9B0C945310DBFFB10FF72",
+            "5A0B65A2781AEF3315E93B23684017425BADCD8151A158C3583A483F5DEA8407",
+            "BE42FA0EFD653B52245FF1D88ADB484489CC4FE596C54A4A611A311F0894D344",
+            "99CEBC4AFA30747CF31EE19D7BB762D4091C0EF5E854CF441894913B28CD5D09",
+            "1B4A247634110A1D450FB983D2E3510A74E90A32249331E639E77AA45C5A8996"
+          ]
+        },
+        {
+          "producer": "setup_product",
+          "raw_log": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-product-Release/panebind.log.jsonl",
+          "excerpt_line_start": 394,
+          "excerpt_line_end": 395,
+          "original_sequences": [
+            3,
+            24
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "8E02DFB1268F73E683FE46D410085876ED53EAB0AFFA087CBA777BCD3340DEC0",
+            "ADF637BA95E852AE1661EC51A44AE8E8254CA98AA57745FCF6A2F255B7A1BB7B"
+          ]
+        },
+        {
+          "producer": "ZIP_product",
+          "raw_log": "uat/v1-control/bea0a2a7322e4120a7d7d35420d27364/collection-20261024T112107774Z-ffa4fbf2d87544fdacce2f0c93271c76/bea0a2a7322e4120a7d7d35420d27364-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+          "excerpt_line_start": 396,
+          "excerpt_line_end": 400,
+          "original_sequences": [
+            3,
+            4,
+            32,
+            59,
+            62
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "67749C62DE81D0829898757EB681F1D9076B5EECBE03E9958FBB18EB56A00CF0",
+            "3A990677DCB290A211003719AAB0C78E1D2A498C60ED79B9746CF2F317068EDE",
+            "D7F9CE08953CAE3FD76650FA7921F6313089E00D7944B25116F1C5001602AA9F",
+            "243211E364300FE30E4CC61FD2D066AB20856373BD448CB369D04D1A0D60500B",
+            "9F664047A880811206627EF30F49AB1BA273F4E3F7E55EC1C7A0D92C8645ADC1"
+          ]
+        }
+      ],
+      "result": "CURRENT_CCDE_2579_ORDINARY_PORTABLE_ENTRY_SCOPED_PASS_NOT_WHOLE_I12"
+    },
+    {
+      "run_id": "108d96d1689a466791759c0c533e7631",
+      "review_state": "SEALED_ACTUAL_SCOPES_ORIGINAL_VERDICT_PRESERVED",
+      "configuration": "Release",
+      "suite": "HighContrastOnly",
+      "collection_directory": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5",
+      "identity": {
+        "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "product_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "driver_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+        "packaging_head": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+        "fixture_PID": 6352,
+        "fixture_birth_filetime_decimal": "134373149232843464",
+        "product_PID": 2928,
+        "product_birth_filetime_decimal": "134373149235042989",
+        "DPI": 144,
+        "host_scope": false
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/108d96d1689a466791759c0c533e7631-release-fixture.jsonl",
+          "bytes": 77100,
+          "sha256": "5AFF54AFDC6BBD6BC8B35055F94770D330902A3AD92868F31E1C7EA2F399371B",
+          "lines": 142,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "all_source_matches": true
+        },
+        {
+          "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/108d96d1689a466791759c0c533e7631-product-Release/panebind.log.jsonl",
+          "bytes": 29645,
+          "sha256": "BB2FC46F61994974C5734DCDB81F600B9B9E684439A0499D2C6EAFC6DECF9814",
+          "lines": 33,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "all_source_matches": true
+        }
+      ],
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/108d96d1689a466791759c0c533e7631/package-receipt.json",
+          "bytes": 13335,
+          "sha256": "1C8FF8BC87C20D68BFE8EE5897C1BCF041E491DDE2ED3BAF3CB971633314E20D"
+        },
+        "zip_sha256": "A955E584541F12D66A59BA0EEC7781DB464E622C05ABF71FDC411E6C55EE2AB0",
+        "manifest_sha256": "6B654DCE00A74F3E41092996E31D3E34EEB4A5344B3D2B9FBFC29D094BB63D2D",
+        "wsb_sha256": "4100FDFDA40FF94BCC2A1B1EF1E04CD9648B5B69AAD1A03287FB7D95D8B43F86",
+        "actual_container_pins_match": true,
+        "package_time_metadata_not_rewritten": true
+      },
+      "original_driver_result": "FAIL",
+      "wrapper": {
+        "wait_result": 0,
+        "fixture_exit_code": 1,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "raw_product_cleanup_pass": false
+      },
+      "artifact_verification": {
+        "receipt": {
+          "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/collection-receipt.json",
+          "bytes": 10821,
+          "sha256": "FAFF664E0215AD5EDE195766C3BBFB1344B3B8713465543E07F958683FBD08A8"
+        },
+        "artifacts": [
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-Release-launch.json",
+            "bytes": 9876,
+            "sha256": "CDA892D18D2725CA741C188DF26BC193490D7B24CF98AD0A9C42F6F7A5891BF0",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-release-fixture.jsonl",
+            "bytes": 77100,
+            "sha256": "5AFF54AFDC6BBD6BC8B35055F94770D330902A3AD92868F31E1C7EA2F399371B",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-Release-settings-page-0.bmp",
+            "bytes": 5119254,
+            "sha256": "616EECC0D1855D1B7546EEDD2A4040C92C06DC3DBD3A24E82CE68A0962D4FDA3",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "8B62DFA2BD87AB6C7A5E33754946A1B2CB94F0B318E08CB6C7AF30FA30DB159A",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-Release-settings-page-3.bmp",
+            "bytes": 5119254,
+            "sha256": "857DCCEC66A4FAF932D53EAA2DC8A00E99D510A2F4D26857E1F98D39344890CE",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-product-Release\\panebind.log.jsonl",
+            "bytes": 29645,
+            "sha256": "BB2FC46F61994974C5734DCDB81F600B9B9E684439A0499D2C6EAFC6DECF9814",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-product-Release\\panebind.exe",
+            "bytes": 1222144,
+            "sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-product-Release\\portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-guest-summary.json",
+            "bytes": 20898,
+            "sha256": "E49D0BCF95A9C3C969EFDE59142EE135B9284644246659A5F2BD4C7527C31038",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "108d96d1689a466791759c0c533e7631-product-Release\\settings.ini",
+            "bytes": 1216,
+            "sha256": "B200427D2678A2078679685653F8D83C60644FDE8BA950D02F482DECE12EDC32",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "count": 10,
+        "all_hashes_sizes_and_stable_inventory_match": true
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/cleanup-receipt.json",
+          "bytes": 11733,
+          "sha256": "90EFBE619669FF2B7D3CAE4E13BFE0AB71B636A845E4BB795B2796177DD82698"
+        },
+        "utc": "2026-10-24T11:36:38.7040346Z",
+        "own_guest_PID": 37272,
+        "start_ticks_decimal": "639284381105822237",
+        "task_removed": true,
+        "guest_exited": true,
+        "evidence_unchanged": true,
+        "other_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "observations": {
+        "actual_HC": {
+          "original_flags": 126,
+          "original_HC_ON": false,
+          "enabled_flags": 127,
+          "enabled_HC_ON": true,
+          "enable_SET_true": true,
+          "palette_changed": false,
+          "original_colors": [
+            16777215,
+            0,
+            15790320,
+            0,
+            14811135,
+            0
+          ],
+          "enabled_colors": [
+            16777215,
+            0,
+            15790320,
+            0,
+            14811135,
+            0
+          ],
+          "profile_update_requested": false,
+          "host_SET_called": false
+        },
+        "GUI_keyboard": {
+          "actual_ready_D": 80,
+          "page0_focus_D": 83,
+          "page3_focus_D": 92,
+          "real_Enter_preserved_configuration_D": 98,
+          "real_Esc_no_write_D": 107
+        },
+        "restore": {
+          "D": 117,
+          "SET_return_true": true,
+          "actual_flags": 126,
+          "actual_HC_ON": false,
+          "actual_colors": [
+            16777215,
+            0,
+            15790320,
+            0,
+            14811135,
+            0
+          ],
+          "original_scheme": "",
+          "actual_scheme": "高对比黑色",
+          "exact_flags_scheme_colors": false,
+          "assertion_FAIL_D": 118,
+          "old_8d_failure_not_closed": true,
+          "guest_destruction_not_restore": true
+        },
+        "allocation": {
+          "TEST_LocalFree_D": 116,
+          "TEST_native_attempted": true,
+          "TEST_return_pointer": 0,
+          "TEST_system_buffer_freed_once": true,
+          "SET_caller_storage_not_freed": true,
+          "production_LocalFree_API_trace": "NOT_OBSERVED",
+          "actual_product_settings_HC_path_exercised": true,
+          "TEST_counts_not_relabelled_product_API_calls": true
+        },
+        "visual_review_by_main_executor": {
+          "actual_view_image": true,
+          "pages": [
+            0,
+            3
+          ],
+          "notes": "150% static two original frames: text/controls readable, page3 focus and black/white/yellow visible, no obvious clipping; page0 title text not visible, page3 title visible, cause unknown. Not all pages,200%,human or wholeHC.",
+          "screenshots": [
+            {
+              "D": 84,
+              "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/108d96d1689a466791759c0c533e7631-Release-settings-page-0.bmp",
+              "bytes": 5119254,
+              "sha256": "616EECC0D1855D1B7546EEDD2A4040C92C06DC3DBD3A24E82CE68A0962D4FDA3"
+            },
+            {
+              "D": 93,
+              "path": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/108d96d1689a466791759c0c533e7631-Release-settings-page-3.bmp",
+              "bytes": 5119254,
+              "sha256": "857DCCEC66A4FAF932D53EAA2DC8A00E99D510A2F4D26857E1F98D39344890CE"
+            }
+          ],
+          "raw_visual_review_NOT_RUN_fields_preserved": true
+        },
+        "cleanup": {
+          "actual_product_exit0_D": 130,
+          "product_shutdown": {
+            "schema": "panebind-v1/1",
+            "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+            "sequence": 33,
+            "process_id": 2928,
+            "tick": 35312,
+            "type": "shutdown",
+            "own_hooks_stopped": true,
+            "own_overlay_destroyed": true,
+            "native_worker_exited": true,
+            "issued_native_completion_unknown": false,
+            "visual_recovery_stopped": true,
+            "visual_restore_confirmed": true,
+            "guest_capture_route_used": true,
+            "capture_resource_route_used": true,
+            "capture_resource_route": "exact_guest",
+            "own_input_resources_stopped": true,
+            "own_capture_released": true,
+            "own_input_association_detached": true,
+            "mouse_up_callbacks": {
+              "snapshot_known": true,
+              "callback_count": 2,
+              "last": {
+                "hook_observed_qpc": 310353031,
+                "button": 1,
+                "generation_at_entry": 0,
+                "consumed_before": false,
+                "aborted_before": false,
+                "matching_branch_taken": false,
+                "push_attempted": false,
+                "push_succeeded": false
+              }
+            }
+          },
+          "actual_poststop_client_D": 137,
+          "counts_before": [
+            0,
+            0
+          ],
+          "counts_after": [
+            1,
+            1
+          ]
+        },
+        "scope": {
+          "summary_D": 138,
+          "result": "FAIL",
+          "whole_M10_F05_HC_or_version_PASS": false,
+          "real200percent": "NOT_RUN",
+          "human_UAT": "NOT_RUN"
+        }
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "raw_log": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/108d96d1689a466791759c0c533e7631-release-fixture.jsonl",
+          "excerpt_line_start": 401,
+          "excerpt_line_end": 427,
+          "original_sequences": [
+            3,
+            17,
+            24,
+            65,
+            66,
+            67,
+            68,
+            75,
+            83,
+            84,
+            92,
+            93,
+            98,
+            107,
+            108,
+            109,
+            110,
+            115,
+            116,
+            117,
+            118,
+            119,
+            128,
+            130,
+            137,
+            138,
+            142
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "2141BEE8609ABEE19CB8A669370710455788F22B133C2F8774D4C4D8D89AD218",
+            "9637C965D79E4C1F9C1E98FA2E3D50A400DEAEA9D9C6205E5B4E4B652F722855",
+            "90EACF00B8D93C616F5A9BD7240A8170926FD3B82871DE462E6DC73A5C07D849",
+            "B0FEB0230FED57CF4BEE73FCE6F8D1B04F44BF2004430A6D2F23DA0EE108F359",
+            "423D085C0F368C8AA70079528C30448519C998ADC0FCE5382663F8FE6F39B631",
+            "942672A8D34D989C7231A2F6DEE8A6B2F4F38AA6E68441846F94CBB716B4B89A",
+            "71396BA4E0A4DEE94B22CE1140E96652CC30C559C2E5A421066D3E8253AA0D08",
+            "71FA67C6CA6CBEE54D80F869EF456DD34360E4B6F043EF9BF133BFF052EE3B00",
+            "6F09BA7851785957921F46C3A820DCAB40952065A288DFDD696A26FE8004D1AA",
+            "2692FD93FB43F0FD44B23B6593888FE8BFA679889B0BF0A7140D3959761DF3CC",
+            "862334345893BFA60213BD2DC42ABF41EBFC06B683B845D4B18EC7FF7F45E673",
+            "BD3269969A291EE635404CA023DF461CCF6F7A103F39C4F997DDB83FE914F3C5",
+            "21BD7DDD741725EABA8ACE8C81C0CAFCBDE23580D5F388A0451C98291E077B49",
+            "B6D5EDF6CD16141FB0630B0C7F711EE22E596C1C1A4B8E79587199698B850028",
+            "1E813EFC22EE7C973E7FC00809411C841CB1930025C5D7569AD5D126BD66B49F",
+            "54C50CAC874EEF90329B9B2BEA63E704C53948665947149169B54BA7611E048B",
+            "EF8DBD37557A13D36C632CE7C755583FD2885B9815A9539D863CA3B75DA6BEF0",
+            "4A7431587179A157534C35084DB2E38E30EFF4546BDF8AA48079577F4A9240D1",
+            "0D604EC42C8A4987BDBE0A0A7460DB66E9375B7247D91D96B092CBC60C848D64",
+            "774B4BA5165AC9D657A29C77363F7524506AC80E072FB63987420B06D1BD4F6F",
+            "9D9F9D42E9228094C6AEAB4AC3EA7B7A6E8E601D6E248EB5785AF82C1CF23C43",
+            "B5AF6A7D86D383B54C31AADF3E2507754F27D4C73A79172DE6508187ABA6FADE",
+            "91C331C018EA91D57C55C45E3735D26E4F7B9100E0909BD8AEF08B5AEEC43193",
+            "7ABF9FA2F7544FAA682ECBE88D86E872E678C2099141B4ACC39CA57C463291BB",
+            "F9044107E5B35BE7387184B4C6011C29628910E2C6106D972D4D0FB28A40BBB5",
+            "7F760895EDE4CD892657CF10AD1FBA70F9E9544DB85DFBE89F662A3BA17736A5",
+            "53A16598BC28476E87E3B8CE4C932CBBFD2F6996BA0CEFE0562E4137792D40C0"
+          ]
+        },
+        {
+          "producer": "product",
+          "raw_log": "uat/v1-control/108d96d1689a466791759c0c533e7631/collection-20261024T113103941Z-70eba55175014c2697734e77adab86d5/108d96d1689a466791759c0c533e7631-product-Release/panebind.log.jsonl",
+          "excerpt_line_start": 428,
+          "excerpt_line_end": 433,
+          "original_sequences": [
+            3,
+            4,
+            23,
+            26,
+            32,
+            33
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "14FEADC087EC6E3063AB961F76A1365F379581C6B8E85B21762AF173AE97350E",
+            "CE08F13D3B2A993AFE822492F6C11936C39B8E2503CB3728E65B918B928CFF86",
+            "6DE25888F3463871C548B12BE9338EAA223F2298AC0096AC6C9642BEB92F3E19",
+            "22E8727B40A64566E2CD8203DB655022ADAB6BF468B8F19BBF28EF8EF75ECE95",
+            "0F50BA0145407BCDA1521A557FD2E1D40850510F3E2ED98B11F77F95A08B8162",
+            "5B74FAFCA0B65723AF96FFF046308A3CA10B203B801F54C681716C8935566882"
+          ]
+        }
+      ],
+      "result": "HC_ON_KEYBOARD_GUI_SCOPES_PASS_EXACT_RESTORE_EMPTY_TO_NAMED_SCHEME_FAIL"
     }
   ],
   "tooling_followup": {
@@ -6530,15 +7909,68 @@
       "product_mechanism_failure_inferred": false,
       "guest_runtime": "NOT_RUN"
     },
+    "correct_24a_driver_build": {
+      "source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "product_rebuilt": false,
+      "build_directory": "out/v1-driver-sizing-ehsc-bigobj-24a25ab",
+      "receipt": {
+        "path": "uat/v1-control/driver-sizing-ehsc-bigobj-24a25ab-4b7377ca6a304d4a81c3e2e45225462f/receipt.json",
+        "bytes": 2574,
+        "sha256": "1D4341B7F1E5F9A9C7A83D6D0B8959F9C7A24DD9DBE9771ECBCEF9215A1C69CB"
+      },
+      "actual_Debug_Release_build_and_guest_path_each1_of1_PASS": true,
+      "Debug_driver_sha256": "808AE77332D6B48DF2765AAE50E6A6D8780C482DC63B53A476206FB4F53A7C68",
+      "Release_driver_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "actual_CMAKE_CXX_FLAGS": "/DWIN32 /D_WINDOWS /EHsc /bigobj",
+      "actual_four_vcxproj_configurations_ExceptionHandling": "Sync",
+      "actual_four_vcxproj_configurations_bigobj": true,
+      "Debug_original_ctest_sha256": "C4ECC8A7289741456FA863B561AAAF24A18DE2349834F9944C9C7377C2085177",
+      "Release_original_ctest_sha256": "9420AC2D8BF98F0580C52A58AA8E7AE29BD03E554E8CD05FB1AF4AAE8A6AF71C",
+      "actual_host_guard": {
+        "path": "uat/v1-host-guard/ac8a82e49072444c9e52c3fb9195cf59/receipt.json",
+        "sha256": "FD87A0A1CDCA361F2868324CA8ADC54FCDCAC05D9F6DC9C0151CC80BB9244CFD",
+        "full_argv_exit78_count": 4,
+        "host_test_input": 0,
+        "ordinary_host_product_launch": 0
+      },
+      "tool_build_history": [
+        {
+          "kind": "NORMAL_RELEASE_C1128_SINGLE_OBJECT_SECTION_LIMIT",
+          "original_directory": "uat/v1-control/driver-isolated-target-24a25ab-69d549ae375a4c2598bf0110901bea9b",
+          "failure_source": "MAIN_EXECUTOR_ACTUAL_BUILD_OUTPUT_TRANSCRIPTION",
+          "guest_runtime": "NOT_RUN",
+          "product_failure_inferred": false
+        },
+        {
+          "receipt_path": "uat/v1-control/driver-sizing-bigobj-24a25ab-1c68b624e2fe46bb91df81a171b34a6f/receipt.json",
+          "receipt_sha256": "3CBA3734E9BA8534FC2BBD369BB7E4AD952BC24905594FD3DE77EABCBE7B5647",
+          "actual_build_and_guest_path_each1_of1_PASS": true,
+          "actual_CMAKE_CXX_FLAGS": "/bigobj",
+          "qualification": "DO_NOT_DEPLOY_EHSC_BASELINE_OVERWRITTEN",
+          "qualification_basis": "Main executor inspected vcxproj: ExceptionHandling empty; flags replaced /DWIN32 /D_WINDOWS /EHsc instead of appending /bigobj. Original receipt and artifacts retained; not used for the three actual runs.",
+          "guest_runtime": "NOT_RUN",
+          "product_failure_inferred": false
+        }
+      ],
+      "runtime_run_ids": [
+        "f46db2a72f624ad8baafc7a81c2f3090",
+        "bea0a2a7322e4120a7d7d35420d27364",
+        "108d96d1689a466791759c0c533e7631"
+      ],
+      "no_feature_or_whole_PASS_inferred_from_build": true
+    },
     "successor_candidate_pending": {
       "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
       "build_directory": "out/v1-nf02-tray-ccde014",
       "build_status": "DEBUG_RELEASE_BUILD_PASS_SELECTED8_OF8_OFFLINE_EACH",
-      "native_runtime": "ACTUAL_7BB_SEVEN_GEOMETRY_NORMALUP_MINIMUM_SCOPED_PASS_TRAY_BLOCKED",
-      "latest_actual_run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
-      "latest_runtime_driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
-      "latest_runtime_driver_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
-      "driver_build_guard_and_failure_history_ref": "runs[6].driver_tooling",
+      "native_runtime": "ACTUAL_F46_GEOMETRY_AND_SINGLE_PROPOSAL_MISMATCH_BEA_ORDINARY_PACKAGE_SCOPEPASS_108_HC_RESTOREFAIL",
+      "latest_actual_run_id": "108d96d1689a466791759c0c533e7631",
+      "latest_geometry_run_id": "f46db2a72f624ad8baafc7a81c2f3090",
+      "latest_ordinary_portable_run_id": "bea0a2a7322e4120a7d7d35420d27364",
+      "latest_runtime_driver_source_sha": "24a25ab6db6cb0a51ba252a5e34ce1b2dd65b8d1",
+      "latest_runtime_driver_sha256": "7B4B9E205FD8105A9EDDE98A5AF00FC5C884BEE107B332D720DF1796C9F0D553",
+      "driver_build_guard_and_failure_history_ref": "tooling_followup.correct_24a_driver_build",
       "scope": "Same-size Move post-track-query omission is additionally limited to !r.destination. Explicit destination/cross-display or DPI-transfer cases retain the complete post-limit query; one negative production-path test added. Fresh clean D/R rebuild includes end-of-build HEAD/source-clean verification. No2787 guest result or42ab ordinary portable result is rebound to this candidate.",
       "binary_hashes": {
         "Debug_product": "E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A",
