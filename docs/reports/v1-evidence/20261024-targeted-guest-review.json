@@ -13,12 +13,12 @@
   "review_date": "2026-10-24",
   "scope": "Concentrated actual review of the three original exact guest runs; subsequent separately identified runs may append here without rebinding earlier evidence. This is not a new task list or acceptance framework.",
   "new_execution_by_review": false,
-  "last_reviewed_run_id": "13a2871f78024e8984c1c21f9e3b22ba",
+  "last_reviewed_run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
   "excerpt": {
     "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-    "bytes": 298968,
-    "lines": 250,
-    "sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+    "bytes": 404912,
+    "lines": 316,
+    "sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
     "format": "Original UTF-8 JSONL lines without parsing/re-serializing the literals; LF terminators in this derived file. Segment offsets below distinguish runs and producers.",
     "large_integer_policy": "Birth FILETIME and start_ticks in review identities are decimal strings extracted from original literals by regex. JSONL numeric bytes remain unchanged; do not round-trip them through floating-point JSON numbers.",
     "order_is_not_shared_native_time": true
@@ -4967,6 +4967,1484 @@
           ]
         }
       ]
+    },
+    {
+      "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+      "review_state": "SEALED_SEVEN_GEOMETRY_NORMALUP_AND_REAL_APPLICATION_MINIMUM_SCOPED_PASS_TRAY_BLOCKED",
+      "configuration": "Release",
+      "suite": "MediumDesktopUiOnly",
+      "collection_directory": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/collection-20261024T104652577Z-ca0d1cbe6f9f4500bc32343d70bd90e7",
+      "result": "SEVEN_GENERATION_GEOMETRY_MINIMUM_SCOPE_PASS_TRAY_BLOCKED_FULL_CONTRACTS_NOT_GRANTED",
+      "original_driver_result": "FAIL",
+      "original_failure_preserved": true,
+      "identity": {
+        "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "product_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+        "driver_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
+        "packaging_head": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+        "product_PID": 5948,
+        "product_birth_filetime_decimal": "134373123982363141",
+        "actual_product_arguments": [
+          "--settings",
+          "--diagnostic"
+        ],
+        "ordinary_entry_PASS_inferred": false,
+        "fixture_PID": 6260,
+        "fixture_birth_filetime_decimal": "134373123879672405",
+        "Terminal_PID": 7016,
+        "Terminal_TID": 616,
+        "Terminal_root_HWND": 131934,
+        "Terminal_birth_filetime_decimal": "134373124005318567",
+        "blank_target_HWND": 918572,
+        "blank_target_PID": 6260,
+        "blank_target_TID": 6740,
+        "blank_target_birth_filetime_decimal": "134373123879672405",
+        "Default_Shell_HWND": 65792,
+        "Default_Shell_PID": 4972,
+        "Default_Shell_TID": 4976,
+        "Default_Shell_birth_filetime_decimal": "134373123788528527",
+        "actual_Medium_nonElevated_same_SID_session1": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/collection-20261024T104652577Z-ca0d1cbe6f9f4500bc32343d70bd90e7/7bb387ddc9ac4ca69aa1539a53320bd1-release-fixture.jsonl",
+          "bytes": 106742570,
+          "sha256": "EDD3E6BA565CCC1AAC55AF4AE2B88F22F19655E07032DDDAB28548AF57E0DCCE",
+          "lines": 1935,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        },
+        {
+          "path": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/collection-20261024T104652577Z-ca0d1cbe6f9f4500bc32343d70bd90e7/7bb387ddc9ac4ca69aa1539a53320bd1-product-Release/panebind.log.jsonl",
+          "bytes": 318858,
+          "sha256": "5D8B44DEF823EC736D5A5C22379E8816B07CB9AD0573E00A33E94789BA1B64A3",
+          "lines": 255,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        }
+      ],
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/7bb387ddc9ac4ca69aa1539a53320bd1/package-receipt.json",
+          "bytes": 13338,
+          "sha256": "149ABAFE283BB778099F4CAF18C00E411149FD3F552ACCB73D4A9CB041B247E0"
+        },
+        "zip_sha256": "D93DACB5A6BB6D1CCFF52A067BA537E0BC4A37F9975E711AF0D7187F432ECE4B",
+        "manifest_sha256": "037AB22D25C668CAE198A0177568427626C1A701498E20BC3F232BCDA668ADD6",
+        "wsb_sha256": "1A0D832EB422FA3D3BA077C430EA25DEAE3D350EAF37BEBD3E9015627919094E",
+        "actual_local_container_hashes_match": true,
+        "collected_product_EXE_hash_matches": true,
+        "package_time_NOT_RUN_metadata_not_rewritten": true
+      },
+      "observations": {
+        "seven_generations_geometry": {
+          "same_product_PID": 5948,
+          "phase_results": [
+            {
+              "sequence": 1805,
+              "phase": "Move1",
+              "generation": 1,
+              "raw": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "expected": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "actual": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": null,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1817,
+              "phase": "Resize",
+              "generation": 2,
+              "raw": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "expected": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "actual": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": null,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1829,
+              "phase": "SuccessorMove",
+              "generation": 3,
+              "raw": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "expected": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "actual": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": null,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1845,
+              "phase": "Free",
+              "generation": 4,
+              "raw": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "expected": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "actual": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1848,
+              "phase": "XY_Snap",
+              "generation": 4,
+              "raw": [
+                353,
+                393,
+                2151,
+                1320
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1851,
+              "phase": "Hold_outside_entry_inside_release",
+              "generation": 4,
+              "raw": [
+                341,
+                405,
+                2139,
+                1332
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": false
+            },
+            {
+              "sequence": 1854,
+              "phase": "Detach",
+              "generation": 4,
+              "raw": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "expected": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "actual": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1857,
+              "phase": "Resnap",
+              "generation": 4,
+              "raw": [
+                354,
+                393,
+                2152,
+                1320
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1872,
+              "phase": "CtrlAdjacentMove",
+              "generation": 5,
+              "raw": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "expected": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "actual": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "neighbour": [
+                2122,
+                422,
+                2422,
+                752
+              ],
+              "Ctrl": true,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1888,
+              "phase": "DeclaredMinimumResize",
+              "generation": 6,
+              "raw": [
+                324,
+                422,
+                2122,
+                564
+              ],
+              "expected": [
+                324,
+                422,
+                2122,
+                565
+              ],
+              "actual": [
+                324,
+                422,
+                2122,
+                565
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1901,
+              "phase": "AfterMinimumMove",
+              "generation": 7,
+              "raw": [
+                348,
+                440,
+                2146,
+                583
+              ],
+              "expected": [
+                348,
+                440,
+                2146,
+                583
+              ],
+              "actual": [
+                348,
+                440,
+                2146,
+                583
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": null,
+              "native_attempted": true
+            }
+          ],
+          "seven_actual_NormalUp_proofs": [
+            {
+              "driver_sequence": 1808,
+              "generation": 1,
+              "phase": "Move1",
+              "source": 131934,
+              "source_PID": 7016,
+              "source_TID": 616,
+              "UP_send_before_qpc": 448860401,
+              "raw_sequence": 31,
+              "raw_flags": 2,
+              "raw_qpc": 448890107,
+              "legacy_sequence": 33,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 448915635,
+              "end_sequence": 41,
+              "end": 0,
+              "normal_up": true,
+              "gone_sequence": 39,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1820,
+              "generation": 2,
+              "phase": "Resize",
+              "source": 131934,
+              "source_PID": 7016,
+              "source_TID": 616,
+              "UP_send_before_qpc": 455795424,
+              "raw_sequence": 65,
+              "raw_flags": 2,
+              "raw_qpc": 455829814,
+              "legacy_sequence": 67,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 455853572,
+              "end_sequence": 75,
+              "end": 0,
+              "normal_up": true,
+              "gone_sequence": 73,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1832,
+              "generation": 3,
+              "phase": "SuccessorMove",
+              "source": 131934,
+              "source_PID": 7016,
+              "source_TID": 616,
+              "UP_send_before_qpc": 462641676,
+              "raw_sequence": 99,
+              "raw_flags": 2,
+              "raw_qpc": 462680505,
+              "legacy_sequence": 101,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 462706489,
+              "end_sequence": 109,
+              "end": 0,
+              "normal_up": true,
+              "gone_sequence": 107,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1860,
+              "generation": 4,
+              "phase": "MagnetFivePhase",
+              "source": 131934,
+              "source_PID": 7016,
+              "source_TID": 616,
+              "UP_send_before_qpc": 475219123,
+              "raw_sequence": 137,
+              "raw_flags": 2,
+              "raw_qpc": 475254980,
+              "legacy_sequence": 139,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 475283287,
+              "end_sequence": 147,
+              "end": 0,
+              "normal_up": true,
+              "gone_sequence": 145,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1876,
+              "generation": 5,
+              "phase": "CtrlAdjacentMove",
+              "source": 131934,
+              "source_PID": 7016,
+              "source_TID": 616,
+              "UP_send_before_qpc": 483374092,
+              "raw_sequence": 172,
+              "raw_flags": 2,
+              "raw_qpc": 483400088,
+              "legacy_sequence": 174,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 483424930,
+              "end_sequence": 182,
+              "end": 0,
+              "normal_up": true,
+              "gone_sequence": 180,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1891,
+              "generation": 6,
+              "phase": "DeclaredMinimumResize",
+              "source": 131934,
+              "source_PID": 7016,
+              "source_TID": 616,
+              "UP_send_before_qpc": 490527211,
+              "raw_sequence": 206,
+              "raw_flags": 2,
+              "raw_qpc": 490558087,
+              "legacy_sequence": 208,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 490583202,
+              "end_sequence": 216,
+              "end": 0,
+              "normal_up": true,
+              "gone_sequence": 214,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1904,
+              "generation": 7,
+              "phase": "AfterMinimumMove",
+              "source": 131934,
+              "source_PID": 7016,
+              "source_TID": 616,
+              "UP_send_before_qpc": 497580860,
+              "raw_sequence": 240,
+              "raw_flags": 2,
+              "raw_qpc": 497616982,
+              "legacy_sequence": 242,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 497642909,
+              "end_sequence": 250,
+              "end": 0,
+              "normal_up": true,
+              "gone_sequence": 248,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            }
+          ],
+          "Move_rightResize_successor_five_phase_and_two_member_Ctrl_completed": true,
+          "declared_minimum_and_successor_Move_completed": true,
+          "summary_driver_sequence": 1908,
+          "actual_scope_result": "PASS_SINGLE_EXACT_Terminal_GEOMETRY_ONLY",
+          "actual_scope_cleanup_known": true,
+          "test_pair_still_unknown": false,
+          "scoped_PASS": true,
+          "scope": "One exact Terminal diagnostic geometry and two-member Ctrl only; no customer content, three real applications, wholeM03F03, wholeNF02, five-application matrix, ordinary portable entry, whole I02/I11 or human PASS."
+        },
+        "real_application_minimum": {
+          "oracle_driver_sequence": 1881,
+          "actual_application_min_native": [
+            714,
+            152
+          ],
+          "native_minus_visible_size": [
+            18,
+            9
+          ],
+          "independent_min_visible": [
+            696,
+            143
+          ],
+          "application_changed_height_minimum": true,
+          "query_actual_native_return": true,
+          "original_visible": [
+            324,
+            422,
+            2122,
+            1349
+          ],
+          "raw_resize_visible": [
+            324,
+            422,
+            2122,
+            564
+          ],
+          "expected_clamped_visible": [
+            324,
+            422,
+            2122,
+            565
+          ],
+          "actual_clamped_visible": [
+            324,
+            422,
+            2122,
+            565
+          ],
+          "actual_clamped_height": 143,
+          "nonactive_left_top_right_unchanged": true,
+          "actual_generation": 6,
+          "actual_native_receipt_sequence": 201,
+          "actual_one_native_call": 1,
+          "recursive_placement_observed": false,
+          "actual_NormalUp_driver_sequence": 1891,
+          "independent_result_driver_sequence": 1893,
+          "successor_Move_generation": 7,
+          "successor_actual_visible": [
+            348,
+            440,
+            2146,
+            583
+          ],
+          "successor_NormalUp_driver_sequence": 1904,
+          "application_grid_known": false,
+          "WM_SIZING_grid_or_proposal_semantics": "NOT_RUN",
+          "whole_M03_F03_PASS": false,
+          "old13a_TEST_failure_not_retagged": true
+        },
+        "native_writer": {
+          "native_attempts": 11,
+          "placement_receipts_including_noop": 12,
+          "all_eleven_exact_identity_complete_postcontext": true,
+          "native_rows": [
+            {
+              "sequence": 26,
+              "generation": 1,
+              "operation": 1,
+              "key": 1,
+              "call_id": 1,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 448319443,
+              "S": 448406056,
+              "B": 448454969,
+              "A": 448470400,
+              "G": 448503378,
+              "P": 448504321,
+              "timing_ms": [
+                8.6613,
+                4.8913,
+                1.5431,
+                3.2978,
+                0.0943,
+                18.4878
+              ]
+            },
+            {
+              "sequence": 60,
+              "generation": 2,
+              "operation": 2,
+              "key": 1,
+              "call_id": 2,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 532,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": true,
+              "post_track_limits_carried_from_preflight": false,
+              "H": 455075440,
+              "S": 455176255,
+              "B": 455211760,
+              "A": 455254372,
+              "G": 455323502,
+              "P": 455328030,
+              "timing_ms": [
+                10.0815,
+                3.5505,
+                4.2612,
+                6.913,
+                0.4528,
+                25.259
+              ]
+            },
+            {
+              "sequence": 94,
+              "generation": 3,
+              "operation": 3,
+              "key": 1,
+              "call_id": 3,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 462002600,
+              "S": 462121440,
+              "B": 462160325,
+              "A": 462177490,
+              "G": 462226789,
+              "P": 462226996,
+              "timing_ms": [
+                11.884,
+                3.8885,
+                1.7165,
+                4.9299,
+                0.0207,
+                22.4396
+              ]
+            },
+            {
+              "sequence": 127,
+              "generation": 4,
+              "operation": 4,
+              "key": 1,
+              "call_id": 4,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 470303929,
+              "S": 470427757,
+              "B": 470474321,
+              "A": 470495608,
+              "G": 470519318,
+              "P": 470520637,
+              "timing_ms": [
+                12.3828,
+                4.6564,
+                2.1287,
+                2.371,
+                0.1319,
+                21.6708
+              ]
+            },
+            {
+              "sequence": 130,
+              "generation": 4,
+              "operation": 5,
+              "key": 1,
+              "call_id": 5,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 471420322,
+              "S": 471559185,
+              "B": 471607658,
+              "A": 471624320,
+              "G": 471644742,
+              "P": 471644859,
+              "timing_ms": [
+                13.8863,
+                4.8473,
+                1.6662,
+                2.0422,
+                0.0117,
+                22.4537
+              ]
+            },
+            {
+              "sequence": 133,
+              "generation": 4,
+              "operation": 7,
+              "key": 1,
+              "call_id": 6,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 473317753,
+              "S": 473439861,
+              "B": 473508409,
+              "A": 473529540,
+              "G": 473567224,
+              "P": 473570304,
+              "timing_ms": [
+                12.2108,
+                6.8548,
+                2.1131,
+                3.7684,
+                0.308,
+                25.2551
+              ]
+            },
+            {
+              "sequence": 134,
+              "generation": 4,
+              "operation": 8,
+              "key": 1,
+              "call_id": 7,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 474441368,
+              "S": 474583493,
+              "B": 474641319,
+              "A": 474659419,
+              "G": 474687470,
+              "P": 474687592,
+              "timing_ms": [
+                14.2125,
+                5.7826,
+                1.81,
+                2.8051,
+                0.0122,
+                24.6224
+              ]
+            },
+            {
+              "sequence": 166,
+              "generation": 5,
+              "operation": 9,
+              "key": 1,
+              "call_id": 8,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 482453815,
+              "S": 482574815,
+              "B": 482618622,
+              "A": 482632509,
+              "G": 482651489,
+              "P": 482651598,
+              "timing_ms": [
+                12.1,
+                4.3807,
+                1.3887,
+                1.898,
+                0.0109,
+                19.7783
+              ]
+            },
+            {
+              "sequence": 167,
+              "generation": 5,
+              "operation": 9,
+              "key": 2,
+              "call_id": 9,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 482453815,
+              "S": 482651614,
+              "B": 482669838,
+              "A": 482674944,
+              "G": 482692310,
+              "P": 482692439,
+              "timing_ms": [
+                19.7799,
+                1.8224,
+                0.5106,
+                1.7366,
+                0.0129,
+                23.8624
+              ]
+            },
+            {
+              "sequence": 201,
+              "generation": 6,
+              "operation": 10,
+              "key": 1,
+              "call_id": 10,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 532,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": true,
+              "post_track_limits_carried_from_preflight": false,
+              "H": 489742297,
+              "S": 489834748,
+              "B": 489876546,
+              "A": 489917718,
+              "G": 489971613,
+              "P": 489976430,
+              "timing_ms": [
+                9.2451,
+                4.1798,
+                4.1172,
+                5.3895,
+                0.4817,
+                23.4133
+              ]
+            },
+            {
+              "sequence": 235,
+              "generation": 7,
+              "operation": 11,
+              "key": 1,
+              "call_id": 11,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "post_track_limits_query_requested": false,
+              "post_track_limits_carried_from_preflight": true,
+              "H": 496884873,
+              "S": 497006536,
+              "B": 497052472,
+              "A": 497066210,
+              "G": 497088456,
+              "P": 497089923,
+              "timing_ms": [
+                12.1663,
+                4.5936,
+                1.3738,
+                2.2246,
+                0.1467,
+                20.505
+              ]
+            }
+          ],
+          "Hold": {
+            "product_sequence": 132,
+            "native_attempted": false,
+            "flags": null,
+            "post_context_checked": false,
+            "not_an_extra_native_call": true
+          },
+          "same_size_Move_post_limits": "Actual Move rows carry preflight limits, not a fresh post-track read; Resize P60 and P201 retain requested post-track query. No explicit destination display exercised."
+        },
+        "independent_blank_owner": {
+          "driver_setup_sequence": 1835,
+          "parent_TID": 6336,
+          "owner_TID": 6740,
+          "independent_UI_thread": true,
+          "actual_STA_hresult": 0,
+          "actual_Run_desktop_assignment": true,
+          "worker_disk_IO": false,
+          "new_product_writer": false,
+          "driver_cleanup_sequence": 1878,
+          "thread_exited": true,
+          "owner_DestroyWindow_and_UnregisterClass_confirmed": true,
+          "COM_uninitialized": true,
+          "handles_closed": true,
+          "forced_termination": false,
+          "scope": "TEST ownership/pump isolation changed. This and current timing do not establish the sole cause of previous tails; product ccde bytes unchanged."
+        },
+        "NF02": {
+          "product_summary_sequence": 254,
+          "qpc_frequency": 10000000,
+          "clock_scope": "same_machine_QPC_software_observation_cross_thread_one_tick_quantization",
+          "mouse_callback": {
+            "samples": 44,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 999,
+            "maximum_us": 506,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 11,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 49999,
+            "maximum_us": 25259,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          },
+          "current_summary_callback_target_met": true,
+          "current_summary_native_p95_target_met": true,
+          "result": "CURRENT_11_NATIVE_AND_44_CALLBACK_SOFTWARE_SAMPLE_TARGETS_MET_ONLY_NOT_WHOLE_NF02_PASS",
+          "historical_failures_preserved": true,
+          "scope": "Native11 p95bucket49999us/max25259us and callback44 p99bucket999us/max506us meet only this finite scope. Old13a51639us/c14 50498us/72bd82011us and older failures remain. Different driver ownership/sample composition is not a sole-cause or universal latency proof, no physical-display clock."
+        },
+        "tray": {
+          "driver_sequence": 1910,
+          "ElementFromPoint_hresult": 0,
+          "actual_provider_PID": 0,
+          "semantic_guard_accepted": false,
+          "tray_click_sent": false,
+          "tray_menu_observed": false,
+          "reason": "UIA_provider_identity_not_confirmed_remaining_fields_unqueried",
+          "root_cause": "UNKNOWN"
+        },
+        "Terminal_and_product_cleanup": {
+          "driver_Terminal_process_sequence": 1906,
+          "one_WM_CLOSE_attempted": true,
+          "exact_Terminal_root_gone": true,
+          "held_exact_Terminal_process_signalled": true,
+          "held_exact_Terminal_process_exit_code": 0,
+          "forced_Terminal_termination": false,
+          "public_quit_driver_sequences": [
+            1911,
+            1912
+          ],
+          "public_quit_exit_code": 0,
+          "actual_product_process_signalled": true,
+          "actual_product_exit_code": 0,
+          "product_shutdown_sequence": 255,
+          "own_hooks_stopped": true,
+          "overlay_destroyed": true,
+          "native_worker_exited": true,
+          "issued_native_completion_unknown": false,
+          "input_resources_stopped": true,
+          "capture_released": true,
+          "association_detached": true,
+          "not_a_whole_process_tree_PASS": true
+        },
+        "Default_and_process_tree": {
+          "driver_sequences": [
+            1921,
+            1923,
+            1926,
+            1927,
+            1928
+          ],
+          "actual_Default_restored": true,
+          "return_owner_and_handles_closed": true,
+          "original_Default_input_and_Shell_identity_unchanged": true,
+          "Shell_child_wait_result": 258,
+          "Shell_child_exit_code": 259,
+          "Shell_child_still_alive": true,
+          "desktop_object_destroyed": "UNKNOWN",
+          "whole_process_tree_cleanup": "UNKNOWN"
+        },
+        "wrapper": {
+          "wait_result": 0,
+          "fixture_exit_code": 1,
+          "descendants_alive_at_fixture_exit": 1,
+          "forced_test_cleanup": true,
+          "raw_product_cleanup_pass": false,
+          "scope": "Original overall FAIL/retained Shell forced cleanup preserved. Own geometry/product and Default-return scopes have independent actual receipts, not whole-tree PASS."
+        },
+        "unexecuted": {
+          "application_grid_or_WM_SIZING": "NOT_RUN",
+          "customer_nonce_or_content": "NOT_RUN",
+          "five_application_matrix": "NOT_RUN",
+          "ordinary_portable_entry": "NOT_RUN",
+          "human_UAT": "NOT_RUN"
+        }
+      },
+      "artifact_verification": {
+        "collection_receipt": {
+          "path": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/collection-20261024T104652577Z-ca0d1cbe6f9f4500bc32343d70bd90e7/collection-receipt.json",
+          "bytes": 8875,
+          "sha256": "72D59C65F95F0171285A6E71FBBD8D025F6891C902C3CDA656F5922522F2361D"
+        },
+        "collect_before_after_output_unchanged": true,
+        "artifact_count_including_output_marker": 8,
+        "artifacts": [
+          {
+            "relative_path": "7bb387ddc9ac4ca69aa1539a53320bd1-Release-launch.json",
+            "bytes": 9882,
+            "sha256": "E60EE6E14D4AB185508E505F440920697E83EF67CD6BE6A6BA6E279CBEDEE495",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "7bb387ddc9ac4ca69aa1539a53320bd1-release-fixture.jsonl",
+            "bytes": 106742570,
+            "sha256": "EDD3E6BA565CCC1AAC55AF4AE2B88F22F19655E07032DDDAB28548AF57E0DCCE",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "FD368ACA47C1CC988B54381A02DB7FCBEB01C5C36B739B9E5C285884AC817437",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "7bb387ddc9ac4ca69aa1539a53320bd1-terminal-asset.json",
+            "bytes": 1205,
+            "sha256": "87C9F615956F92E7452FC81FF969E77C21ECDE8E3D7C9B886604457542D7B59B",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "7bb387ddc9ac4ca69aa1539a53320bd1-product-Release\\panebind.log.jsonl",
+            "bytes": 318858,
+            "sha256": "5D8B44DEF823EC736D5A5C22379E8816B07CB9AD0573E00A33E94789BA1B64A3",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "7bb387ddc9ac4ca69aa1539a53320bd1-product-Release\\panebind.exe",
+            "bytes": 1222144,
+            "sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "7bb387ddc9ac4ca69aa1539a53320bd1-guest-summary.json",
+            "bytes": 22706,
+            "sha256": "2D895CA2BABFA479D32CD8F615A05F22A8C43241D8F4E92972A0516ADA93A8DE",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "7bb387ddc9ac4ca69aa1539a53320bd1-product-Release\\portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "all_sizes_and_hashes_match": true,
+        "host_expectation": {
+          "path": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/host-expectation.json",
+          "bytes": 3246,
+          "sha256": "DFAC7F52ADDB67D25E2E9AD35B63E733506FFBE38EB5E7DFD2A8A10B9722E887"
+        },
+        "deploy_receipt": {
+          "path": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/deploy-receipt.json",
+          "bytes": 2910,
+          "sha256": "B3CF0BD1B69E5B63D9EC82AF8C01D543262CEEE4348DC28BEED751407B0BB40C"
+        },
+        "launch_receipt": {
+          "path": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/launch-receipt.json",
+          "bytes": 14479,
+          "sha256": "C430C77474E0F6889C0A44F2492F998FAE41AB0B5E1DA4C6A45F5ABB3E5FB103"
+        }
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/cleanup-receipt.json",
+          "bytes": 9980,
+          "sha256": "9CF46050817072074167F720488EECADDB1374A164294F0B231F69703E43FCC3"
+        },
+        "utc": "2026-10-24T10:48:31.3349267Z",
+        "owned_guest_pid": 34228,
+        "owned_guest_start_ticks_decimal": "639284355741351497",
+        "dedicated_guest_exited": true,
+        "task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "driver_tooling": {
+        "actual_build_receipt": {
+          "path": "uat/v1-control/driver-isolated-target-354def7-c74f66788cae41daaf6f681e6fe9529e/receipt.json",
+          "bytes": 2330,
+          "sha256": "36004AE21DD3C87CE12558E38388D75B015B8E7FABCC82EF2BE24F050F675EF6"
+        },
+        "source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+        "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "product_rebuilt": false,
+        "D_R_driver_build_PASS": true,
+        "actual_guest_path_each1_of1_PASS": true,
+        "results": [
+          {
+            "configuration": "Debug",
+            "driver_path": "D:\\repository\\panebind\\out\\v1-driver-isolated-target-354def7\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+            "driver_sha256": "D7FA0CC055CF36F96A0FB6AA0AB141E4D69A1C292BD74FB164B32296BE054BB5",
+            "driver_bytes": 10586112,
+            "original_ctest_path": "D:\\repository\\panebind\\uat\\v1-control\\driver-isolated-target-354def7-c74f66788cae41daaf6f681e6fe9529e\\Debug-guest-path-ctest.txt",
+            "original_ctest_sha256": "41E47158E398593F907878D054ADDEC238F19D54CDC9CEB9FA0DCB8F561A90D3"
+          },
+          {
+            "configuration": "Release",
+            "driver_path": "D:\\repository\\panebind\\out\\v1-driver-isolated-target-354def7\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+            "driver_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
+            "driver_bytes": 4398080,
+            "original_ctest_path": "D:\\repository\\panebind\\uat\\v1-control\\driver-isolated-target-354def7-c74f66788cae41daaf6f681e6fe9529e\\Release-guest-path-ctest.txt",
+            "original_ctest_sha256": "648BE5BCA0163D09930524EFEFA4F5B93B62F339C94273F764AB75B2AD24CD9C"
+          }
+        ],
+        "actual_host_guard": {
+          "path": "uat/v1-host-guard/28fc504d16f347a58b45900d6b7efb14/receipt.json",
+          "bytes": 15238,
+          "sha256": "A21710C79142E3A6BFB1118E0981C2765F41AAEE3AF73E3F02539FC3FF474C7A"
+        },
+        "actual_host_full_argv_exit78_count": 4,
+        "prior_c8_compile_failure": {
+          "build_log": {
+            "path": "uat/v1-control/driver-isolated-target-c8dde78-9a244eecb0794499bfd2468846f79425/Debug-driver-build.txt",
+            "bytes": 77902,
+            "sha256": "07EF9EF052855DB4071175741381286B809D25B110066D7815618F4E40FEF61C"
+          },
+          "cause": "Main executor source review: header includedmutex inside fixture anonymous namespace, anonymous::std compile errors. Minimal include relocation to standard fixture includes corrected in354; no guest ran failed driver.",
+          "new_product_inferred": false
+        }
+      },
+      "new_portable_prepared_not_run": {
+        "package_id": "2579fb78cf3446bf986d9cdf9963828e",
+        "receipt": {
+          "path": "uat/v1-portable/2579fb78cf3446bf986d9cdf9963828e/package-receipt.json",
+          "bytes": 3652,
+          "sha256": "FB2719EFD5AC8CCC843707C5E011C19F07CF77DD86C4717DA6D3D514883E4D68"
+        },
+        "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+        "product_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "zip_sha256": "2664A6444ADB7FCE40AC7FC68B02D0493A751E7DC9DA03793E8986538188F272",
+        "manifest_sha256": "4E1208A3966FD375AA761D280F77D0F2E398DDEF7383D0EE9A1629BBA8D2C9C4",
+        "seven_file_hash_checks": [
+          {
+            "relative_path": "panebind.exe",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "portable.flag",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "LICENSE",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "中文快速入门.md",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "配置说明.md",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "已知问题.md",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "manifest.json",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "ordinary_GUI_started": false,
+        "clean_guest_portable_validation": "NOT_RUN",
+        "historical_42ab_d5f5_f78_not_rebound": true
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "excerpt_line_start": 251,
+          "excerpt_line_end": 296,
+          "raw_log": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/collection-20261024T104652577Z-ca0d1cbe6f9f4500bc32343d70bd90e7/7bb387ddc9ac4ca69aa1539a53320bd1-release-fixture.jsonl",
+          "original_sequences": [
+            3,
+            13,
+            17,
+            1790,
+            1796,
+            1797,
+            1805,
+            1808,
+            1817,
+            1820,
+            1829,
+            1832,
+            1834,
+            1835,
+            1836,
+            1845,
+            1848,
+            1851,
+            1854,
+            1857,
+            1860,
+            1862,
+            1866,
+            1872,
+            1876,
+            1878,
+            1879,
+            1881,
+            1888,
+            1891,
+            1893,
+            1901,
+            1904,
+            1906,
+            1907,
+            1908,
+            1910,
+            1911,
+            1912,
+            1917,
+            1921,
+            1923,
+            1926,
+            1927,
+            1928,
+            1935
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "6E09D1D219C1A54E822D5623C337B15E17F9F09D3D298959B2DDAF49D1650449",
+            "6D9478F1123BD6E819BE2E32900A881828D02E0A586C5B2C0287F278B63451E8",
+            "5071A765698AC3F8417079CA4503E542EBA11824AB8620F899F6ADC92C3D777D",
+            "60184A8B03859110E3FFA2F56F0373C5D96646919CF30BFD1CD541E49FBBB056",
+            "8EA324646BB730E18DC3ADEDC84A6C4C4D748C1D14EED754FEB8E9CE1F9F5992",
+            "145384D56C2D6B7A9DD3507D05158B5E5BFA00B504043F58BDB8DE46EC549278",
+            "F6B44DE5959121B1696D3079F40F24A35C7AAB306214587D854702244EE91E64",
+            "9080D697BA8CC485E62EB6A29C6209B379DE991F5727C323EE13636210359C54",
+            "0A1B172D3C1A528A9AF3DDC00A61F73EEF572181A72A4A433AA9142CBBD82BFF",
+            "8760FA45A28CCCE9F4475EBD02A5082A07B35409E510F1F08178C2ADF858945F",
+            "214766378717A031DC2D8E0C12A930AE186CA5A9E44F51235ADBEB0E88EA17A9",
+            "C122804BA40F53279FFCE0CCA1CC120A7B446992C60E2479C5A442B94C0548A2",
+            "867C777EC73E1ECF52FE37DAFBC3D94A266FA7D59F62BBF2CF9C1E62C8736B48",
+            "FC8E6312759C0F98D7A1972E00B4DD4F4291F068F213E9F2FF9DD61CBB39A6CD",
+            "7555E75DEBD37181505CF51298C21DC321CBA4B1D4FBA097497C0941CACE69CF",
+            "9804721A07F3206A287C520D8244DBEFAE17FB1105DAB8979C7B79CF21DCC09A",
+            "F91A302195B4EFFAF5574B03DF7BC80C248E42BCEAA193B5002A16B19036B315",
+            "BC3029A3441B514D20EB8AA083D85DEC930B92C6A2CB7B153E429F8314256085",
+            "20224585367CB94253240580AA3B70649F545EDA0520176855DB9008F8499340",
+            "22FA3182370424E6E98E0C6C409051B4C1E5B2065871B75C2A79275C6D1CB865",
+            "9D7EF0587D3AF5A8854593BE495F555F23197970105BE091F1DDD7648FD7E729",
+            "86D058FE0BF15B7FA1DD8F67E1191E477E3412FB0A7132ECE307674F1D1B0810",
+            "38A036E2BE2175EED5DA6C460A5F433AF7073B0BA025B75452C607947FB31027",
+            "71BDCF971D8B88D9B514B4A823AF1D0A9F4D7E9C74BDFDE076C1EA94CA63F1F8",
+            "64C23A269B4EDD41BA4F5734CD3F8762D3861E707B0A8797DA8039ACD663AFFA",
+            "595ABB828FFEFF9D1472DBA4249B571D8A022B15C7D03B74A5B52C920C482330",
+            "9058AED9CE3EFA1C54105CECD508D9437ADE2F425C94F7C8AEEF38B040BC888C",
+            "66A80063F9295607044C97F9094CE04EBC0ED057EC3F73C1C9B298A43EABBA03",
+            "BF5DFCC7BE3E0DF5A2D0DA11FCFD276F3CDC7792B6B8A4CE4BF8B758CB87BEAE",
+            "4637D35D385EBD2F03D39EF2223658EB61742AAA76EE4767D1DD155382BA9A6B",
+            "0D62CBE2F7EB3EBF2A189236B5FEF77BD9D55C378C872D5CA6024A91CC09697B",
+            "46A25DD99A9969CFD61E673B9CEC3973D27DC43F38B1E84A7F40025EC9248569",
+            "B756FB1982A5D5C55F2B3CEC05BECAD4AF12ED5317E1E111AB5537893D0362C0",
+            "016ED6BCC0AD87D57DC436F996C847CD76DBF827F577DF99836231E2923F1959",
+            "638AE430BBAFBAD123997A11BE7B22D773D3547B86CC8F28256C552F2D405810",
+            "6C2C8FDF1B6C894FC99F81AA8F20C7640834B4B4FF7DB5DDFDFDEC7675C491D0",
+            "F953DD6553901395077DDEBC29559F5B7B743556A50AFCB358C336585C2C9B90",
+            "9DEA58EAA8F80BE6497711106C00FDBF2CE3737A0B5F7578C4C47D3F6A59C134",
+            "C319FCC01C00C8364BC3065B098D9FA08A2860663B1980E856EDD771DE2AACCC",
+            "8CB391CF33AB6C3223ED6C34EB95524DC4F0F02ADC27029DCA8AD7FF494C74DC",
+            "8808E6A7CDC9DED21DCB6F26E663D716CD892336979A5B01B2EE95AC2FDE5AAD",
+            "E42CFE79E8752CF8346839B0C9A5352B2CA64DC3FA2EA157D10CEA7F43B38FEB",
+            "76F51EFCE1EB9899A9E37D86FA3329C5AC00335E2EEEC7F1FD4EDC7C1F4E1D55",
+            "869BA9D883E12AE8917426FE3266D5BCE8273EB54056D7F32F00B60BA07CD71C",
+            "53D6528ECFE602F766A4ACC00EC2788B19080AB1CD8757F329391E092807AD87",
+            "4CC0D48BDE50D870F2A163186C550703867250C3E15BFAD624A7853118615310"
+          ]
+        },
+        {
+          "producer": "product",
+          "excerpt_line_start": 297,
+          "excerpt_line_end": 316,
+          "raw_log": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/collection-20261024T104652577Z-ca0d1cbe6f9f4500bc32343d70bd90e7/7bb387ddc9ac4ca69aa1539a53320bd1-product-Release/panebind.log.jsonl",
+          "original_sequences": [
+            1,
+            3,
+            4,
+            5,
+            6,
+            7,
+            26,
+            60,
+            94,
+            127,
+            130,
+            132,
+            133,
+            134,
+            166,
+            167,
+            201,
+            235,
+            254,
+            255
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "E697AA981DC72C6D244C8C25C62AB4DC3A296CC009FB025849115027CFAE2E1F",
+            "C6C20623D056943413C7BF049B2AA10F5FC6489CC7E1D12F45A84AD80E4A310A",
+            "4D06561E1ACF245C9C24DCF285D90940CEF8F57D04487CBEB719319B9D2E0482",
+            "AFDE88D692871F31E1EC0731F0BB9C8635E615514898D903452D13148D2BB2EB",
+            "A78E3073EC93A66EA22808EFBEF6E3452C88153CD76032E5B48AF3AFD5023879",
+            "48E5047B75DE4FD86D7FF735227664075D69CE8579F26B39FD5F3523E23C759C",
+            "2776A1AD03ED949A1962F6F04EA7137EA46DB8AE4B104F750D20CE5A4ECBFBBC",
+            "AA22CDCD2BF7D60FCB6EB2E29799439C8E483CEF354DEBC149DD4F6E043AA616",
+            "8BD0AE03075ACB116B773246D8A2BDC678002852A3A1E8A4B51253B62FFEA59D",
+            "775FE6B1092D509DB9A84F4B0FEB3256163377C45E82C048FAD8B3FE6138FD3A",
+            "55C48C33FA05B3DE99D9D85C9A4AE78F83F43283E4D179DE3C883AB273E43774",
+            "F7FD1E47EA246ACA939A912863BA87B52735F78A3D597C8532A9411443EC4333",
+            "2F97A2D83156063F80E473C62D15C86F1B22ED8A04BCF381B2B061CC126481D7",
+            "1A9DEF1C54E977A6DAC7663CEE8B125C044D1A060ADD092A2CD8B06E23173914",
+            "0D8E84D737193FF515F31BE90123B58AB14EDF630B4A876B2BCC4CFD71B7B541",
+            "F2A84BD5B242C400E6E7806B4431C9630E27013C7D9A4FFF5458F36849FCC0A6",
+            "1D7B09E8C9817AB7F799600AD72263F5E18BB71200CDC100C7C77DF84CC69E63",
+            "8739569AAC55130104B65E96553C61C8B32C062771B3457B203C1DD4712CFCAB",
+            "F3A21C04B2C4A6A82BD8E7F07877F95483C9B8F4B6AD6F57A8D019CDC6DAE546",
+            "3D3CE62F08D8F7E76EAA9EF8494E29EA07072FC36343FBC46AEC9B83A65453F0"
+          ]
+        }
+      ]
     }
   ],
   "tooling_followup": {
@@ -5056,7 +6534,11 @@
       "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
       "build_directory": "out/v1-nf02-tray-ccde014",
       "build_status": "DEBUG_RELEASE_BUILD_PASS_SELECTED8_OF8_OFFLINE_EACH",
-      "native_runtime": "ACTUAL_13A_FIRST_FIVE_GEOMETRY_NORMALUP_SCOPED_PASS_SIXTH_TEST_GATE_FAILURE_NF02_FAIL",
+      "native_runtime": "ACTUAL_7BB_SEVEN_GEOMETRY_NORMALUP_MINIMUM_SCOPED_PASS_TRAY_BLOCKED",
+      "latest_actual_run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+      "latest_runtime_driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+      "latest_runtime_driver_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
+      "driver_build_guard_and_failure_history_ref": "runs[6].driver_tooling",
       "scope": "Same-size Move post-track-query omission is additionally limited to !r.destination. Explicit destination/cross-display or DPI-transfer cases retain the complete post-limit query; one negative production-path test added. Fresh clean D/R rebuild includes end-of-build HEAD/source-clean verification. No2787 guest result or42ab ordinary portable result is rebound to this candidate.",
       "binary_hashes": {
         "Debug_product": "E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A",

@@ -3554,3 +3554,31 @@ contracts were read for desktop assignment before GUI creation and an event-driv
 owner loop with its own stop event. No product input, writer, permission or
 candidate binary is changed by this TEST isolation. It does not presuppose a
 timing PASS, remove the old failure or substitute owned results for real apps.
+
+### 2026-10-24 — One exact Terminal sizing proposal (TEST only)
+
+The same mature Microsoft Terminal `1.25.2733.0` / commit
+`dc8ae365847d41f62d1ebca93815bb00959bc12f` (MIT) remains the inspected
+application. The actual `IslandWindow.cpp` minimum/grid handlers are distinct.
+The historical [PR 8066](https://github.com/microsoft/terminal/pull/8066) and
+[issue 8026](https://github.com/microsoft/terminal/issues/8026) were read:
+the minimum handler was added because native sizing callbacks can be bypassed.
+This history does not make a drag-grid preference the complete legal set for
+programmatic placement. No upstream implementation is copied or adapted.
+
+The official [WM_SIZING](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-sizing)
+and [SendMessageTimeoutW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagetimeoutw)
+contracts were read. A handled sizing message can change its proposed RECT;
+successful API delivery is separate from its message result. Such a TEST
+proposal is not read-only, actual mouse input, or proof of all legal sizes.
+The timeout is not enforced for a same-queue direct dispatch, so the exact
+foreign Terminal must be idle, detached from prior gesture association and
+freshly identified before this single bounded proposal. No scan, retry loop,
+font-derived grid, injected product message or permission bypass is added.
+
+The independent oracle retains original R, actual returned C, native/API
+results and unchanged actual window/context. Only a handled, discriminating,
+valid bottom-edge C can justify one real enhanced Resize comparison. Its real
+release and cleanup must complete before interpreting R versus C; a mismatch
+alone is not a proven invalid programmatic size. Unhandled or unchanged
+proposals remain UNKNOWN. The product EXE is unchanged by this TEST path.

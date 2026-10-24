@@ -3,6 +3,26 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+      "id": "EV-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+      "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+      "configuration": "Release",
+      "kind": "ACTUAL_SEVEN_GENERATION_GEOMETRY_MINIMUM_NORMALUP_SCOPED_REVIEW",
+      "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "product_binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+      "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
+      "packaging_head": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+      "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
+      "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
+      "result": "SEVEN_GENERATION_GEOMETRY_MINIMUM_SCOPE_PASS_TRAY_BLOCKED_FULL_CONTRACTS_NOT_GRANTED",
+      "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+      "new_feature_or_B_PASS": false,
+      "ordinary_product_entry": false,
+      "old_runtime_rebound": false
+    },
+    {
       "id": "EV-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
       "run_id": "13a2871f78024e8984c1c21f9e3b22ba",
       "configuration": "Release",
@@ -13,9 +33,9 @@
       "driver_binary_sha256": "9D2D1E72852A09365BF415C6CB1A5FB80AB5565011061AE566DC208771DB843D",
       "packaging_head": "881a15c4ce3657775f5c1948814b3af77f0a7706",
       "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
       "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-      "repository_excerpt_sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
       "result": "FIRST_FIVE_GEOMETRY_NORMALUP_SCOPED_PASS_SIXTH_TEST_BOTTOM_REGION_MISMATCH_NF02_FAIL_CLEANUP_UNKNOWN",
       "scope": "ccde/13a同PID6132真实Move→右Resize→后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap与两成员Ctrl均exact；五代有Raw+legacy NormalUp/release/detach/Gone，9native完整postcontext。P203 callback35/p99桶999us/max885us仅本scope通过，native9/p95桶99999us/max51639us仍FAIL。D1529真实WM_GETMINMAXINFO返回min714×152、frame差18/9→visible696×143，customheight/oracleknown；g6实际bottom region4，经START/cancel/END/ATI/captureReady到gesture_start，但TEST把Resize硬编码right2而D1533拒绝，g6没有placement/UP或min clamp/后继Move结论。D1533/1540 test_pair_unknown/cleanup=false，Default回切未确认；P204产品自身resources/worker/shield停止不补pair/Default/全树PASS。客户内容/托盘本批未执行。",
       "new_feature_or_B_PASS": false,
@@ -30,9 +50,9 @@
       "driver_binary_sha256": "2E5F0E01163C49FA01E3444E3801DF8870BC6B2FBBEBCCBA2D96B10300A2AEB5",
       "packaging_head": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
       "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
       "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-      "repository_excerpt_sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
       "new_feature_or_B_PASS": false,
       "old_runtime_rebound": false,
       "id": "EV-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
@@ -50,9 +70,9 @@
       "driver_binary_sha256": "2E5F0E01163C49FA01E3444E3801DF8870BC6B2FBBEBCCBA2D96B10300A2AEB5",
       "packaging_head": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
       "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
       "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-      "repository_excerpt_sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
       "new_feature_or_B_PASS": false,
       "old_runtime_rebound": false,
       "id": "EV-C80B-FFB-DIRECT-CMD-INITIALIZATION-FAILURE-NO-PRODUCT",
@@ -79,9 +99,9 @@
       "driver_binary_sha256": "A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81",
       "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
       "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
       "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-      "repository_excerpt_sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
       "result": "2787_GEOMETRY_SCOPED_PASS_TRAY_CLIENT_BLOCKED_NF02_FAIL",
       "scope": "983 ordinary GUI/Esc actual but UIA providerPID0/no tray click;4511 real Terminal ready0/error0xd0000022 before client input/product launch, exact held process normal0/rootGone.72bd same productPID3392 five generations Move/Resize/Move/five-phase magnet/two-member Ctrl exact with Raw+legacyNormalUp/release/detach/Gone. Nine exact native postcontexts; one actual Hold noop. NF02 native9/max82011us/p95bucket99999 FAIL, callback33/p99bucket999 only this sample. Own resources/Default return separate from retained Shell tree/wrapper forced UNKNOWN. No ordinary2787 portable or whole feature/B PASS.",
       "new_feature_or_B_PASS": false,
@@ -860,6 +880,26 @@
   ],
   "current_targeted_runtime": [
     {
+      "id": "EV-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+      "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+      "configuration": "Release",
+      "kind": "ACTUAL_SEVEN_GENERATION_GEOMETRY_MINIMUM_NORMALUP_SCOPED_REVIEW",
+      "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "product_binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+      "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+      "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
+      "packaging_head": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+      "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
+      "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
+      "result": "SEVEN_GENERATION_GEOMETRY_MINIMUM_SCOPE_PASS_TRAY_BLOCKED_FULL_CONTRACTS_NOT_GRANTED",
+      "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+      "new_feature_or_B_PASS": false,
+      "ordinary_product_entry": false,
+      "old_runtime_rebound": false
+    },
+    {
       "id": "EV-13A-CCDE-TERMINAL-FIVE-GENERATION-MINIMUM-TEST-FAILURE",
       "run_id": "13a2871f78024e8984c1c21f9e3b22ba",
       "configuration": "Release",
@@ -870,9 +910,9 @@
       "driver_binary_sha256": "9D2D1E72852A09365BF415C6CB1A5FB80AB5565011061AE566DC208771DB843D",
       "packaging_head": "881a15c4ce3657775f5c1948814b3af77f0a7706",
       "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
       "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-      "repository_excerpt_sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
       "result": "FIRST_FIVE_GEOMETRY_NORMALUP_SCOPED_PASS_SIXTH_TEST_BOTTOM_REGION_MISMATCH_NF02_FAIL_CLEANUP_UNKNOWN",
       "scope": "ccde/13a同PID6132真实Move→右Resize→后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap与两成员Ctrl均exact；五代有Raw+legacy NormalUp/release/detach/Gone，9native完整postcontext。P203 callback35/p99桶999us/max885us仅本scope通过，native9/p95桶99999us/max51639us仍FAIL。D1529真实WM_GETMINMAXINFO返回min714×152、frame差18/9→visible696×143，customheight/oracleknown；g6实际bottom region4，经START/cancel/END/ATI/captureReady到gesture_start，但TEST把Resize硬编码right2而D1533拒绝，g6没有placement/UP或min clamp/后继Move结论。D1533/1540 test_pair_unknown/cleanup=false，Default回切未确认；P204产品自身resources/worker/shield停止不补pair/Default/全树PASS。客户内容/托盘本批未执行。",
       "new_feature_or_B_PASS": false,
@@ -887,9 +927,9 @@
       "driver_binary_sha256": "2E5F0E01163C49FA01E3444E3801DF8870BC6B2FBBEBCCBA2D96B10300A2AEB5",
       "packaging_head": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
       "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
       "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-      "repository_excerpt_sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
       "new_feature_or_B_PASS": false,
       "old_runtime_rebound": false,
       "id": "EV-C14A-2787-FAIR-PUMP-GEOMETRY-NORMALUP-NF02-FAIL",
@@ -907,9 +947,9 @@
       "driver_binary_sha256": "2E5F0E01163C49FA01E3444E3801DF8870BC6B2FBBEBCCBA2D96B10300A2AEB5",
       "packaging_head": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
       "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
       "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-      "repository_excerpt_sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
       "new_feature_or_B_PASS": false,
       "old_runtime_rebound": false,
       "id": "EV-C80B-FFB-DIRECT-CMD-INITIALIZATION-FAILURE-NO-PRODUCT",
@@ -936,9 +976,9 @@
       "driver_binary_sha256": "A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81",
       "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
       "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-      "sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+      "sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
       "repository_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-      "repository_excerpt_sha256": "9B7ACCB59BAB543EEB71679C2AE3643FAB456F5B05750FE3C2787C9A06AE0E36",
+      "repository_excerpt_sha256": "DBE99950AE8AA8755E00138AF4CE77D97D92243B69065E77A3DCFCAFFC996BDB",
       "result": "2787_GEOMETRY_SCOPED_PASS_TRAY_CLIENT_BLOCKED_NF02_FAIL",
       "scope": "983 ordinary GUI/Esc actual but UIA providerPID0/no tray click;4511 real Terminal ready0/error0xd0000022 before client input/product launch, exact held process normal0/rootGone.72bd same productPID3392 five generations Move/Resize/Move/five-phase magnet/two-member Ctrl exact with Raw+legacyNormalUp/release/detach/Gone. Nine exact native postcontexts; one actual Hold noop. NF02 native9/max82011us/p95bucket99999 FAIL, callback33/p99bucket999 only this sample. Own resources/Default return separate from retained Shell tree/wrapper forced UNKNOWN. No ordinary2787 portable or whole feature/B PASS.",
       "new_feature_or_B_PASS": false,
@@ -1750,9 +1790,9 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+  "next_driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
   "historical_pre_4ff_next_driver_validation": "Actual42ab D/R product+fixture build/sevenoffline eachPASS/fourhost Exit78 andf78d currentd5f5 ordinary portable scopePASS. Prior744e/3c565 tray/Explorer/be7 and744e/40a bb23 startup-ready blocked observations keep original identities. New TEST Terminal five-phase/Ctrl extension is coding only, without a committed source/hash/build/runtime verdict.",
-  "next_driver_validation": "保持ccde产品EXE冻结，不重建/不重绑2787旧实测。新TEST-only bottom expected4修正及blank独立own UI线程安排尚待新driver身份/构建/新Run定向验证实际Terminal min/后继Move及NF；同STA和一次native15.613ms是已观察耦合事实，不预定根因或改善。不重跑Full/900或无变量cmd/托盘路线。ccde普通portable2579仅生成/identity/dependency/七文件校验，普通GUI NOT_RUN；当前已验仍42ab/d5f5/f78。44/22、modules0不增。",
+  "next_driver_validation": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。",
   "historical_driver_3c565_candidate": {
     "source_sha": "3c56551c508ac18575824756ec54ac9057db11a8",
     "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
@@ -1870,7 +1910,7 @@
     ],
     "scope": "c14/2787产品+ffb TEST同PID5320五代Move/右Resize/后继Move/五阶段磁吸/两成员Ctrl及Raw+legacy NormalUp/release/detach/Gone实际限定PASS，9native exact/identity/postcontext，Hold132为真实noop。P186 callback33/p99桶999us/max851us仅本scope，native9/p95桶99999us/max50498us仍FAIL。托盘providerPID0无click；客户内容NOT_RUN；Terminal held进程正常0/rootGone及产品资源清理与Shell树/wrapper forced UNKNOWN分开。c80产品未启动，cmd CPtrue但exit0xC0000142/0B、actual desktop UNKNOWN，Terminal仍ready0/0xd0000022。c14两Collect工具失败保留，fixed-Run v2恢复8artifact稳定且原A4/owner/expect/launch未改。"
   },
-  "next_driver_binary_identity": {
+  "historical_ccde13a_driver_binary_identity": {
     "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
     "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
     "status": "ACTUAL_13A_FIRST_FIVE_SCOPE_PASS_SIXTH_TEST_GATE_FAILURE_NF02_FAIL",
@@ -1919,6 +1959,52 @@
     ],
     "followup_driver": "TEST_ONLY_BOTTOM_REGION_FIX_AND_BLANK_UI_THREAD_CHANGE_PENDING_NEW_IDENTITY_BUILD_RUNTIME",
     "next_action": "保持ccde产品EXE冻结，不重建/不重绑2787旧实测。新TEST-only bottom expected4修正及blank独立own UI线程安排尚待新driver身份/构建/新Run定向验证实际Terminal min/后继Move及NF；同STA和一次native15.613ms是已观察耦合事实，不预定根因或改善。不重跑Full/900或无变量cmd/托盘路线。ccde普通portable2579仅生成/identity/dependency/七文件校验，普通GUI NOT_RUN；当前已验仍42ab/d5f5/f78。44/22、modules0不增。"
+  },
+  "next_driver_binary_identity": {
+    "source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+    "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+    "status": "ACTUAL354_DRIVER_D_R_BUILD_GUESTPATH1OF1_EACH_PASS_7BB_SEVEN_GEOMETRY_SCOPE_PASS_TRAY_BLOCKED",
+    "debug_sha256": "D7FA0CC055CF36F96A0FB6AA0AB141E4D69A1C292BD74FB164B32296BE054BB5",
+    "release_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
+    "runtime_validation": "ACTUAL7BB_REVIEWED_NOT_WHOLE_PASS",
+    "actual_run_ids": [
+      "7bb387ddc9ac4ca69aa1539a53320bd1"
+    ],
+    "product_rebuilt": false,
+    "actual_build_receipt": {
+      "path": "uat/v1-control/driver-isolated-target-354def7-c74f66788cae41daaf6f681e6fe9529e/receipt.json",
+      "bytes": 2330,
+      "sha256": "36004AE21DD3C87CE12558E38388D75B015B8E7FABCC82EF2BE24F050F675EF6"
+    },
+    "actual_original_ctest": [
+      {
+        "configuration": "Debug",
+        "path": "D:\\repository\\panebind\\uat\\v1-control\\driver-isolated-target-354def7-c74f66788cae41daaf6f681e6fe9529e\\Debug-guest-path-ctest.txt",
+        "sha256": "41E47158E398593F907878D054ADDEC238F19D54CDC9CEB9FA0DCB8F561A90D3"
+      },
+      {
+        "configuration": "Release",
+        "path": "D:\\repository\\panebind\\uat\\v1-control\\driver-isolated-target-354def7-c74f66788cae41daaf6f681e6fe9529e\\Release-guest-path-ctest.txt",
+        "sha256": "648BE5BCA0163D09930524EFEFA4F5B93B62F339C94273F764AB75B2AD24CD9C"
+      }
+    ],
+    "actual_host_guard": {
+      "path": "uat/v1-host-guard/28fc504d16f347a58b45900d6b7efb14/receipt.json",
+      "bytes": 15238,
+      "sha256": "A21710C79142E3A6BFB1118E0981C2765F41AAEE3AF73E3F02539FC3FF474C7A"
+    },
+    "actual_host_full_argv_exit78_count": 4,
+    "tool_failure_history": {
+      "build_log": {
+        "path": "uat/v1-control/driver-isolated-target-c8dde78-9a244eecb0794499bfd2468846f79425/Debug-driver-build.txt",
+        "bytes": 77902,
+        "sha256": "07EF9EF052855DB4071175741381286B809D25B110066D7815618F4E40FEF61C"
+      },
+      "cause": "Main executor source review: header includedmutex inside fixture anonymous namespace, anonymous::std compile errors. Minimal include relocation to standard fixture includes corrected in354; no guest ran failed driver.",
+      "new_product_inferred": false
+    },
+    "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+    "next_action": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。"
   },
   "historical_pending_product_bbc_candidate": {
     "source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
@@ -2009,19 +2095,19 @@
     "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
     "current_verified_product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
     "current_verified_portable_package_id": "d5f5a2a6138049a5b4a1a76340904027",
-    "implementation_status": "IMPLEMENTED_BUILD_PASS_RUNTIME_SCOPED_PASSES_TEST_GATE_FAILURE_NF02_FAIL",
+    "implementation_status": "IMPLEMENTED_BUILD_PASS_RUNTIME_SEVEN_GEOMETRY_MINIMUM_SCOPED_PASS_TRAY_BLOCKED",
     "build": "DEBUG_RELEASE_BUILD_PASS_EACH8_OF8_OFFLINE_PASS",
     "build_directory": "out/v1-nf02-tray-ccde014",
     "debug_sha256": "E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A",
     "release_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
-    "native_runtime": "ACTUAL_13A_FIRST_FIVE_SCOPE_PASS_SIXTH_TEST_GATE_FAILURE_NF02_FAIL",
+    "native_runtime": "ACTUAL_7BB_SEVEN_GEOMETRY_MINIMUM_NORMALUP_SCOPED_PASS_NOT_WHOLE_CONTRACT",
     "package": "GUEST13A_GENERATED_DEPLOYED_RUN_COLLECTED_EXACT_CLEANED",
     "ordinary_portable_verified": false,
     "whole_version_PASS": false,
     "old_runtime_rebound": false,
-    "next_action": "保持ccde产品EXE冻结，不重建/不重绑2787旧实测。新TEST-only bottom expected4修正及blank独立own UI线程安排尚待新driver身份/构建/新Run定向验证实际Terminal min/后继Move及NF；同STA和一次native15.613ms是已观察耦合事实，不预定根因或改善。不重跑Full/900或无变量cmd/托盘路线。ccde普通portable2579仅生成/identity/dependency/七文件校验，普通GUI NOT_RUN；当前已验仍42ab/d5f5/f78。44/22、modules0不增。",
-    "driver_debug_sha256": "76EAB29C329466892E6D198908F84758463BA7253A0D1B76F61DF66CB59B5A32",
-    "driver_release_sha256": "9D2D1E72852A09365BF415C6CB1A5FB80AB5565011061AE566DC208771DB843D",
+    "next_action": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。",
+    "driver_debug_sha256": "D7FA0CC055CF36F96A0FB6AA0AB141E4D69A1C292BD74FB164B32296BE054BB5",
+    "driver_release_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
     "actual_build_evidence_path": "uat/v1-control/build-ccde014-c20738458c25454f8ff872e310ccdeb1/receipt.json",
     "actual_build_evidence_sha256": "27A22C773A64689B73374D90C2E5676DF8FBF804E72EF358E4FCDD57A788DC3E",
     "actual_build_evidence_kind": "ARCHIVED_ORIGINAL_CTEST_AND_FROZEN_BUILD_RECEIPT",
@@ -2050,19 +2136,20 @@
     "reserved_guest_run_id": "13a2871f78024e8984c1c21f9e3b22ba",
     "reserved_guest_run_status": "ACTUAL_COLLECTED_EXACT_GUEST_CLEANED",
     "actual_run_ids": [
-      "13a2871f78024e8984c1c21f9e3b22ba"
+      "13a2871f78024e8984c1c21f9e3b22ba",
+      "7bb387ddc9ac4ca69aa1539a53320bd1"
     ],
     "actual_runtime_evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-    "actual_runtime_evidence_sha256": "4CB66855B103F4DFEA33DBD440B5545149D4280312647AE34835F7B2710C7722",
+    "actual_runtime_evidence_sha256": "3660E6CC5ED4652AA849D0C7B96BD404C8384D2FBD7260464509BEC7FF3F9AEF",
     "actual_guest_package": {
       "receipt": {
-        "path": "uat/v1-sandbox/13a2871f78024e8984c1c21f9e3b22ba/package-receipt.json",
+        "path": "uat/v1-sandbox/7bb387ddc9ac4ca69aa1539a53320bd1/package-receipt.json",
         "bytes": 13338,
-        "sha256": "954305D8E435B01FE089D4F926DB98BEA009ECF55273860DCC09EE7BF693786B"
+        "sha256": "149ABAFE283BB778099F4CAF18C00E411149FD3F552ACCB73D4A9CB041B247E0"
       },
-      "zip_sha256": "B9219CEDC7B19CDBE8737779686202E68F26F643911B3D17411BBBE71A4F160B",
-      "manifest_sha256": "5E63CDF75F40F23C49039DD7C31142F275A5546B348D829EF540E23BADA3E280",
-      "wsb_sha256": "38B85B4838BBE338F99DFBE889FD1DA5F463C89B2BDAD2EB483456E89D3E3862",
+      "zip_sha256": "D93DACB5A6BB6D1CCFF52A067BA537E0BC4A37F9975E711AF0D7187F432ECE4B",
+      "manifest_sha256": "037AB22D25C668CAE198A0177568427626C1A701498E20BC3F232BCDA668ADD6",
+      "wsb_sha256": "1A0D832EB422FA3D3BA077C430EA25DEAE3D350EAF37BEBD3E9015627919094E",
       "actual_local_container_hashes_match": true,
       "collected_product_EXE_hash_matches": true,
       "package_time_NOT_RUN_metadata_not_rewritten": true
@@ -2119,7 +2206,13 @@
       "clean_guest_portable_validation": "NOT_RUN",
       "historical_42ab_d5f5_f78_not_rebound": true
     },
-    "scope": "ccde/13a同PID6132真实Move→右Resize→后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap与两成员Ctrl均exact；五代有Raw+legacy NormalUp/release/detach/Gone，9native完整postcontext。P203 callback35/p99桶999us/max885us仅本scope通过，native9/p95桶99999us/max51639us仍FAIL。D1529真实WM_GETMINMAXINFO返回min714×152、frame差18/9→visible696×143，customheight/oracleknown；g6实际bottom region4，经START/cancel/END/ATI/captureReady到gesture_start，但TEST把Resize硬编码right2而D1533拒绝，g6没有placement/UP或min clamp/后继Move结论。D1533/1540 test_pair_unknown/cleanup=false，Default回切未确认；P204产品自身resources/worker/shield停止不补pair/Default/全树PASS。客户内容/托盘本批未执行。"
+    "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+    "runtime_driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+    "runtime_driver_build_receipt": {
+      "path": "uat/v1-control/driver-isolated-target-354def7-c74f66788cae41daaf6f681e6fe9529e/receipt.json",
+      "bytes": 2330,
+      "sha256": "36004AE21DD3C87CE12558E38388D75B015B8E7FABCC82EF2BE24F050F675EF6"
+    }
   },
   "historical_f78d_portable_entry_driver": {
     "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
@@ -2203,7 +2296,7 @@
     "whole_version_PASS": false,
     "old_runtime_rebound": false
   },
-  "last_actual_tested_driver": {
+  "observed_ccde13a_last_actual_tested_driver": {
     "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
     "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
     "debug_sha256": "76EAB29C329466892E6D198908F84758463BA7253A0D1B76F61DF66CB59B5A32",
@@ -2216,6 +2309,22 @@
       "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
     ],
     "runtime_scope": "ccde/13a同PID6132真实Move→右Resize→后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap与两成员Ctrl均exact；五代有Raw+legacy NormalUp/release/detach/Gone，9native完整postcontext。P203 callback35/p99桶999us/max885us仅本scope通过，native9/p95桶99999us/max51639us仍FAIL。D1529真实WM_GETMINMAXINFO返回min714×152、frame差18/9→visible696×143，customheight/oracleknown；g6实际bottom region4，经START/cancel/END/ATI/captureReady到gesture_start，但TEST把Resize硬编码right2而D1533拒绝，g6没有placement/UP或min clamp/后继Move结论。D1533/1540 test_pair_unknown/cleanup=false，Default回切未确认；P204产品自身resources/worker/shield停止不补pair/Default/全树PASS。客户内容/托盘本批未执行。",
+    "whole_version_PASS": false,
+    "old_runtime_rebound": false
+  },
+  "last_actual_tested_driver": {
+    "source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+    "product_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+    "debug_sha256": "D7FA0CC055CF36F96A0FB6AA0AB141E4D69A1C292BD74FB164B32296BE054BB5",
+    "release_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
+    "run_ids": [
+      "7bb387ddc9ac4ca69aa1539a53320bd1"
+    ],
+    "evidence_paths": [
+      "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+      "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
+    ],
+    "runtime_scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
     "whole_version_PASS": false,
     "old_runtime_rebound": false
   },
@@ -3458,7 +3567,7 @@
       "retained_Shell_tree": "UNKNOWN"
     }
   },
-  "latest_runtime_observation": {
+  "observed_13a_product_runtime_observation": {
     "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
     "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
     "driver_source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
@@ -3493,6 +3602,42 @@
       "evidence_unchanged": true,
       "retained_Shell_tree": "UNKNOWN",
       "own_product_shutdown_does_not_close_test_pair": true
+    }
+  },
+  "latest_runtime_observation": {
+    "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+    "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+    "driver_source_sha": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+    "driver_binary_sha256": "C255963ADF53AED2A5F0278376C42B9AEB0B61B15F272BD7844B41E4168F574B",
+    "run_id": "7bb387ddc9ac4ca69aa1539a53320bd1",
+    "configuration": "Release",
+    "observation_id": "PO-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+    "evidence_id": "EV-7BB-CCDE-SEVEN-GENERATION-TERMINAL-MINIMUM-SCOPED",
+    "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+    "scope": "ccde产品未重建，354 TEST/7bb同PID5948完成七代：Move→右Resize→后继Move、五阶段磁吸含Hold真实noop、两成员Ctrl，再真实bottom最小高度钳制raw142→应用min143（714×152 native减frame18/9→696×143 visible）且一次native，后继Move(+24,+18)。七代Raw+legacy NormalUp/release/detach/Gone齐，11native exact/identity/完整postcontext；D1878独立blank UI owner实际线程/窗口/class/COM/句柄清理，D1923 Default回切确认。P254 callback44/p99桶999us/max506us及native11/p95桶49999us/max25259us仅本scope预算通过，不关闭NF02、不推唯一线程根因。D1910托盘providerPID0无click，总FAIL；Terminal held exit0/rootGone和产品P255资源停止独立成立，Shell树/wrapper descendants1/forced=true UNKNOWN。客户内容/应用grid或WM_SIZING提案/完整M03F03/五应用未过；13a原TEST失败不回写。",
+    "result": "SEVEN_GENERATION_GEOMETRY_MINIMUM_SCOPE_PASS_TRAY_BLOCKED_FULL_CONTRACTS_NOT_GRANTED",
+    "not_complete_contract_PASS": true,
+    "product_process_id": 5948,
+    "product_birth_filetime_decimal": "134373123982363141",
+    "packaging_head": "354def7cad4ef88d9d2eed96a6300379b8e32b7f",
+    "ordinary_portable_ref": "V1_ACCEPTANCE.portable_candidate42ab_d5f5_not_rebound",
+    "prepared_ccde_portable_ref": "pending_product_candidate.prepared_ordinary_portable_NOT_RUN",
+    "actual_product_exit_code": 0,
+    "actual_product_shutdown_receipt": "7bb product255",
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "test_pair_cleanup": "KNOWN_GEOMETRY_SCOPE",
+    "Default_return_confirmed": true,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "feature_contract_PASS": false,
+    "benchmark_contract_PASS": false,
+    "whole_version_PASS": false,
+    "human_uat": "NOT_RUN",
+    "cleanup": {
+      "receipt_path": "uat/v1-control/7bb387ddc9ac4ca69aa1539a53320bd1/cleanup-receipt.json",
+      "utc": "2026-10-24T10:48:31.3349267Z",
+      "evidence_unchanged": true,
+      "retained_Shell_tree": "UNKNOWN"
     }
   },
   "historical_fcf_runtime_observation": {

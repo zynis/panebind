@@ -1888,4 +1888,37 @@ function Assert-V1GeometryBottomRegion([string]$Geometry){
 Assert-V1GeometryBottomRegion $mediumGeometrySource
 Check $true 'static actual minimum-resize DOWN branch checks the observed bottom region4'
 Reject {Assert-V1GeometryBottomRegion ($mediumGeometrySource.Replace('case HTBOTTOM:expected_region=4;break;','case HTBOTTOM:expected_region=2;break;'))} 'static minimum test rejects its old deterministic right-versus-bottom mismatch'
+function Assert-V1SingleSizingProposal([string]$Geometry){
+    $begin=$Geometry.IndexOf('std::optional<TerminalSizingProposal> terminal_sizing_proposal()', [StringComparison]::Ordinal)
+    $end=$Geometry.IndexOf('// Read current-launch diagnostics', $begin, [StringComparison]::Ordinal)
+    if($begin -lt 0 -or $end -le $begin){throw 'The one-point proposal must be in the actual geometry adapter.'}
+    $probe=$Geometry.Substring($begin,$end-$begin)
+    if([regex]::Matches($probe,'SendMessageTimeoutW\(').Count -ne 1 -or
+       $probe -match '\b(for|while|wait_for|SetWindowPos|SetForegroundWindow|SetCapture|ReleaseCapture)\s*\('){
+        throw 'The proposal must not scan, retry, place, activate or change capture.'
+    }
+    foreach($value in @('matching_clean_captured_up(', 'target_tid_!=GetCurrentThreadId()',
+        'lease_->flags.load(std::memory_order_acquire)==0', 'GetForegroundWindow()==target_',
+        'SendMessageTimeoutW(target_,WM_SIZING,WMSZ_BOTTOM',
+        'SMTO_ABORTIFHUNG|SMTO_BLOCK|SMTO_ERRORONEXIT,30,&message_result)',
+        'eligible=api!=FALSE&&message_result==TRUE&&context&&shape&&bounds;',
+        'if(!eligible)return {};')){
+        if(-not $probe.Contains($value)){throw ('Single proposal lost a real fact or UNKNOWN gate: '+$value)}
+    }
+    foreach($value in @('if(const auto proposal=terminal_sizing_proposal())',
+        'one_gesture(HTBOTTOM,0,1,"SingleSizingProposalResize",false,false,false,&*proposal);',
+        'one_gesture(HTCAPTION,24,18,"AfterSingleSizingProposalMove");',
+        'placement=phase_placement(placement_mark,*observed,source_key_);',
+        'geometry_single_sizing_proposal_stale_before_real_DOWN')){
+        if(-not $Geometry.Contains($value)){throw 'The proposal must feed the guarded real gesture, not an idealized helper.'}
+    }
+    $up=$Geometry.IndexOf('if(!minimum_declined)out_.emit("medium_product_geometry_NormalUp"', [StringComparison]::Ordinal)
+    $comparison=$Geometry.IndexOf('out_.emit("medium_product_geometry_Terminal_WM_SIZING_comparison"', [StringComparison]::Ordinal)
+    if($up -lt 0 -or $comparison -le $up){throw 'Interpret the preference only after the actual NormalUp and cleanup checks.'}
+}
+Assert-V1SingleSizingProposal $mediumGeometrySource
+Check $true 'static one-point app proposal feeds the actual guarded Resize with real UP before preference interpretation'
+Reject {Assert-V1SingleSizingProposal ($mediumGeometrySource.Replace('eligible=api!=FALSE&&message_result==TRUE&&context&&shape&&bounds;','eligible=true;'))} 'static sizing proposal cannot invent eligibility from delivery alone'
+Reject {Assert-V1SingleSizingProposal ($mediumGeometrySource.Replace('if(!eligible)return {};',''))} 'static UNKNOWN proposal cannot proceed to real synthetic input'
+Reject {Assert-V1SingleSizingProposal ($mediumGeometrySource.Replace('one_gesture(HTBOTTOM,0,1,"SingleSizingProposalResize",false,false,false,&*proposal);',''))} 'static proposal cannot substitute a message result for an actual guarded Resize'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
