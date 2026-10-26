@@ -1,5 +1,6 @@
 #include "platform/windows/product/input_service.h"
 #include "platform/windows/product/window_writer.h"
+#include "platform/windows/product/tray_callback_route.h"
 #include "core/v1/gesture.h"
 #include "core/v1/layout.h"
 #include "core/geometry/magnet_constraint_solver.h"
@@ -20,6 +21,23 @@ void check(bool condition, const char* name) {
 // GUI adapter / low-level callback. It never starts InputService, installs a
 // hook, synthesizes input, queries foreground, or opens a user window.
 int main() {
+    using TrayRoute=product::TrayCallbackRoute;
+    check(product::tray_callback_route(NIN_KEYSELECT)==TrayRoute::Settings,
+          "actual v4 keyboard icon activation opens the existing Settings route");
+    check(product::tray_callback_route(NIN_SELECT)==TrayRoute::Settings&&
+          product::tray_callback_route(WM_LBUTTONDBLCLK)==TrayRoute::Settings,
+          "existing select and double-click Settings routes are retained");
+    check(product::tray_callback_route(WM_CONTEXTMENU)==TrayRoute::Menu&&
+          product::tray_callback_route(WM_RBUTTONUP)==TrayRoute::Menu,
+          "context and legacy right-up retain the existing menu route");
+    const LPARAM packed_key=MAKELPARAM(NIN_KEYSELECT,1);
+    check(product::tray_callback_route(LOWORD(packed_key))==TrayRoute::Settings&&HIWORD(packed_key)==1,
+          "production v4 LOWORD event decoding is independent of the packed icon ID");
+    for(const UINT ignored:{0u,static_cast<UINT>(WM_MOUSEMOVE),static_cast<UINT>(WM_LBUTTONDOWN),
+            static_cast<UINT>(NIN_BALLOONSHOW),static_cast<UINT>(NIN_BALLOONUSERCLICK)}){
+        check(product::tray_callback_route(ignored)==TrayRoute::Ignored,
+              "unhandled tray observations cannot open Settings or a menu");
+    }
     product::Prepared native_down;
     native_down.source.hwnd=reinterpret_cast<HWND>(101);native_down.source.pid=21;native_down.source.tid=31;
     native_down.source.key=41;native_down.source.born=51;native_down.source.exe=L"C:\\fixture.exe";

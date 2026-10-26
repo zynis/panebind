@@ -3,6 +3,7 @@
 #include "settings_window.h"
 #include "visual_recovery.h"
 #include "window_writer.h"
+#include "tray_callback_route.h"
 #include "guest_capture_scope.h"
 #include "guest_queue_failure_command.h"
 #include "core/v1/layout.h"
@@ -279,8 +280,9 @@ public:
             const auto tick=GetTickCount64();LARGE_INTEGER qpc{};const bool clock=QueryPerformanceCounter(&qpc)!=FALSE;
             DWORD receiver_pid{},foreground_pid{};const DWORD receiver_tid=GetWindowThreadProcessId(receiver,&receiver_pid);
             const HWND foreground=GetForegroundWindow();const DWORD foreground_tid=foreground?GetWindowThreadProcessId(foreground,&foreground_pid):0;
-            const UINT event=LOWORD(lp);const char* route=event==WM_CONTEXTMENU||event==WM_RBUTTONUP?"menu":
-                event==NIN_SELECT||event==WM_LBUTTONDBLCLK?"settings":"ignored_by_existing_route";
+            const UINT event=LOWORD(lp);const auto routed=tray_callback_route(event);
+            const char* route=routed==TrayCallbackRoute::Menu?"menu":
+                routed==TrayCallbackRoute::Settings?"settings":"ignored_by_existing_route";
             log.event("tray_callback_ingress","\"record_index\":"+std::to_string(index)+",\"record_limit\":16"+
                 ",\"observed_tick\":"+std::to_string(tick)+",\"observed_qpc\":"+(clock?std::to_string(qpc.QuadPart):"null")+
                 ",\"actual_receiver_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(receiver))+
@@ -921,7 +923,7 @@ public:
         if(!SetLayeredWindowAttributes(overlay,overlay_key,255,LWA_COLORKEY|LWA_ALPHA)){hide_preview();return;}
         position_overlay(bounds,only_limitation?"limitation_strip":"feedback",limited);
     }
-    void command(v::Action action,std::optional<Snapshot> target={});
+    void command(v::Action action,std::optional<Snapshot> target={},std::uint64_t hook_observed_qpc=0);
     void prepare();
     void refresh_idle_catalog(){
         if(!idle_catalog_observation_allowed(gesture.has_value()||native_move.has_value()||input.native_move_in_progress(),writer.has_pending_native_operation()))return;
@@ -1072,7 +1074,7 @@ public:
 };
 Application* application{};
 
-void Application::command(v::Action action,std::optional<Snapshot> target){
+void Application::command(v::Action action,std::optional<Snapshot> target,std::uint64_t hook_observed_qpc){
     if(action==v::Action::Pause){set_paused(settings.enabled);return;}
     if(action==v::Action::Settings){show_settings();return;}if(action==v::Action::Exit){DestroyWindow(window);return;}
     if(!settings.enabled){notify(L"增强已暂停；请先恢复后再执行窗口命令。");return;}
@@ -1166,7 +1168,7 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
         desired=v::smart_dock(s.work,action,others,settings.smart_docking);else return;
     }
     if(geometry){if(s.maximized){notify(L"请先恢复窗口再执行该几何操作。");return;}
-        if(apply({true,"command",{{s.key,desired}}},{s})){
+        if(apply({true,"command",{{s.key,desired}}},{s},0,false,hook_observed_qpc)){
             if(keep_history)remember_receipt(s,(action>=v::Action::DockLeft&&action<=v::Action::DockBottomRight)||
                 (action>=v::Action::StretchLeft&&action<=v::Action::StretchAll));
             else{auto& history=undo[s.key];history.pop_back();
@@ -2080,7 +2082,7 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
         // A discrete command may return after the hook has observed UP and a
         // later DOWN. Retire only this generation, including rejection/throw;
         // a check followed by unconditional revoke would race that new DOWN.
-        try{if(e.prepared)command(action,e.prepared->source);}
+        try{if(e.prepared)command(action,e.prepared->source,e.hook_observed_qpc);}
         catch(...){input.revoke_generation(e.generation);throw;}
         const bool retired=input.revoke_generation(e.generation);
         if(diagnostic)log.event("mapped_command_completed","\"generation\":"+std::to_string(e.generation)+
@@ -2364,6 +2366,13 @@ void Application::menu(){
 void Application::stop(){if(stopping)return;stopping=true;hide_preview("stop");input.revoke();input.stop();finish(v::End::Exit);settings_ui.close();
     drain_button_admissions(true);
     log_delayed_completions();
+    for(auto& [key,record]:visual){(void)key;visual_restore(record);}visual.clear();
+    const bool native_writer_exited=writer.stop();
+    const bool issued_completion_unknown=writer.has_unconfirmed_native_call();
+    log_delayed_completions();
+    // The input producer has stopped and the issued writer's final drain is
+    // now observed. Unfinished/unknown calls remain explicit, never zeroed to
+    // make a partial timing population look like the complete shutdown set.
     const auto timing_fields=[](const v::TimingSnapshot& value,unsigned percentile){
         const auto upper=value.percentile_upper_us(percentile);
         return "\"samples\":"+std::to_string(value.samples)+",\"discarded\":"+std::to_string(value.discarded)+
@@ -2374,13 +2383,11 @@ void Application::stop(){if(stopping)return;stopping=true;hide_preview("stop");i
     };
     log.event("timing_summary","\"qpc_frequency\":"+std::to_string(input.counter_frequency())+
         ",\"clock_scope\":\"same_machine_QPC_software_observation_cross_thread_one_tick_quantization\""+
+        ",\"after_native_writer_stop_and_final_drain\":true,\"native_writer_exited\":"+(native_writer_exited?"true":"false")+
+        ",\"issued_native_completion_unknown\":"+(issued_completion_unknown?"true":"false")+
         ",\"mouse_callback\":{"+timing_fields(input.callback_timing(),99)+",\"excludes_downstream_CallNextHookEx\":true}"+
         ",\"hook_observed_to_postverify\":{"+timing_fields(input_post_timing.snapshot(),95)+
         ",\"sample_unit\":\"native_placement\",\"endpoint\":\"geometry_and_post_context_complete\",\"not_physical_display_latency\":true,\"unfinished_calls\":"+std::to_string(delayed_input_qpc.size())+"}");
-    for(auto& [key,record]:visual){(void)key;visual_restore(record);}visual.clear();
-    const bool native_writer_exited=writer.stop();
-    const bool issued_completion_unknown=writer.has_unconfirmed_native_call();
-    log_delayed_completions();
     const bool recovery_stopped=recovery.stop();
     // A confirmed helper stop postverified all its held originals AFTER the
     // exact completion barrier. Retire local journals too, including a job
@@ -2492,11 +2499,12 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
             if(a->gesture&&a->gesture->restore_pending)a->restore_progress();
             a->refresh_idle_catalog();
             return 0;}
-        case tray_message:
+        case tray_message:{
             a->observe_tray_ingress(w,wp,lp);
-            if(LOWORD(lp)==WM_CONTEXTMENU||LOWORD(lp)==WM_RBUTTONUP)a->menu();
-            else if(LOWORD(lp)==NIN_SELECT||LOWORD(lp)==WM_LBUTTONDBLCLK)a->show_settings();
-            return 0;
+            const auto route=tray_callback_route(LOWORD(lp));
+            if(route==TrayCallbackRoute::Menu)a->menu();
+            else if(route==TrayCallbackRoute::Settings)a->show_settings();
+            return 0;}
         case WM_HOTKEY:{
             const auto found=std::find_if(a->bound_keys.begin(),a->bound_keys.end(),[&](const auto& key){return key.id==static_cast<int>(wp);});
             if(found!=a->bound_keys.end())a->command(found->binding.action);return 0;}

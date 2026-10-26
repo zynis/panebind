@@ -3651,3 +3651,28 @@ native APIs rather than introducing a new mechanism or external code. Static
 mutation checks cover the actual dispatcher, followed by a separately identified
 affected build/run. The existing clocks do not establish how much time those
 unused calls consumed; no latency PASS or unique system cause is inferred.
+
+### 2026-10-26: V1 tray keyboard dispatch and timing-completion accounting
+
+The existing pinned AltSnap/FancyZones architecture and history reviews above
+are reused, not claimed as a fresh upstream source inspection. No upstream
+implementation was copied, translated or adapted. This bounded change does
+not add an input mechanism, native writer authority or a movement algorithm.
+
+The official [Shell_NotifyIconW contract](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw)
+was actually read on 2026-10-26. With NOTIFYICON_VERSION_4, keyboard activation
+can deliver NIN_KEYSELECT. PaneBind already selects that version but omitted
+the notification from both callback diagnostics and the settings dispatch.
+The fix uses the same small production dispatch predicate in offline tests.
+It is not evidence that the guest notification-area UIA provider, a real tray
+click or a keyboard gesture was observed; those gates remain unpassed.
+
+Two further fixes are original local data-flow corrections: preserve an
+already observed mapped-mouse hook QPC through command-to-writer dispatch,
+and emit the final timing summary after the native writer stop/completion
+barrier and final actual-completion drain. GUI/menu commands without a hook
+origin remain explicitly missing that origin, not zero-latency samples.
+Unknown in-flight calls remain unknown. Neither correction changes input
+revocation, placement admission, identity/context checks or histogram budgets.
+Prior runtime results retain their original source/binary identities; the new
+candidate requires its own affected runtime verification.

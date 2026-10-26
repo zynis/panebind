@@ -2095,4 +2095,59 @@ Check $true 'static Ctrl Resize alone omits unused magnet observations while ret
 Reject {Assert-V1CtrlResizeUnusedPreparation ($liveResizeApplication.Replace('const bool ctrl_resize=state.ctrl&&is_resize(state.edges);','const bool ctrl_resize=state.ctrl;'))} 'static Ctrl Move cannot lose its magnet observations'
 Reject {Assert-V1CtrlResizeUnusedPreparation ($liveResizeApplication.Replace('if(!ctrl_resize)refresh_targets();','refresh_targets();'))} 'static actual Ctrl Resize must gate the unused candidate refresh'
 Reject {Assert-V1CtrlResizeUnusedPreparation ($liveResizeApplication.Replace('const auto displays=ctrl_resize?std::vector<Display>{}:catalog.displays();','const auto displays=catalog.displays();'))} 'static Ctrl Resize cannot recreate unused monitor measurement windows'
+function Assert-V1FinalTimingAndTrayRoute([string]$Application,[string]$Tray){
+    foreach($value in @(
+        'void command(v::Action action,std::optional<Snapshot> target={},std::uint64_t hook_observed_qpc=0);',
+        'try{if(e.prepared)command(action,e.prepared->source,e.hook_observed_qpc);',
+        'if(apply({true,"command",{{s.key,desired}}},{s},0,false,hook_observed_qpc))')){
+        if(-not $Application.Contains($value)){throw ('Actual mapped command must carry its observed hook QPC while GUI defaults remain unknown: '+$value)}
+    }
+    $begin=$Application.IndexOf('void Application::stop(){')
+    $end=$Application.IndexOf('LRESULT CALLBACK overlay_proc(',$begin)
+    if($begin -lt 0 -or $end -le $begin){throw 'Actual production stop body not found.'}
+    $stop=$Application.Substring($begin,$end-$begin)
+    $input=$stop.IndexOf('input.stop();')
+    $writer=$stop.IndexOf('const bool native_writer_exited=writer.stop();')
+    $lastDrain=$stop.LastIndexOf('log_delayed_completions();')
+    $summary=$stop.IndexOf('log.event("timing_summary",')
+    if($input -lt 0 -or $writer -le $input -or $lastDrain -le $writer -or $summary -le $lastDrain -or
+       $summary -ne $stop.LastIndexOf('log.event("timing_summary",') -or
+       $stop.Contains('delayed_input_qpc.clear()')){throw 'Final timing must follow real input/writer stop and last drain without clearing unfinished calls.'}
+    foreach($value in @('const bool issued_completion_unknown=writer.has_unconfirmed_native_call();',
+        'std::to_string(delayed_input_qpc.size())','native_writer_exited?"true":"false"',
+        'issued_completion_unknown?"true":"false"')){
+        if(-not $stop.Contains($value)){throw 'Final timing must retain actual unknown/native-worker facts.'}
+    }
+    if(-not $Tray.Contains('event==NIN_SELECT||event==NIN_KEYSELECT||event==WM_LBUTTONDBLCLK')){
+        throw 'The production shared tray predicate must recognize v4 keyboard activation.'
+    }
+    $ingressStart=$Application.IndexOf('void observe_tray_ingress(')
+    $ingressEnd=$Application.IndexOf('void callback_owner_stop_fact(',$ingressStart)
+    $dispatchStart=$Application.IndexOf('case tray_message:')
+    $dispatchEnd=$Application.IndexOf('case WM_HOTKEY:',$dispatchStart)
+    if($ingressStart -lt 0 -or $ingressEnd -le $ingressStart -or $dispatchStart -lt 0 -or $dispatchEnd -le $dispatchStart){
+        throw 'Actual tray ingress and dispatch bodies must both be found.'
+    }
+    $ingress=$Application.Substring($ingressStart,$ingressEnd-$ingressStart)
+    $dispatch=$Application.Substring($dispatchStart,$dispatchEnd-$dispatchStart)
+    if(-not $ingress.Contains('const auto routed=tray_callback_route(event);') -or
+       -not $dispatch.Contains('const auto route=tray_callback_route(LOWORD(lp));') -or
+       -not $dispatch.Contains('if(route==TrayCallbackRoute::Menu)a->menu();') -or
+       -not $dispatch.Contains('else if(route==TrayCallbackRoute::Settings)a->show_settings();')){
+        throw 'Tray logging and real dispatch must call the same actual event predicate.'
+    }
+}
+$trayCallbackSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/tray_callback_route.h'),[Text.Encoding]::UTF8)
+Assert-V1FinalTimingAndTrayRoute $liveResizeApplication $trayCallbackSource
+Check $true 'static actual mapped timing, final writer barrier and v4 keyboard tray dispatch are connected'
+Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('command(action,e.prepared->source,e.hook_observed_qpc);','command(action,e.prepared->source);')) $trayCallbackSource} 'static old mapped branch cannot discard an actually observed hook timestamp'
+Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('{s},0,false,hook_observed_qpc))','{s},0,false,0))')) $trayCallbackSource} 'static command cannot replace the real mapped timestamp with an unknown default'
+Reject {
+    $oldOrder=$liveResizeApplication.Replace('log.event("timing_summary",','log.event("timing_summary_after_stop_disabled",')
+    $oldOrder=$oldOrder.Replace('const bool native_writer_exited=writer.stop();','log.event("timing_summary","old_before_writer_stop");const bool native_writer_exited=writer.stop();')
+    Assert-V1FinalTimingAndTrayRoute $oldOrder $trayCallbackSource
+} 'static old pre-writer-stop summary cannot omit a subsequently drained completion'
+Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('const bool issued_completion_unknown=writer.has_unconfirmed_native_call();','const bool issued_completion_unknown=writer.has_unconfirmed_native_call();delayed_input_qpc.clear();')) $trayCallbackSource} 'static unfinished native calls cannot be cleared to manufacture a complete timing population'
+Reject {Assert-V1FinalTimingAndTrayRoute $liveResizeApplication ($trayCallbackSource.Replace('event==NIN_SELECT||event==NIN_KEYSELECT||','event==NIN_SELECT||'))} 'static old tray predicate cannot ignore actual v4 keyboard activation'
+Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('const auto route=tray_callback_route(LOWORD(lp));','const auto route=TrayCallbackRoute::Ignored;')) $trayCallbackSource} 'static real tray dispatch cannot diverge from the logged shared predicate'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
