@@ -238,6 +238,17 @@ struct NativeMovePending {
     HWND overlay{};
     bool cancel_succeeded{};
 };
+// Optional GUI-owner diagnostics only. Zero means that clock/stage was not
+// observed; these receipts never participate in input or writer authority.
+struct ContextualBeginTiming {
+    std::uint64_t begin_qpc{},fresh_qpc{},first_all_qpc{},members_fresh_qpc{},other_qpc{};
+    std::uint64_t apply_before_qpc{},apply_returned_qpc{};
+    bool fresh_returned{},fresh_present{},contextual_evaluated{},contextual_branch{},apply_invoked{},apply_returned{},applied{};
+};
+std::uint64_t diagnostic_qpc()noexcept{
+    LARGE_INTEGER value{};
+    return QueryPerformanceCounter(&value)&&value.QuadPart>0?static_cast<std::uint64_t>(value.QuadPart):0;
+}
 class Application {
 public:
     struct BoundKey {int id{};v::Hotkey binding;};
@@ -253,7 +264,7 @@ public:
     std::optional<v::End> last_termination;std::string last_prepare_diagnostic;
     std::uint64_t admission_dropped_reported{},admission_wake_failures_reported{};
     // GUI-owner-only bounded observations; no LL/resource callback IO.
-    unsigned tray_ingress_records{},tray_menu_records{};
+    unsigned tray_ingress_records{},tray_menu_records{},contextual_begin_records{};
     std::map<v::Key,Snapshot> last_exact_receipts;
     VisualRecovery recovery;std::map<v::Key,v::VisualOwnership> recovery_owned;
     // Keep the gesture's own original tuple, not the helper journal's older
@@ -933,7 +944,7 @@ public:
         if(auto target=catalog.get(front,settings,nullptr,false,false))last_target=*target;
         prepare();
     }
-    void begin(const InputEvent&);
+    void begin(const InputEvent&,ContextualBeginTiming* = nullptr);
     void native_move_event(const InputEvent&);
     void native_move_resource(const InputEvent&);
     bool native_group_unchanged(const InputEvent& down,const Snapshot& actual_source){
@@ -1463,7 +1474,8 @@ void Application::native_move_resource(const InputEvent& e){
         ",\"native_END_not_inferred\":true,\"win32_error\":"+std::to_string(error));
     if(!sent){input.revoke_generation(g);native_move.reset();}
 }
-void Application::begin(const InputEvent& e){
+void Application::begin(const InputEvent& e,ContextualBeginTiming* stages){
+    if(stages)stages->begin_qpc=diagnostic_qpc();
     if(idle_notice_timer)hide_preview("new_gesture");
     // A real UP may have reached the hook before the GUI sees this DOWN. Its
     // distinct terminal capability permits building this exact context only;
@@ -1471,6 +1483,7 @@ void Application::begin(const InputEvent& e){
     if(!input.context_allowed(e.generation))return;
     if(gesture)finish(v::End::QueueFailure);if(!e.prepared||!epoch.begin(e.generation))return;
     const auto& p=*e.prepared;const auto fresh=catalog.get(p.source.hwnd,settings,nullptr,false,false);
+    if(stages){stages->fresh_qpc=diagnostic_qpc();stages->fresh_returned=true;stages->fresh_present=fresh.has_value();}
     const bool native_handoff=e.handoff_snapshot&&e.native_move_receipt;
     const auto& baseline=native_handoff?*e.handoff_snapshot:p.source;
     if(!fresh||!Catalog::same(p.source,*fresh)||
@@ -1495,6 +1508,7 @@ void Application::begin(const InputEvent& e){
     active.restore_armed=active.restore_kind!=NativeRestoreKind::None;
     active.ctrl=(e.modifiers&2u)&&settings.glue&&(fresh->feature_mask&2u);active.last_tick=e.tick;
     active.members=native_handoff&&active.ctrl?p.native_ctrl_members:catalog.all(settings);
+    if(stages&&!(native_handoff&&active.ctrl))stages->first_all_qpc=diagnostic_qpc();
     if(active.ctrl)active.members.erase(std::remove_if(active.members.begin(),active.members.end(),[](const auto& member){return !(member.feature_mask&2u);}),active.members.end());
     auto list=items(active.members);std::vector<v::Key> selected;
     if(native_handoff&&active.ctrl){for(const auto& member:active.members)selected.push_back(member.key);}
@@ -1527,7 +1541,9 @@ void Application::begin(const InputEvent& e){
     if(std::none_of(active.members.begin(),active.members.end(),[&](const auto& member){return member.key==fresh->key;})){
         input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;
     }
+    if(stages)stages->members_fresh_qpc=diagnostic_qpc();
     const bool contextual_double_click=e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u);
+    if(stages){stages->contextual_evaluated=true;stages->contextual_branch=contextual_double_click;}
     // 双击在本次 begin 内离散完成，不消费连续 motion 的 targets。
     // 保留首次 source 资格门与末次独立 stretch 候选采样。
     if(!contextual_double_click){
@@ -1569,9 +1585,16 @@ void Application::begin(const InputEvent& e){
         is_resize(gesture->edges)?shared_feedback_edges(items(gesture->members),fresh->key,gesture->edges,
             dip(settings.adjacency_dip,fresh->dpi)):std::vector<FeedbackLine>{});
     if(contextual_double_click){
-        auto other=catalog.all(settings);other.erase(std::remove_if(other.begin(),other.end(),[&](const auto& item){return item.key==fresh->key;}),other.end());
+        auto other=catalog.all(settings);
+        if(stages)stages->other_qpc=diagnostic_qpc();
+        other.erase(std::remove_if(other.begin(),other.end(),[&](const auto& item){return item.key==fresh->key;}),other.end());
         const auto desired=v::stretch(fresh->visible,fresh->work,gesture->edges,(e.modifiers&4u)!=0,items(other),settings.smart_stretch);
-        if(input.allowed(e.generation)&&apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc))remember_receipt(*fresh,true);
+        if(input.allowed(e.generation)){
+            if(stages){stages->apply_before_qpc=diagnostic_qpc();stages->apply_invoked=true;}
+            const bool applied=apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc);
+            if(stages){stages->apply_returned_qpc=diagnostic_qpc();stages->apply_returned=true;stages->applied=applied;}
+            if(applied)remember_receipt(*fresh,true);
+        }
         input.revoke_generation(e.generation);finish(v::End::Paused);
     }
 }
@@ -1984,6 +2007,7 @@ void Application::finish(v::End reason,std::uint64_t observed_qpc){
 void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
     const auto flush=[&]{if(latest_move){motion(*latest_move);latest_move.reset();}};
     while(input.pop(e)){
+    const auto GUI_dequeued_qpc=diagnostic&&(e.kind==InputKind::Down||e.kind==InputKind::Mapped||e.kind==InputKind::Up)?diagnostic_qpc():0;
     if(e.kind==InputKind::NativeMovePending||e.kind==InputKind::NativeMoveStart||
        e.kind==InputKind::NativeMoveEnd||e.kind==InputKind::NativeMoveReleased){
         flush();native_move_event(e);continue;
@@ -2073,6 +2097,7 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
             ",\"route\":\""+(e.action!=v::Action::None?"mapped":"gesture")+"\",\"action\":\""+
             std::string(v::action_name(e.action))+"\",\"action_enum\":"+std::to_string(static_cast<unsigned>(e.action))+
             ",\"button\":"+std::to_string(e.button)+",\"hook_observed_qpc\":"+std::to_string(e.hook_observed_qpc)+
+            ",\"GUI_dequeued_qpc\":"+(GUI_dequeued_qpc?std::to_string(GUI_dequeued_qpc):"null")+
             ",\"native_message_time\":"+std::to_string(e.native_message_time)+
             ",\"resource_observed_qpc\":"+std::to_string(e.resource_observed_qpc)+
             ",\"source_key\":"+std::to_string(e.prepared?e.prepared->source.key:0)+
@@ -2080,7 +2105,33 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
             ",\"gesture_generation_active_at_GUI_receive\":"+(gesture&&gesture->down.generation==e.generation?"true":"false")+
             ",\"write_authority_granted_by_receipt\":false");
     if(e.kind==InputKind::Move){latest_move=e;continue;}flush();
-    if(e.kind==InputKind::Down)begin(e);
+    if(e.kind==InputKind::Down){
+        std::optional<ContextualBeginTiming> stages;
+        unsigned stage_index{};
+        if(diagnostic&&e.clicks==2&&e.prepared&&e.prepared->region>0&&contextual_begin_records<4){
+            stages.emplace();stage_index=++contextual_begin_records;
+        }
+        begin(e,stages?&*stages:nullptr);
+        if(stages){
+            const auto returned_qpc=diagnostic_qpc();
+            const auto clock=[](std::uint64_t value){return value?std::to_string(value):"null";};
+            // One bounded record after the real handler returns. Existing S is
+            // later, inside place_with_destination, after batch admission.
+            log.event("contextual_double_click_stages","\"record_index\":"+std::to_string(stage_index)+",\"record_limit\":4"+
+                ",\"generation\":"+std::to_string(e.generation)+",\"source_key\":"+std::to_string(e.prepared->source.key)+
+                ",\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(e.prepared->source.hwnd))+
+                ",\"source_PID\":"+std::to_string(e.prepared->source.pid)+",\"source_TID\":"+std::to_string(e.prepared->source.tid)+
+                ",\"hook_observed_qpc\":"+std::to_string(e.hook_observed_qpc)+",\"qpc_frequency\":"+std::to_string(input.counter_frequency())+
+                ",\"GUI_dequeued_qpc\":"+clock(GUI_dequeued_qpc)+",\"begin_entered_qpc\":"+clock(stages->begin_qpc)+
+                ",\"first_source_fresh_returned_qpc\":"+clock(stages->fresh_qpc)+",\"first_source_fresh_present\":"+(stages->fresh_returned?(stages->fresh_present?"true":"false"):"null")+
+                ",\"first_topology_all_returned_qpc\":"+clock(stages->first_all_qpc)+",\"selected_members_fresh_passed_qpc\":"+clock(stages->members_fresh_qpc)+
+                ",\"actual_contextual_branch\":"+(stages->contextual_evaluated?(stages->contextual_branch?"true":"false"):"null")+",\"final_other_all_returned_qpc\":"+clock(stages->other_qpc)+
+                ",\"apply_invoked\":"+(stages->apply_invoked?"true":"false")+",\"apply_before_qpc\":"+clock(stages->apply_before_qpc)+
+                ",\"apply_returned\":"+(stages->apply_returned?"true":"false")+",\"apply_returned_qpc\":"+clock(stages->apply_returned_qpc)+
+                ",\"apply_result\":"+(stages->apply_returned?(stages->applied?"true":"false"):"null")+
+                ",\"handler_returned\":true,\"handler_returned_qpc\":"+clock(returned_qpc)+",\"stage_receipt_not_write_authority\":true");
+        }
+    }
     else if(e.kind==InputKind::Mapped){
         const auto action=e.prepared&&e.prepared->region==0&&e.clicks==2&&e.action==v::Action::Maximize&&
             IsZoomed(e.prepared->source.hwnd)?v::Action::Restore:e.action;

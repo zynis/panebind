@@ -2386,7 +2386,7 @@ Reject {Assert-V1BatchAbortReleaseDestination ($batchAbortRelease.Replace('GetFo
 Reject {Assert-V1BatchAbortReleaseDestination ($batchAbortRelease.Replace('if(!ready||!GetCursorPos(&fresh)||fresh.x!=point.x||fresh.y!=point.y||!exact_client())','if(!ready)'))} 'static logging cannot substitute for a fresh unique UP destination recheck'
 Reject {Assert-V1BatchAbortReleaseDestination ($batchAbortRelease.Replace('if(s.left&&!guarded_cleanup_started)button(s,false);','if(s.left)button(s,false);'))} 'static rejected batch cleanup cannot fall through to an unguarded catch UP'
 function Assert-V1ContextualDoubleClickPreparation([string]$Application){
-    $start=$Application.IndexOf('void Application::begin(const InputEvent& e){',[StringComparison]::Ordinal)
+    $start=$Application.IndexOf('void Application::begin(const InputEvent& e,ContextualBeginTiming* stages){',[StringComparison]::Ordinal)
     $end=$Application.IndexOf('void Application::cancel_seam_timer(',$start,[StringComparison]::Ordinal)
     if($start -lt 0 -or $end -le $start){throw 'Actual contextual-double-click begin body missing.'}
     $begin=$Application.Substring($start,$end-$start)
@@ -2411,10 +2411,13 @@ function Assert-V1ContextualDoubleClickPreparation([string]$Application){
         if(-not $begin.Contains($fact)){throw ('Double-click preparation cannot remove existing epoch/END/source/member admission: '+$fact)}
     }
     $discrete=$begin.Substring($tail)
-    foreach($fact in @('auto other=catalog.all(settings);other.erase(',
+    foreach($fact in @('auto other=catalog.all(settings);',
+        'other.erase(std::remove_if(other.begin(),other.end(),[&](const auto& item){return item.key==fresh->key;}),other.end());',
         'return item.key==fresh->key;}),other.end());',
         'items(other),settings.smart_stretch);',
-        'if(input.allowed(e.generation)&&apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc))remember_receipt(*fresh,true);',
+        'if(input.allowed(e.generation)){',
+        'const bool applied=apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc);',
+        'if(applied)remember_receipt(*fresh,true);',
         'input.revoke_generation(e.generation);finish(v::End::Paused);')){
         if(-not $discrete.Contains($fact)){throw ('Contextual stretch must independently resample its actual read-only neighbours and retain the real writer/retirement: '+$fact)}
     }
@@ -2425,5 +2428,61 @@ Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replac
 Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('if(!contextual_double_click){','if(false){'))} 'static the actual target acquisition must remain enabled for all other routes'
 Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('active.members=native_handoff&&active.ctrl?p.native_ctrl_members:catalog.all(settings);','active.members={*fresh};'))} 'static contextual preparation cannot bypass the first source topology and occlusion gate'
 Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('const auto actual=catalog.get(member.hwnd,settings);','const auto actual=catalog.get(member.hwnd,settings,nullptr,false,false);'))} 'static selected participants still require actual full tracking-limit observations'
-Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('auto other=catalog.all(settings);other.erase(','auto other=active.members;other.erase('))} 'static final stretch candidates cannot be replaced by an earlier cached topology'
+Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('auto other=catalog.all(settings);','auto other=active.members;'))} 'static final stretch candidates cannot be replaced by an earlier cached topology'
+function Assert-V1ContextualDoubleClickStages([string]$Application){
+    $start=$Application.IndexOf('void Application::begin(const InputEvent& e,ContextualBeginTiming* stages){',[StringComparison]::Ordinal)
+    $end=$Application.IndexOf('void Application::cancel_seam_timer(',$start,[StringComparison]::Ordinal)
+    $consumeStart=$Application.IndexOf('void Application::consume(){',[StringComparison]::Ordinal)
+    if($start -lt 0 -or $end -le $start -or $consumeStart -lt 0){throw 'Actual diagnostic begin/consumer missing.'}
+    $begin=$Application.Substring($start,$end-$start)
+    $consume=$Application.Substring($consumeStart)
+    if($begin -notmatch '^void Application::begin\(const InputEvent& e,ContextualBeginTiming\* stages\)\{\r?\n    if\(stages\)stages->begin_qpc=diagnostic_qpc\(\);\r?\n    if\(idle_notice_timer\)hide_preview' -or
+       $begin.Contains('log.event("contextual_double_click_stages"') -or
+       -not $consume.Contains('if(diagnostic&&e.clicks==2&&e.prepared&&e.prepared->region>0&&contextual_begin_records<4){') -or
+       -not $consume.Contains('stages.emplace();stage_index=++contextual_begin_records;')){
+        throw 'Stage clocks start before handler work and only a diagnostic four-candidate GUI consumer may emit after return.'
+    }
+    $previous=-1
+    foreach($stage in @('const auto fresh=catalog.get(p.source.hwnd,settings,nullptr,false,false);',
+        'stages->fresh_qpc=diagnostic_qpc();',
+        'active.members=native_handoff&&active.ctrl?p.native_ctrl_members:catalog.all(settings);',
+        'if(stages&&!(native_handoff&&active.ctrl))stages->first_all_qpc=diagnostic_qpc();',
+        'const auto actual=catalog.get(member.hwnd,settings);',
+        'if(stages)stages->members_fresh_qpc=diagnostic_qpc();',
+        'const bool contextual_double_click=e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u);',
+        'auto other=catalog.all(settings);',
+        'if(stages)stages->other_qpc=diagnostic_qpc();',
+        'if(stages){stages->apply_before_qpc=diagnostic_qpc();stages->apply_invoked=true;}',
+        'const bool applied=apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc);',
+        'if(stages){stages->apply_returned_qpc=diagnostic_qpc();stages->apply_returned=true;stages->applied=applied;}',
+        'if(applied)remember_receipt(*fresh,true);')){
+        $at=$begin.IndexOf($stage,[StringComparison]::Ordinal)
+        if($at -le $previous){throw ('Actual stage boundary missing or moved across its operation: '+$stage)}
+        $previous=$at
+    }
+    $call=$consume.IndexOf('begin(e,stages?&*stages:nullptr);',[StringComparison]::Ordinal)
+    $returned=$consume.IndexOf('const auto returned_qpc=diagnostic_qpc();',[StringComparison]::Ordinal)
+    $emit=$consume.IndexOf('log.event("contextual_double_click_stages"',$returned,[StringComparison]::Ordinal)
+    if($call -lt 0 -or $returned -le $call -or $emit -le $returned -or
+       $consume -notmatch 'while\(input.pop\(e\)\)\{\r?\n    const auto GUI_dequeued_qpc=diagnostic&&\(e.kind==InputKind::Down\|\|e.kind==InputKind::Mapped\|\|e.kind==InputKind::Up\)\?diagnostic_qpc\(\):0;'){
+        throw 'A timestamp taken after logging or before the handler returns cannot stand in for actual GUI dequeue/return.'
+    }
+    foreach($fact in @('const auto clock=[](std::uint64_t value){return value?std::to_string(value):"null";};',
+        '\"hook_observed_qpc\":"+std::to_string(e.hook_observed_qpc)',
+        '\"GUI_dequeued_qpc\":"+clock(GUI_dequeued_qpc)',
+        '\"first_source_fresh_present\":"+(stages->fresh_returned?(stages->fresh_present?"true":"false"):"null")',
+        '\"actual_contextual_branch\":"+(stages->contextual_evaluated?(stages->contextual_branch?"true":"false"):"null")',
+        '\"apply_result\":"+(stages->apply_returned?(stages->applied?"true":"false"):"null")',
+        '\"handler_returned\":true,\"handler_returned_qpc\":"+clock(returned_qpc)',
+        '\"stage_receipt_not_write_authority\":true')){
+        if(-not $consume.Contains($fact)){throw ('Bounded stage receipt loses actual/unknown distinction: '+$fact)}
+    }
+}
+Assert-V1ContextualDoubleClickStages $liveResizeApplication
+Check $true 'static contextual timing observes actual GUI and begin stages with a diagnostic four-record limit after handler return'
+Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('&&contextual_begin_records<4',''))} 'static stage diagnostics cannot become an unbounded per-gesture trace'
+Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('if(diagnostic&&e.clicks==2&&e.prepared&&e.prepared->region>0&&contextual_begin_records<4){','if(e.clicks==2&&e.prepared&&e.prepared->region>0&&contextual_begin_records<4){'))} 'static ordinary non-diagnostic execution cannot emit stage observations'
+Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('if(stages)stages->begin_qpc=diagnostic_qpc();',''))} 'static begin entry cannot be reconstructed from a later clock'
+Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('stages->members_fresh_qpc=diagnostic_qpc();','stages->members_fresh_qpc=e.hook_observed_qpc;'))} 'static a hook timestamp cannot masquerade as selected-member collection completion'
+Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('begin(e,stages?&*stages:nullptr);','const auto returned_qpc=diagnostic_qpc();begin(e,stages?&*stages:nullptr);'))} 'static handler return must be observed only after the actual call returns'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
