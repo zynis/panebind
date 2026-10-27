@@ -3,11 +3,15 @@
   "record_date": "2026-10-27",
   "current_round_targeted_followup": {
     "path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
-    "sha256": "AE4FFA7C74D3D96D5C73255E679105C296FBB4239A94E0E7C9092E402168CBD1",
+    "sha256": "FAC0B40CAEE1CF6DDF66BBBC726878801AF555CFC4DA166FC24FACDBBFE50219",
     "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
-    "literal_excerpt_sha256": "9D3480FFFFE8BF141D23BC7E96D26F6EB0EA82858D69D161A0AEF02BD6F6BCAA",
+    "literal_excerpt_sha256": "6FBE0DFD3D2996909A7015CD7E6ED08407182DA78560BA22520CD0AAE99AB81B",
     "product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
-    "current_scoped_results": "12cc D32/D33, f20a I07, 2bb I06 and 234bd max/grid retain their scope/identity. Added 94a real actor/packet/exit0 then early FocusLost and unsent cleanupUP; 00c early FocusLost again, with actual single abort cleanupUP verified but no Deadline/successor/I08 PASS. 12c7 true936/47ff ordinary ZIP entry and b4b same-PID two owned core rounds scoped PASS; b4b final NF02 p95 bucket99999us/missing34 does not meet the full budget. Initial/CreatePipe/bd941 failures and all historical bytes retained; no new feature/B score, tray or whole-version PASS.",
+    "current_scoped_results": "12cc D32/D33, f20a I07, 2bb I06 and 234bd max/grid retain their scope/identity. Added 94a real actor/packet/exit0 then early FocusLost and unsent cleanupUP; 00c early FocusLost again, with actual single abort cleanupUP verified but no Deadline/successor/I08 PASS. 12c7 true936/47ff ordinary ZIP entry and b4b same-PID two owned core rounds scoped PASS; b4b final NF02 p95 bucket99999us/missing34 does not meet the full budget. Initial/CreatePipe/bd941 failures and all historical bytes retained; no new feature/B score, tray or whole-version PASS. a127/936+4f02366 retains first exact, second API TRUE/identity lost, third zero, true release/detach/Gone, but fresh LL-UP remains old while new Raw is g0: actual cleanup-UP and survivor successor not proven, reason UNKNOWN, no I10 PASS. AACD D/R each8 offline PASS and two full-argv hostExit78 are build-only; field NOT_RUN.",
+    "next_product_source_sha": "aacd1ee87598bfe3eaddded6542639147e212c90",
+    "next_product_build_receipt": "uat/v1-control/build-sizing-aacd1ee-395104238f5245d49b6949832e8f6648/receipt.json",
+    "next_product_build_receipt_sha256": "B9F7D56ACACA1F1E410D785CD4050E21D6C639F3C34F952B7E36CA6067DB16F3",
+    "next_product_field_status": "NOT_RUN",
     "whole_version": "PARTIAL"
   },
   "current_round_restored_connection_environment": {
