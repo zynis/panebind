@@ -61,6 +61,8 @@ struct InputActorDisconnectFile {
     Handle reader,ready,close_ack;fs::path path;
 };
 bool input_actor_disconnect_cleanup_up(State&,LayoutFixtures&,std::size_t,std::uint64_t,bool&);
+bool input_actor_disconnect_startup_preflight(State&,LayoutFixtures&,DWORD,std::uint64_t,POINT,Rect,UINT,HMONITOR);
+bool input_actor_disconnect_foreground_unchanged(State&,LayoutFixtures&,std::uint64_t,DWORD,DWORD,std::string&);
 int input_actor_child(int count,LPWSTR* args,bool disconnect=false){
     if(count!=11||std::wstring_view(args[1])!=(disconnect?L"--input-actor-disconnect-once":L"--input-actor-once"))return 78;
     const std::wstring run=args[2];
@@ -383,6 +385,8 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
     s.log.check("I08_actor_exact_foreground",SetForegroundWindow(source)&&wait([&]{return GetForegroundWindow()==source;}));
     const auto point=layout_hit(set,0,HTCAPTION);if(!point)throw std::runtime_error("I08_actor_real_caption_hit_unavailable");
     cursor(s,*point);const auto hover=GetTickCount64();(void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
+    if(disconnect&&!input_actor_disconnect_startup_preflight(s,set,product_pid,product_birth,*point,*initial,initial_dpi,initial_monitor))
+        throw std::runtime_error("I08_disconnect_startup_natural_foreground_precondition_NOT_RUN");
     std::array<wchar_t,32768> self{};if(!GetModuleFileNameW(nullptr,self.data(),static_cast<DWORD>(self.size())))throw std::runtime_error("I08_actor_fixture_image_unavailable");
     InputActorDisconnectFile transport;
     if(disconnect){transport.path=input_actor_disconnect_packet_path(s.output,s.run,s.configuration=="Debug");SetLastError(ERROR_SUCCESS);
@@ -422,7 +426,9 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
     product::guest::ActorStartCaptureReceipt capture_receipt{};
     product::guest::ActorNativeThresholdCommand threshold_command{};bool threshold_published=false;
     std::string packet_before_bytes,packet_before_hash;BY_HANDLE_FILE_INFORMATION packet_before_info{};bool packet_before_known=false;
-    std::uint64_t packet_before_down_qpc{};
+    std::uint64_t packet_before_down_qpc{},disconnect_foreground_mark{},disconnect_native_baseline{};DWORD disconnect_guard_stamp{};
+    const auto calls=[&]{const auto rows=constraint_generation_placements(s,offset,g.generation);return
+        static_cast<std::uint64_t>(std::count_if(rows.begin(),rows.end(),[](const auto& row){return row.find("\"native_callsite_claimed\":true")!=std::string::npos;}));};
     try{
         if(disconnect){
             s.log.emit("I08_disconnect_no_inherited_completion_handles",
@@ -630,6 +636,12 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
                 ",\"actual_generation\":"+std::to_string(g.generation)+",\"independent_actual_geometry\":"+
                 (actual?rect(*actual):"null")+",\"actual_native_receipt\":"+quote(exact)+
                 ",\"child_UP_calls\":0,\"product_driver_channel\":false");
+            LARGE_INTEGER before_close_ack{};const bool close_clock=QueryPerformanceCounter(&before_close_ack)&&before_close_ack.QuadPart>0;
+            disconnect_native_baseline=calls();disconnect_foreground_mark=s.log.mark();disconnect_guard_stamp=static_cast<DWORD>(GetTickCount64());
+            s.log.check("I08_disconnect_pre_exit_observation_boundary",close_clock&&disconnect_native_baseline>0&&disconnect_foreground_mark,
+                "\"generation\":"+std::to_string(g.generation)+",\"before_close_ACK_qpc\":"+(close_clock?std::to_string(before_close_ack.QuadPart):"null")+
+                ",\"before_close_ACK_native_tick_u32\":"+std::to_string(disconnect_guard_stamp)+",\"native_calls_before_close_ACK\":"+std::to_string(disconnect_native_baseline)+
+                ",\"boundary_is_before_actor_exit_not_exact_exit_time\":true");
             s.log.check("I08_disconnect_actual_exact_Move_ack_then_child_disconnect",SetEvent(transport.close_ack.value)!=FALSE,
                 "\"child_input_already_observed\":true,\"ack_not_new_product_authority\":true");
         }
@@ -728,10 +740,43 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
         // or a root cause from the foreground change itself.
         if(disconnect&&ended.empty())(void)wait([&]{ended=record(s,offset,"gesture_end",g.generation);return !ended.empty();},1500);
         const auto before_tick=number(actor,"\"before_tick\":"),end_tick=number(ended,"\"tick\":");
-        const bool actual_deadline=terminal&&set.owns(0)&&GetForegroundWindow()==source&&s.left&&actual_up(s,offset,g.generation).empty()&&
-            number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::Deadline)&&ended.find("\"normal_up\":false")!=std::string::npos&&
-            ended.find("\"pending_retired\":true")!=std::string::npos&&before_tick&&end_tick>=before_tick&&end_tick-before_tick>=30000;
         namespace e=product::guest::up_evidence_detail;
+        const bool actual_deadline=terminal&&set.owns(0)&&GetForegroundWindow()==source&&s.left&&actual_up(s,offset,g.generation).empty()&&
+            geometry_history_receipt(s,ended,"gesture_end")&&e::number(ended,"\"generation\":")==g.generation&&
+            e::number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::Deadline)&&e::unique_value(ended,"\"normal_up\":")=="false"&&
+            e::unique_value(ended,"\"pending_retired\":")=="true"&&before_tick&&end_tick>=before_tick&&(disconnect||end_tick-before_tick>=30000);
+        std::string autonomous_gone,foreground_reason;bool autonomous_resources=false,foreground_unchanged=false;
+        if(disconnect){
+            // Observe the product's existing independent resource deadline,
+            // BEFORE the supervisor's one TEST cleanup UP. No product signal,
+            // pause or configured deadline change is introduced by this case.
+            // Serialized panebind-v1/1 resource schema value; this TEST header
+            // does not include or replace the production resource owner.
+            constexpr std::uint64_t resource_deadline_removal_reason=4; // GestureShieldRemovalReason::Deadline
+            autonomous_resources=actual_deadline&&wait([&]{
+                std::istringstream rows(product_log_since(s,offset));std::string row;
+                while(std::getline(rows,row))if(row.size()<=16384&&geometry_history_receipt(s,row,"gesture_input_resource")&&
+                    e::number(row,"\"generation\":")==g.generation&&e::quoted(row,"\"fact\":","isolation_gone"))autonomous_gone=row;
+                return e::number(autonomous_gone,"\"source\":")==reinterpret_cast<std::uintptr_t>(source)&&
+                    e::number(autonomous_gone,"\"source_pid\":")==GetCurrentProcessId()&&e::number(autonomous_gone,"\"source_tid\":")==set.thread&&
+                    e::number(autonomous_gone,"\"removal_reason\":")==resource_deadline_removal_reason&&
+                    e::number(autonomous_gone,"\"overlay\":")&&e::number(autonomous_gone,"\"overlay\":")!=0&&
+                    e::unique_value(autonomous_gone,"\"capture_attempted\":")=="true"&&
+                    e::number(autonomous_gone,"\"capture_actual_after\":")==e::number(autonomous_gone,"\"overlay\":")&&
+                    e::unique_value(autonomous_gone,"\"release_attempted\":")=="true"&&
+                    e::unique_value(autonomous_gone,"\"release_completed\":")=="true"&&
+                    e::unique_value(autonomous_gone,"\"release_succeeded\":")=="true"&&
+                    e::number(autonomous_gone,"\"capture_release_before_HWND\":")==e::number(autonomous_gone,"\"overlay\":")&&
+                    e::number(autonomous_gone,"\"capture_after_release\":")==0&&
+                    e::unique_value(autonomous_gone,"\"overlay_destroyed\":")=="true"&&
+                    e::unique_value(autonomous_gone,"\"hotkey_unregistered\":")=="true"&&
+                    e::unique_value(autonomous_gone,"\"detach_completed\":")=="true"&&e::unique_value(autonomous_gone,"\"detach_succeeded\":")=="true";
+            },1000);
+            foreground_unchanged=input_actor_disconnect_foreground_unchanged(s,set,disconnect_foreground_mark,disconnect_guard_stamp,
+                static_cast<DWORD>(GetTickCount64()),foreground_reason);
+        }
+        const bool autonomous_without_intervention=disconnect&&actual_deadline&&autonomous_resources&&foreground_unchanged&&
+            calls()==disconnect_native_baseline&&actual_up(s,offset,g.generation).empty();
         const bool interrupted_focus=disconnect&&geometry_history_receipt(s,ended,"gesture_end")&&
             e::number(ended,"\"generation\":")==g.generation&&e::number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::FocusLost)&&
             e::unique_value(ended,"\"normal_up\":")=="false"&&e::unique_value(ended,"\"pending_retired\":")=="true";
@@ -740,14 +785,19 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
             (end_tick>=before_tick?std::to_string(end_tick-before_tick):"null")+",\"actual_end\":"+quote(ended)+
             ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
             ",\"physical_button_held_not_inferred\":true,\"driver_notification_not_fabricated\":true";
-        if(interrupted_focus){
-            s.log.failed=true; // The original 30-second assertion still FAILS.
-            s.log.emit("case","\"case\":\"I08_input_actor_exit_real_default_30s_Deadline\",\"result\":\"FAIL\","+deadline_fields);
-            s.log.emit("I08_disconnect_terminal_classification","\"status\":\"ACTUAL_FOCUS_LOST_DEFAULT_DEADLINE_NOT_OBSERVED\",\"initiator_or_root_cause\":\"UNKNOWN\","
-                "\"recovery\":\"NOT_RUN\",\"failure_preserved\":true,\"new_input_authority\":false");
+        if(disconnect){
+            const std::string fields=deadline_fields+",\"exact_elapsed_30000ms_not_an_acceptance_gate\":true,\"actual_resource_Gone\":"+quote(autonomous_gone)+
+                ",\"independent_resource_deadline_and_Gone_observed\":"+(autonomous_resources?"true":"false")+
+                ",\"foreground_observation_unchanged\":"+(foreground_unchanged?"true":"false")+",\"foreground_observation_reason\":"+quote(foreground_reason)+
+                ",\"no_supervisor_UP_or_Pause_before_this_observation\":true,\"native_calls_before_exit_boundary\":"+std::to_string(disconnect_native_baseline)+
+                ",\"native_calls_at_retirement\":"+std::to_string(calls())+",\"observed_external_events_not_inferred_from_JSONL_order\":true";
+            if(!autonomous_without_intervention)s.log.failed=true;
+            s.log.emit("case","\"case\":\"I08_disconnect_autonomous_retirement_without_external_FocusLost_or_Pause\",\"result\":"+
+                quote(autonomous_without_intervention?"PASS":"FAIL")+","+fields);
+            if(!autonomous_without_intervention)s.log.emit("I08_disconnect_terminal_classification",
+                "\"status\":\"AUTONOMOUS_NO_INTERVENTION_SUBCONTRACT_NOT_PROVEN\",\"initiator_or_root_cause\":\"UNKNOWN\",\"failure_preserved\":true,\"new_input_authority\":false");
         }else s.log.check("I08_input_actor_exit_real_default_30s_Deadline",actual_deadline,deadline_fields);
-        const auto calls=[&]{const auto rows=constraint_generation_placements(s,offset,g.generation);return std::count_if(rows.begin(),rows.end(),[](const auto& row){return row.find("\"native_callsite_claimed\":true")!=std::string::npos;});};
-        const auto baseline=calls();const auto barrier=constraint_last_product_sequence(s);
+        const auto baseline=disconnect?disconnect_native_baseline:calls();const auto barrier=constraint_last_product_sequence(s);
         if(!disconnect)cursor(s,{point->x-11,point->y+47});
         const auto status_offset=read_product(s).size();
         s.log.check(interrupted_focus?"I08_actor_FocusLost_no_new_native_calls":"I08_actor_Deadline_no_new_native_calls",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);})&&
@@ -764,8 +814,10 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
             ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"UP_delivery_not_inferred\":true,\"not_NormalUp\":true");
         interruption_idle(s,set,true);chain_check_product(s,product_pid,product_birth);interruption_recovery(s,set,g.generation,disconnect);
         chain_check_product(s,product_pid,product_birth);
-        s.log.emit("I08_input_actor_exit_scope","\"status\":"+quote(interrupted_focus?"PARTIAL_ACTOR_EXIT_FOCUS_LOST_ABORT_UP_AND_RECOVERY_OBSERVED":"INPUT_ACTOR_EXIT_DEADLINE_AND_RECOVERY_OBSERVED")+
-            ",\"default_30s_Deadline_observed\":"+(actual_deadline?"true":"false")+",\"original_failure_preserved\":"+(interrupted_focus?"true":"false")+",\"source_destroyed\":false,\"product_driver_channel\":false,"
+        s.log.emit("I08_input_actor_exit_scope","\"status\":"+quote(disconnect?(autonomous_without_intervention?"INPUT_ACTOR_EXIT_AUTONOMOUS_RETIREMENT_AND_SAME_INSTANCE_RECOVERY_OBSERVED":"PARTIAL_ACTOR_EXIT_AND_SUPERVISOR_RECOVERY_AUTONOMOUS_SUBCONTRACT_FAILED"):
+                "INPUT_ACTOR_EXIT_DEADLINE_AND_RECOVERY_OBSERVED")+
+            ",\"actual_Deadline_observed\":"+(actual_deadline?"true":"false")+",\"autonomous_no_external_FocusLost_or_Pause_subcontract\":"+
+            (disconnect?(autonomous_without_intervention?"true":"false"):"null")+",\"original_failure_preserved\":"+((interrupted_focus||(disconnect&&!autonomous_without_intervention))?"true":"false")+",\"source_destroyed\":false,\"product_driver_channel\":false,"
             "\"actual_main_fixture_test_UP\":true,\"same_product_new_Move_Resize\":true,\"whole_I08_PASS\":false,\"human_uat\":\"NOT_RUN\""+
             std::string(disconnect?",\"actual_input_child_exit_and_packet_immutability_observed\":true,\"recovery_input_sender\":\"original_supervisor\",\"new_input_actor_Move_Resize\":\"NOT_RUN\"":""));
     }catch(...){

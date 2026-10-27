@@ -7,7 +7,7 @@ void configuration_chain_excluded_Ctrl_attempt(State& s){
     namespace e=product::guest::up_evidence_detail;
     settings_guest_scope(s);
     const auto excluded=settings_guest_configuration(s);
-    if(s.suite!="ConfigurationChainOnly"||excluded.rules.empty()||s.left||s.control)
+    if((s.suite!="ConfigurationChainOnly"&&s.suite!="InputFollowupOnly")||excluded.rules.empty()||s.left||s.control)
         throw std::runtime_error("configuration_chain_actual_excluded_idle_required");
     settings_guest_effect_layout(s);
     // Recreate the same three-member adjacency while the rule remains active.
@@ -57,9 +57,124 @@ void configuration_chain_excluded_Ctrl_attempt(State& s){
         ",\"native_passthrough_not_product_NormalUp\":true");
 }
 
+// Shared actual rule/input segment. The full configuration chain and the
+// input-impact follow-up use the SAME native/GUI observers and UP checks.
+void configuration_rule_input_roundtrip(State& s){
+    namespace e=product::guest::up_evidence_detail;
+    settings_guest_scope(s);
+    const auto original=settings_guest_configuration(s);
+    if((s.suite!="ConfigurationChainOnly"&&s.suite!="InputFollowupOnly")||
+       !original.enabled||!original.rules.empty()||!original.glue||!original.magnet_move||s.left||s.control)
+        throw std::runtime_error("configuration_rule_input_exact_enabled_unexcluded_guest_required");
+    const auto pid=s.product_pid;const auto birth=process_birth(s.process);
+    chain_check_product(s,pid,birth);
+    // A nondefault baseline also remains the full chain's export/import
+    // baseline. No direct settings-file mutation or synthetic receipt.
+    settings_guest_attraction(s,8);
+    const auto group=[&](const char* label){
+        settings_guest_effect_layout(s);
+        const std::array<Rect,3> adjacent{{{120,80,520,440},{520,80,780,260},{520,260,780,440}}};
+        for(std::size_t n=0;n<adjacent.size();++n)
+            if(!own(s,s.frames[n].hwnd)||!fixture_rect(s.frames[n].hwnd,adjacent[n]))
+                throw std::runtime_error("configuration_chain_group_owned_setup_failed");
+        const auto mark=read_product(s).size();ctrl_move(s,0,24,18,label);
+        const auto start=record(s,mark,"gesture_start");const auto generation=e::number(start,"\"generation\":");
+        std::vector<std::uint64_t> keys;bool valid=true;std::string row;
+        std::istringstream rows(product_log_since(s,mark));
+        while(std::getline(rows,row))if(e::quoted(row,"\"type\":","placement")&&
+            e::unique_value(row,"\"native_callsite_claimed\":")=="true"){
+            const auto key=e::number(row,"\"key\":");
+            valid=valid&&generation&&key&&*key&&geometry_history_receipt(s,row,"placement")&&
+                e::number(row,"\"generation\":")==generation&&e::unique_value(row,"\"exact\":")=="true"&&
+                e::unique_value(row,"\"identity_valid\":")=="true";
+            if(key&&std::find(keys.begin(),keys.end(),*key)==keys.end())keys.push_back(*key);
+        }
+        s.log.check(label,valid&&geometry_history_receipt(s,start,"gesture_start")&&
+            e::unique_value(start,"\"ctrl\":")=="true"&&e::number(start,"\"group_members\":")==3&&
+            keys.size()==3&&!s.left&&!s.control,
+            "\"actual_START\":"+quote(start)+",\"actual_native_member_keys\":"+std::to_string(keys.size())+
+            ",\"three_exact_owned_members_and_real_NormalUp_required\":true");
+        chain_check_product(s,pid,birth);return generation.value_or(0);
+    };
+    const auto before_exclusion=group("configuration_chain_before_exclusion_actual_three_member_group");
+    // Real Add Current App/Class + Save, ordinary excluded native Move/zero
+    // writer, excluded Ctrl attempt, removal and actual snap recovery.
+    settings_guest_exclusion(s,configuration_chain_excluded_Ctrl_attempt);
+    const auto restored_group=group("configuration_chain_rule_removed_actual_three_member_group");
+    s.log.check("configuration_chain_rule_removed_fresh_generation",
+        restored_group>before_exclusion&&settings_guest_configuration(s).rules==original.rules,
+        "\"previous_group_not_reused\":true,\"same_product_process\":true");
+    chain_check_product(s,pid,birth);
+}
+
+// Only the rule/input impact of the shared InputService changes. Persistence
+// export/import/corrupt-restart remains exclusively in the original full case.
+void owned_configuration_rule_input_impact_case(State& s){
+    namespace v=panebind::core::v1;
+    settings_guest_scope(s);const auto original=settings_guest_configuration(s);
+    if(s.suite!="InputFollowupOnly"||!original.enabled||!original.rules.empty()||s.left||s.control||
+       std::any_of(s.explorer.begin(),s.explorer.end(),[](const auto& x){return static_cast<bool>(x);})||
+       std::any_of(s.applications.begin(),s.applications.end(),[](const auto& x){return static_cast<bool>(x);}))
+        throw std::runtime_error("configuration_rule_input_followup_exact_owned_only_required");
+    const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto binary=hash(s.product);
+    chain_check_product(s,pid,birth);
+    if(binary.empty()||binary!=hash(s.input_product))throw std::runtime_error("configuration_rule_input_product_hash_unknown");
+    std::array<Rect,3> initial{};
+    for(std::size_t n=0;n<initial.size();++n){const auto r=visible(s.frames[n].hwnd);
+        if(!r||!own(s,s.frames[n].hwnd))throw std::runtime_error("configuration_rule_input_original_owned_root_missing");initial[n]=*r;}
+    try{
+        auto config=original;config.glue=true;config.magnet_move=true;
+        config.release_dip=std::max(config.release_dip,9); // The shared actual attraction is 8; keep GUI validation real.
+        if(config!=original)chain_gui_save(s,config);
+        configuration_rule_input_roundtrip(s);
+        chain_check_product(s,pid,birth);
+        if(s.left||s.control)throw std::runtime_error("configuration_rule_input_outstanding_input_after_actual_UP_checks");
+        const auto restored=chain_gui_save(s,original);auto expected=original;expected.generation=restored.generation;
+        s.log.check("configuration_rule_input_original_options_and_binary_restored",restored==expected&&hash(s.product)==binary);
+        const auto idle=geometry_history_status(s);GUITHREADINFO native{sizeof(native)};
+        if(!GetGUIThreadInfo(s.owner,&native)||native.hwndCapture||native.hwndMoveSize||native.hwndMenuOwner)
+            throw std::runtime_error("configuration_rule_input_final_owned_GUI_not_idle");
+        for(std::size_t n=0;n<initial.size();++n)s.log.check("configuration_rule_input_original_owned_layout_restored",
+            own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,initial[n]));
+        chain_check_product(s,pid,birth);
+        s.log.emit("configuration_rule_input_impact_component","\"result\":\"PASS_SCOPED\",\"same_product_PID\":"+
+            std::to_string(pid)+",\"same_product_birth\":"+std::to_string(birth)+",\"product_sha256\":"+quote(binary)+
+            ",\"actual_rules_native_and_Ctrl_exclusion_and_fresh_group\":true,\"real_UP_checks_from_existing_helpers\":true,"+
+            "\"original_configuration_and_owned_layout_restored\":true,\"final_idle_status\":"+quote(idle)+
+            ",\"export_import_corrupt_restart\":\"NOT_RUN\",\"whole_I07_PASS\":false,\"whole_version_PASS\":false,\"human_uat\":\"NOT_RUN\"");
+    }catch(...){
+        bool restored=false;std::string failure;
+        try{
+            settings_guest_scope(s);chain_check_product(s,pid,birth);
+            // Never grant new input or send a blind cleanup UP after failure.
+            // Existing input helpers retain ownership of their one UP attempt.
+            if(s.left||s.control)throw std::runtime_error("configuration_rule_input_cleanup_input_still_outstanding");
+            if(hash(s.product)!=binary)throw std::runtime_error("configuration_rule_input_cleanup_binary_changed");
+            const auto current=settings_guest_configuration(s);
+            if(!current.rules.empty()){
+                std::wstring exe(32768,L'\0');const auto n=GetModuleFileNameW(nullptr,exe.data(),static_cast<DWORD>(exe.size()));
+                if(!n||n>=exe.size())throw std::runtime_error("configuration_rule_input_cleanup_image_unknown");exe.resize(n);
+                const v::Rule expected_rule{utf8(exe),utf8(s.class_name),true,0xffffffffU};
+                if(current.rules!=std::vector<v::Rule>{expected_rule})throw std::runtime_error("configuration_rule_input_unknown_rules_not_overwritten");
+                owned_rule_restore_rules_GUI(s,original);
+            }
+            const auto actual=chain_gui_save(s,original);auto expected=original;expected.generation=actual.generation;
+            restored=actual==expected;
+            GUITHREADINFO native{sizeof(native)};
+            if(!GetGUIThreadInfo(s.owner,&native)||native.hwndCapture||native.hwndMoveSize||native.hwndMenuOwner)
+                throw std::runtime_error("configuration_rule_input_cleanup_owned_GUI_not_idle");
+            for(std::size_t n=0;n<initial.size();++n)if(!own(s,s.frames[n].hwnd)||!fixture_rect(s.frames[n].hwnd,initial[n]))
+                throw std::runtime_error("configuration_rule_input_cleanup_original_layout_not_restored");
+        }catch(const std::exception& error){failure=error.what();}
+        s.log.emit("configuration_rule_input_failed_cleanup","\"configuration_restored\":"+std::string(restored?"true":"false")+
+            ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"driver_Ctrl_outstanding\":"+(s.control?"true":"false")+
+            ",\"reason\":"+quote(failure)+",\"original_failure_preserved\":true,\"scenario_PASS_inferred\":false");
+        throw;
+    }
+}
+
 void owned_configuration_chain_case(State& s){
     namespace v=panebind::core::v1;
-    namespace e=product::guest::up_evidence_detail;
     settings_guest_scope(s);
     const auto original=settings_guest_configuration(s);
     auto defaults=v::default_settings();defaults.generation=original.generation;
@@ -77,42 +192,7 @@ void owned_configuration_chain_case(State& s){
     const auto exported=s.output/(s.run+L"-"+suffix+L"-settings-export.conf");
     if(fs::exists(exported))throw std::runtime_error("configuration_chain_export_requires_fresh_Run_path");
     try{
-        // A nondefault valid baseline makes recovery observable rather than
-        // accepting defaults that happen to equal the pre-corruption options.
-        settings_guest_attraction(s,8);
-        const auto group=[&](const char* label){
-            settings_guest_effect_layout(s);
-            const std::array<Rect,3> adjacent{{{120,80,520,440},{520,80,780,260},{520,260,780,440}}};
-            for(std::size_t n=0;n<adjacent.size();++n)
-                if(!own(s,s.frames[n].hwnd)||!fixture_rect(s.frames[n].hwnd,adjacent[n]))
-                    throw std::runtime_error("configuration_chain_group_owned_setup_failed");
-            const auto mark=read_product(s).size();ctrl_move(s,0,24,18,label);
-            const auto start=record(s,mark,"gesture_start");const auto generation=e::number(start,"\"generation\":");
-            std::vector<std::uint64_t> keys;bool valid=true;std::string row;
-            std::istringstream rows(product_log_since(s,mark));
-            while(std::getline(rows,row))if(e::quoted(row,"\"type\":","placement")&&
-                e::unique_value(row,"\"native_callsite_claimed\":")=="true"){
-                const auto key=e::number(row,"\"key\":");
-                valid=valid&&generation&&key&&*key&&geometry_history_receipt(s,row,"placement")&&
-                    e::number(row,"\"generation\":")==generation&&e::unique_value(row,"\"exact\":")=="true"&&
-                    e::unique_value(row,"\"identity_valid\":")=="true";
-                if(key&&std::find(keys.begin(),keys.end(),*key)==keys.end())keys.push_back(*key);
-            }
-            s.log.check(label,valid&&geometry_history_receipt(s,start,"gesture_start")&&
-                e::unique_value(start,"\"ctrl\":")=="true"&&e::number(start,"\"group_members\":")==3&&
-                keys.size()==3&&!s.left&&!s.control,
-                "\"actual_START\":"+quote(start)+",\"actual_native_member_keys\":"+std::to_string(keys.size())+
-                ",\"three_exact_owned_members_and_real_NormalUp_required\":true");
-            chain_check_product(s,pid,birth);return generation.value_or(0);
-        };
-        const auto before_exclusion=group("configuration_chain_before_exclusion_actual_three_member_group");
-        // The existing helper performs the real Add Current App/Class + Save,
-        // ordinary excluded native Move/zero writer, removal and snap recovery.
-        settings_guest_exclusion(s,configuration_chain_excluded_Ctrl_attempt);
-        const auto restored_group=group("configuration_chain_rule_removed_actual_three_member_group");
-        s.log.check("configuration_chain_rule_removed_fresh_generation",
-            restored_group>before_exclusion&&settings_guest_configuration(s).rules==original.rules,
-            "\"previous_group_not_reused\":true,\"same_product_process\":true");
+        configuration_rule_input_roundtrip(s);
 
         const auto baseline=settings_guest_configuration(s);
         const auto config_path=s.product.parent_path()/L"settings.ini";

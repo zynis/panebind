@@ -3817,3 +3817,47 @@ be revalidated outside the LL callback before dispatch/resources; real UP or
 stop still prevents pending capture/write issuance. Driver timing and the
 real four input packets are not modified. Offline and matching new-source
 guest evidence are required; the original 91b5 FAIL is retained.
+
+### 2026-10-27 — distinguish actual legacy dispatch timing from hook timing
+
+Reused the recorded AltSnap/FancyZones event-owner, abort, and deferred-work
+research and the previously read official LowLevelMouseProc/mouse-input
+contracts above. No new native input mechanism or external code is introduced.
+The actual local chain is `GestureInputShield`'s `WM_LBUTTONUP` WndProc QPC,
+then `InputEvent::resource_observed_qpc`. It is not a hardware timestamp or a
+low-level-hook observation. `Application::consume` previously passed only
+the zero hook field into NormalUp dock completion, so that native call lost
+its applicable dispatch-origin measurement although the resource recorded it.
+
+Carry the optional legacy origin through the existing completion and issued
+call lifecycle, measure it in a separate population, and preserve the old
+all-native hook missing-clock accounting. An applicable zero remains missing;
+non-applicable public commands do not create legacy observations. Final drain
+must retain both unfinished calls and their original domains. This changes
+measurement, not admission, source geometry, original DOWN, capture, writer
+permissions, or termination. The historical 7a population of 122 hook-origin
+samples remains its own evidence; its two retained dock receipts lack the
+actual dispatch stamps and cannot be retroactively filled from SendInput or
+from a different observer. A later guest run must have its own identity.
+
+The four recorded corner tails were reviewed without adding a maximum-latency
+gate. Only the later two retain detailed stages: hook-to-GUI 52.6604/60.0628ms,
+first qualification/topology 23.5823/21.4755ms, final independently fresh
+candidate enumeration 18.1134/22.1211ms. These values neither isolate COM,
+logging, or the scheduler as a root cause nor justify deleting the first
+source-presence/occlusion gate or reusing stale final candidates.
+
+### 2026-10-27 — bounded TEST placement of the I08 disconnect observation
+
+This reuses the existing passive foreground WinEvent observer and bounded
+guest message-pump wait; no new event API, product protocol, deadline, or
+foreground control is introduced. The retained 00c/a451 records observed an
+external foreground near guest uptime 51.7–51.9 seconds, after actor input
+around 33 seconds. That is a correlation, not an established system cause.
+The one different TEST arrangement observes that startup activity and the
+exact source's natural return before any child creation or DOWN. Absence of
+that actual precondition means zero actor input and an unrun observation.
+After sender exit, another external foreground or Pause must not be accepted
+as the required independent retirement; the original FocusLost/recovery
+observations remain valid only within their original scope. No exact
+30-second duration or new-actor recovery is added to the guide's I08 contract.

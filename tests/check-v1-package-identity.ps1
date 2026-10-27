@@ -1098,7 +1098,7 @@ function Assert-V1MappingRemainderWiring([string]$Fixture,[string]$Mapping,[stri
        -not $hotkeyScope.Value.Contains('cleanup(s);') -or -not $hotkeyScope.Value.Contains('hotkey_remainder_only_summary') -or
        $hotkeyScope.Value.Contains('owned_mapping_regions_case') -or $hotkeyScope.Value.Contains('owned_mapping_modifier_double_case') -or
        -not $drive.Contains('s.suite=="HotkeyRemainderOnly"') -or -not $gate.Contains('s.suite!="HotkeyRemainderOnly"') -or
-       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly"||s.suite=="NativeConstraintOnly"||s.suite=="BatchFailureOnly"||s.suite=="StandardControlsOnly"||s.suite=="VisualLifecycleChainOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
+       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly"||s.suite=="NativeConstraintOnly"||s.suite=="BatchFailureOnly"||s.suite=="InputFollowupOnly"||s.suite=="StandardControlsOnly"||s.suite=="VisualLifecycleChainOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
        -not $Mapping.Contains('s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"')){
         throw 'Hotkey-only continuation must reach only its actual remaining phase with the same released-input guest gate and cleanup.'
     }
@@ -1239,20 +1239,66 @@ Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('geometry_history_receipt(s,row,type)&&','true&&')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP resource receipt cannot replace the actual same-launch and type matcher'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('e::unique_value(gone,"\"overlay_destroyed\":")=="true"','true')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP cleanup cannot omit actual overlay destruction'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('return observed.matched;','return true;')) $lifecyclePrepare $lifecycleGuest} 'static actual cleanup UP cannot be accepted without its strict observed receipt'
-function Assert-V1DisconnectFailureContinuation([string]$Fixture,[string]$Actor){
+function Assert-V1DisconnectFailureContinuation([string]$Fixture,[string]$Actor,[string]$Disconnect=$targetedDisconnect){
     $transport=Get-V1FixtureFunctionText $Actor 'owned_input_actor_exit_transport'
     $phase=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
     $cleanup=Get-V1FixtureFunctionText $Fixture 'cleanup'
     foreach($fact in @('const bool interrupted_focus=disconnect&&geometry_history_receipt(s,ended,"gesture_end")&&',
         'e::number(ended,"\"generation\":")==g.generation&&e::number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::FocusLost)&&',
         'e::unique_value(ended,"\"normal_up\":")=="false"&&e::unique_value(ended,"\"pending_retired\":")=="true";',
-        'if(interrupted_focus){','s.log.failed=true; // The original 30-second assertion still FAILS.',
-        '\"case\":\"I08_input_actor_exit_real_default_30s_Deadline\",\"result\":\"FAIL\"',
+        'if(!autonomous_without_intervention)s.log.failed=true;',
+        'I08_disconnect_autonomous_retirement_without_external_FocusLost_or_Pause',
         '}else s.log.check("I08_input_actor_exit_real_default_30s_Deadline",actual_deadline,deadline_fields);',
         'if(disconnect){cleanup_checked=true;s.log.check("I08_disconnect_single_supervisor_abort_UP_observed",',
         'if(disconnect&&!cleanup_checked&&!test_up&&actor_down_possible){',
         'interruption_recovery(s,set,g.generation,disconnect);')){
-        if(-not $transport.Contains($fact)){throw ('Only actual retired FocusLost may continue without closing the original Deadline failure or retrying rejected UP: '+$fact)}
+        if(-not $transport.Contains($fact)){throw ('Failed autonomous retirement must remain failed even when actual FocusLost permits strict cleanup and recovery: '+$fact)}
+    }
+    foreach($fact in @('if(disconnect&&!input_actor_disconnect_startup_preflight(s,set,product_pid,product_birth,*point,*initial,initial_dpi,initial_monitor))',
+        'disconnect_native_baseline=calls();disconnect_foreground_mark=s.log.mark();disconnect_guard_stamp=static_cast<DWORD>(GetTickCount64());',
+        'geometry_history_receipt(s,ended,"gesture_end")&&e::number(ended,"\"generation\":")==g.generation&&',
+        'e::number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::Deadline)&&',
+        '(disconnect||end_tick-before_tick>=30000)',
+        'geometry_history_receipt(s,row,"gesture_input_resource")&&',
+        'e::number(row,"\"generation\":")==g.generation&&e::quoted(row,"\"fact\":","isolation_gone")',
+        'e::number(autonomous_gone,"\"source\":")==reinterpret_cast<std::uintptr_t>(source)',
+        'e::number(autonomous_gone,"\"removal_reason\":")==resource_deadline_removal_reason&&',
+        'e::number(autonomous_gone,"\"capture_actual_after\":")==e::number(autonomous_gone,"\"overlay\":")&&',
+        'e::unique_value(autonomous_gone,"\"release_attempted\":")=="true"&&',
+        'e::unique_value(autonomous_gone,"\"release_completed\":")=="true"&&',
+        'e::unique_value(autonomous_gone,"\"release_succeeded\":")=="true"&&',
+        'e::number(autonomous_gone,"\"capture_release_before_HWND\":")==e::number(autonomous_gone,"\"overlay\":")&&',
+        'e::number(autonomous_gone,"\"capture_after_release\":")==0&&',
+        'e::unique_value(autonomous_gone,"\"overlay_destroyed\":")=="true"&&',
+        'e::unique_value(autonomous_gone,"\"hotkey_unregistered\":")=="true"&&',
+        'e::unique_value(autonomous_gone,"\"detach_completed\":")=="true"&&e::unique_value(autonomous_gone,"\"detach_succeeded\":")=="true"',
+        'foreground_unchanged=input_actor_disconnect_foreground_unchanged(s,set,disconnect_foreground_mark,disconnect_guard_stamp,',
+        'const bool autonomous_without_intervention=disconnect&&actual_deadline&&autonomous_resources&&foreground_unchanged&&',
+        'calls()==disconnect_native_baseline&&actual_up(s,offset,g.generation).empty();')){
+        if(-not $transport.Contains($fact)){throw ('Disconnect autonomy needs actual same-generation resources, unchanged foreground and pre-exit native baseline, not an added elapsed-time gate: '+$fact)}
+    }
+    $preflight=Get-V1FixtureFunctionText $Disconnect 'input_actor_disconnect_startup_preflight'
+    $foreground=Get-V1FixtureFunctionText $Disconnect 'input_actor_disconnect_foreground_unchanged'
+    foreach($fact in @('constexpr DWORD maximum_ms=60000;',
+        's.suite=="DriverDisconnectOnly"&&source_birth&&',
+        'visible(source)==initial&&GetWindowRect(source,&native)&&EqualRect(&native_before,&native)',
+        'input_actor_desktop(set.thread,GetCurrentProcessId())&&medium(GetCurrentProcess())&&keys_clear()',
+        'callback_window_identity_stable','registered_task_PID_birth_match',
+        '!external.empty()&&!returned.empty()&&source_exact(true)&&GetTickCount64()-began<maximum_ms')){
+        if(-not $preflight.Contains($fact)){throw ('Passive startup precondition must retain actual external/return observation and exact released source: '+$fact)}
+    }
+    if($preflight -match '\b(SetForegroundWindow|SetFocus|SwitchDesktop|SetCapture|SendInput|inject)\s*\(' -or
+       -not $foreground.Contains('external_or_unknown_foreground_intervened_after_disconnect_boundary') -or
+       -not $foreground.Contains('if(!mark||!birth||!set.owns(0)||GetForegroundWindow()!=source') -or
+       -not $foreground.Contains('e::unique_value(row,"\"callback_window_identity_stable\":")!="true"')){
+        throw 'Passive startup and the actor-exit boundary may not manufacture foreground or ignore unknown transitions.'
+    }
+    $startup=$transport.IndexOf('if(disconnect&&!input_actor_disconnect_startup_preflight(')
+    $child=$transport.IndexOf('if(!CreateProcessW(self.data(),command.data()')
+    $boundary=$transport.IndexOf('disconnect_native_baseline=calls();disconnect_foreground_mark=')
+    $ack=$transport.IndexOf('SetEvent(transport.close_ack.value)!=FALSE')
+    if($startup -lt 0 -or $child -le $startup -or $boundary -lt 0 -or $ack -le $boundary){
+        throw 'Natural startup readiness must precede child creation and the native/foreground observation boundary must precede its close ACK.'
     }
     foreach($fact in @('if(s.left&&!s.left_up_attempted&&s.suite!="DriverDisconnectOnly"){',
         '}else if(s.suite=="DriverDisconnectOnly"&&(failed||blocked||not_run)){',
@@ -1268,8 +1314,12 @@ function Assert-V1DisconnectFailureContinuation([string]$Fixture,[string]$Actor)
     }
 }
 Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor
-Check $true 'static disconnect continuation preserves the failed Deadline, requires actual same-generation retired FocusLost and rejects duplicate or blind cleanup input'
-Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('s.log.failed=true; // The original 30-second assertion still FAILS.',''))} 'static observed FocusLost recovery cannot erase the original failed Deadline'
+Check $true 'static disconnect observes passive startup and autonomous retirement without foreign foreground or an added elapsed-time gate; failure and strict recovery remain separate'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('if(!autonomous_without_intervention)s.log.failed=true;',''))} 'static observed FocusLost recovery cannot erase the failed autonomous-retirement sub-contract'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('(disconnect||end_tick-before_tick>=30000)','(end_tick-before_tick>=30000)'))} 'static DriverDisconnectOnly cannot acquire an extra exact default-30-second acceptance gate'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('e::number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::Deadline)&&','true&&'))} 'static FocusLost or Pause cannot substitute for actual autonomous Deadline retirement'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('calls()==disconnect_native_baseline&&actual_up(s,offset,g.generation).empty();','actual_up(s,offset,g.generation).empty();'))} 'static actor retirement cannot ignore native writes after its pre-exit boundary'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('e::unique_value(autonomous_gone,"\"release_succeeded\":")=="true"&&',''))} 'static autonomous resources cannot infer actual capture release from overlay destruction alone'
 Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('e::number(ended,"\"generation\":")==g.generation&&',''))} 'static disconnect continuation cannot accept another generation terminal receipt'
 Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('if(disconnect&&!cleanup_checked&&!test_up&&actor_down_possible){','if(disconnect&&!test_up&&actor_down_possible){'))} 'static rejected strict cleanup cannot be retried by the actor catch'
 Reject {Assert-V1DisconnectFailureContinuation ($fixtureSource.Replace('if(s.left&&!s.left_up_attempted&&s.suite!="DriverDisconnectOnly"){','if(s.left&&!s.left_up_attempted){')) $targetedActor} 'static failed disconnect phase cannot append an unguarded fallback UP'
@@ -2331,9 +2381,10 @@ function Assert-V1FinalTimingAndTrayRoute([string]$Application,[string]$Tray){
     $summary=$stop.IndexOf('log.event("timing_summary",')
     if($input -lt 0 -or $writer -le $input -or $lastDrain -le $writer -or $summary -le $lastDrain -or
        $summary -ne $stop.LastIndexOf('log.event("timing_summary",') -or
-       $stop.Contains('delayed_input_qpc.clear()')){throw 'Final timing must follow real input/writer stop and last drain without clearing unfinished calls.'}
+       $stop.Contains('delayed_input_qpc.clear()') -or $stop.Contains('input_post_timing=')){throw 'Final timing must follow real input/writer stop and last drain without clearing unfinished calls.'}
     foreach($value in @('const bool issued_completion_unknown=writer.has_unconfirmed_native_call();',
-        'std::to_string(delayed_input_qpc.size())','native_writer_exited?"true":"false"',
+        'timing_fields(input_post_timing.hook_snapshot(),95)',
+        'std::to_string(input_post_timing.unfinished_calls())','native_writer_exited?"true":"false"',
         'issued_completion_unknown?"true":"false"')){
         if(-not $stop.Contains($value)){throw 'Final timing must retain actual unknown/native-worker facts.'}
     }
@@ -2366,9 +2417,45 @@ Reject {
     $oldOrder=$oldOrder.Replace('const bool native_writer_exited=writer.stop();','log.event("timing_summary","old_before_writer_stop");const bool native_writer_exited=writer.stop();')
     Assert-V1FinalTimingAndTrayRoute $oldOrder $trayCallbackSource
 } 'static old pre-writer-stop summary cannot omit a subsequently drained completion'
-Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('const bool issued_completion_unknown=writer.has_unconfirmed_native_call();','const bool issued_completion_unknown=writer.has_unconfirmed_native_call();delayed_input_qpc.clear();')) $trayCallbackSource} 'static unfinished native calls cannot be cleared to manufacture a complete timing population'
+Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('std::to_string(input_post_timing.unfinished_calls())','std::to_string(0)')) $trayCallbackSource} 'static unfinished native calls cannot be zeroed to manufacture a complete timing population'
 Reject {Assert-V1FinalTimingAndTrayRoute $liveResizeApplication ($trayCallbackSource.Replace('event==NIN_SELECT||event==NIN_KEYSELECT||','event==NIN_SELECT||'))} 'static old tray predicate cannot ignore actual v4 keyboard activation'
 Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('const auto route=tray_callback_route(LOWORD(lp));','const auto route=TrayCallbackRoute::Ignored;')) $trayCallbackSource} 'static real tray dispatch cannot diverge from the logged shared predicate'
+function Assert-V1PlacementTimingOrigins([string]$Application,[string]$Timing){
+    foreach($fact in @('v::PlacementTiming input_post_timing;',
+        'if(receipt.native_attempted)input_post_timing.observe_native(receipt.call_id,receipt.completion_known,',
+        '{observed_qpc,legacy_up_dispatch_qpc},receipt.post_observed_qpc,input.counter_frequency());',
+        'input_post_timing.observe_delayed(r.call_id,r.completion_known,',
+        'r.post_observed_qpc,input.counter_frequency());',
+        'finish(e.end,e.hook_observed_qpc,',
+        'e.origin==InputOrigin::ShieldLegacy?std::optional<std::uint64_t>{e.resource_observed_qpc}:std::nullopt);',
+        'observed_qpc,std::nullopt,nullptr,legacy_up_dispatch_qpc))remember_receipt(*current,true);',
+        'timing_fields(input_post_timing.legacy_dispatch_snapshot(),95)',
+        'std::to_string(input_post_timing.unfinished_legacy_dispatch_calls())',
+        '+(legacy_up_dispatch_qpc&&*legacy_up_dispatch_qpc?std::to_string(*legacy_up_dispatch_qpc):"null")',
+        '+(timing_origins.legacy_up_dispatch_qpc&&*timing_origins.legacy_up_dispatch_qpc?std::to_string(*timing_origins.legacy_up_dispatch_qpc):"null")')){
+        if(-not $Application.Contains($fact)){throw ('Actual typed placement clocks lost their origin/completion/UP connection: '+$fact)}
+    }
+    foreach($fact in @('std::optional<std::uint64_t> legacy_up_dispatch_qpc;',
+        'if(completion_known)observe(origins,post_qpc,frequency);',
+        'else pending_[call_id]=origins;',
+        'const auto origins=found==pending_.end()?PlacementTimingOrigins{}:found->second;',
+        'if(completion_known){',
+        'if(found!=pending_.end())pending_.erase(found);',
+        'hook_.observe_qpc(origins.hook_observed_qpc,post_qpc,frequency);',
+        'if(origins.legacy_up_dispatch_qpc)',
+        'legacy_dispatch_.observe_qpc(*origins.legacy_up_dispatch_qpc,post_qpc,frequency);',
+        'return pending_.size();',
+        'if(item.second.legacy_up_dispatch_qpc.has_value())++count;')){
+        if(-not $Timing.Contains($fact)){throw ('Typed origin accounting must keep missing hook/legacy and unfinished calls distinct: '+$fact)}
+    }
+    if($Timing.Contains('pending_.clear()')){throw 'Unknown issued native calls cannot disappear from final accounting.'}
+}
+$placementTimingSource=[IO.File]::ReadAllText((Join-Path $repository 'src/core/v1/timing_histogram.h'),[Text.Encoding]::UTF8)
+Assert-V1PlacementTimingOrigins $liveResizeApplication $placementTimingSource
+Check $true 'static typed clocks retain actual hook origin, separate applicable legacy dispatch and issued-unknown final populations'
+Reject {Assert-V1PlacementTimingOrigins $liveResizeApplication ($placementTimingSource.Replace('hook_.observe_qpc(origins.hook_observed_qpc,post_qpc,frequency);','hook_.observe_qpc(origins.legacy_up_dispatch_qpc.value_or(origins.hook_observed_qpc),post_qpc,frequency);'))} 'static legacy dispatch cannot replace a missing hook origin'
+Reject {Assert-V1PlacementTimingOrigins ($liveResizeApplication.Replace('std::optional<std::uint64_t>{e.resource_observed_qpc}','std::nullopt')) $placementTimingSource} 'static actual queued legacy UP must retain its real resource dispatch clock'
+Reject {Assert-V1PlacementTimingOrigins $liveResizeApplication ($placementTimingSource.Replace('if(completion_known){','if(true){'))} 'static an issued-unknown completion cannot erase its typed origin or create a completed timing sample'
 function Assert-V1NativeConstraintOnlyWiring([string]$Fixture,[string]$Resize,[string]$Narrow,[string]$Grid,[string]$Prepare,[string]$Guest){
     $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
     $branch=[regex]::Match($entry,'(?s)if\(s\.suite=="NativeConstraintOnly"\)\{(?<body>.*?)return;\s*\}')
@@ -2478,6 +2565,71 @@ Assert-V1BatchFailureOnlyWiring $fixtureSource $batchFailureOnly $lifecyclePrepa
 Check $true 'static narrow batch entry calls the actual second-member failure and survivor recovery once'
 Reject {Assert-V1BatchFailureOnlyWiring $fixtureSource ($batchFailureOnly.Replace('owned_second_member_native_failure_case(s);','')) $lifecyclePrepare $lifecycleGuest} 'static a summary cannot replace the actual batch failure helper'
 Reject {Assert-V1BatchFailureOnlyWiring $fixtureSource ($batchFailureOnly.Replace('!s.left&&!s.control&&hash(s.product)==binary','true')) $lifecyclePrepare $lifecycleGuest} 'static batch success cannot bypass released input and unchanged actual product'
+function Assert-V1InputFollowupWiring([string]$Fixture,[string]$Configuration,[string]$Settings,[string]$Dock,[string]$Batch,[string]$Prepare,[string]$Guest){
+    $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
+    $branch=[regex]::Match($entry,'(?s)if\(s\.suite=="InputFollowupOnly"\)\{(?<body>.*?)return;\s*\}')
+    $drive=Get-V1FixtureFunctionText $Fixture 'drive'
+    $gateAt=$Fixture.IndexOf('void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){',[StringComparison]::Ordinal)
+    if($gateAt -lt 0){throw 'Actual follow-up released-input gate missing.'}
+    $gate=Get-V1FixtureFunctionText $Fixture.Substring($gateAt) 'independent_entry_ready'
+    $released=[regex]::Match($gate,'if\((?<suites>s\.suite=="MappingRemainderOnly"[^\r\n]*?)\)for\(const int code:std::array\{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN\}\)')
+    if(-not $branch.Success -or [regex]::Matches($branch.Value,'\bphase\s*\(').Count -ne 3 -or
+       -not $branch.Value.Contains('phase("two_real_legacy_UP_dock_dispatch_clocks",owned_legacy_dock_timing_case);') -or
+       -not $branch.Value.Contains('phase("current_shared_input_rule_exclusion_and_fresh_group",owned_configuration_rule_input_impact_case);') -or
+       -not $branch.Value.Contains('phase("current_shared_input_second_member_failure_recovery",owned_batch_failure_only_case);') -or
+       -not $branch.Value.Contains('cleanup(s);') -or -not $branch.Value.Contains('input_followup_only_summary') -or
+       -not $Fixture.Contains('#include "platform/windows/product/v1_guest_input_followup_case.h"') -or
+       -not $Fixture.Contains('else if(value==L"InputFollowupOnly")s.suite="InputFollowupOnly";') -or
+       -not $Fixture.Contains('portable_field(package,"guest_suite")!=s.suite') -or
+       [regex]::Matches($Fixture,'s\.suite!="InputFollowupOnly"').Count -ne 2 -or
+       -not $drive.Contains('s.suite=="InputFollowupOnly"') -or -not $released.Success -or
+       -not $released.Groups['suites'].Value.Contains('s.suite=="InputFollowupOnly"') -or
+       -not $Prepare.Contains("'InputFollowupOnly'") -or -not $Guest.Contains("'InputFollowupOnly'") -or
+       -not $Guest.Contains("elseif(`$Suite -ceq 'DriverDisconnectOnly' -or `$Suite -ceq 'InputFollowupOnly'){[Math]::Min(`$StageTimeoutSeconds,180)}")){
+        throw 'Input follow-up must reach only its three finite actual phases with exact guest/manifest/parser and released-input gates.'
+    }
+    $shared=Get-V1FixtureFunctionText $Configuration 'configuration_rule_input_roundtrip'
+    $impact=Get-V1FixtureFunctionText $Configuration 'owned_configuration_rule_input_impact_case'
+    $full=Get-V1FixtureFunctionText $Configuration 'owned_configuration_chain_case'
+    $excluded=Get-V1FixtureFunctionText $Configuration 'configuration_chain_excluded_Ctrl_attempt'
+    foreach($fact in @('s.suite!="ConfigurationChainOnly"&&s.suite!="InputFollowupOnly"',
+        'settings_guest_exclusion(s,configuration_chain_excluded_Ctrl_attempt);',
+        'ctrl_move(s,0,24,18,label);',
+        'e::number(start,"\"group_members\":")==3',
+        'keys.size()==3&&!s.left&&!s.control',
+        'restored_group>before_exclusion&&settings_guest_configuration(s).rules==original.rules')){
+        if(-not $shared.Contains($fact)){throw ('Rule input must reuse the actual three-member native and fresh-generation checks: '+$fact)}
+    }
+    if(-not $full.Contains('configuration_rule_input_roundtrip(s);') -or
+       -not $impact.Contains('configuration_rule_input_roundtrip(s);') -or
+       -not $impact.Contains('s.suite!="InputFollowupOnly"||!original.enabled||!original.rules.empty()||s.left||s.control||') -or
+       -not $impact.Contains('restored==expected&&hash(s.product)==binary') -or
+       -not $impact.Contains('own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,initial[n])') -or
+       -not $impact.Contains('chain_check_product(s,pid,birth);') -or
+       $impact.Contains('settings_guest_file_path(') -or $impact.Contains('settings_guest_corrupt_restart(') -or
+       -not $excluded.Contains('s.suite!="ConfigurationChainOnly"&&s.suite!="InputFollowupOnly"') -or
+       -not $excluded.Contains('settings_guest_native_move(s,36,21,"configuration_chain_excluded_Ctrl_Move",separated);') -or
+       -not $excluded.Contains('before_calls&&after_calls&&*before_calls==*after_calls') -or
+       -not $Settings.Contains('settings_guest_effect_layout(s);settings_guest_native_move(s,36,21,"excluded_Move");') -or
+       -not $Settings.Contains('anchor_override&&s.suite!="ConfigurationChainOnly"&&s.suite!="InputFollowupOnly"') -or
+       -not $Batch.Contains('s.suite!="BatchFailureOnly"&&s.suite!="InputFollowupOnly"')){
+        throw 'Rule and batch impact scopes must share the original helpers, exact suite allowances and actual state restoration, not duplicate a model or persistence chain.'
+    }
+    foreach($fact in @('s.suite!="InputFollowupOnly"||!original.enabled||!original.rules.empty()||s.left||s.control',
+        'commits.size()==1&&commits.front()==native&&geometry_history_receipt(s,native,"placement")',
+        'e::quoted(up,"\"source\":","shield_queued_legacy")',
+        'e::number(native,"\"hook_observed_qpc\":")==0',
+        'dispatch&&*dispatch&&observed&&*dispatch==*observed&&post&&*post>=*dispatch',
+        'actual_expected[n]=expected[n];layout_up(set,g,actual_expected);')){
+        if(-not $Dock.Contains($fact)){throw ('New legacy dock evidence needs its actual native/UP/dispatch identities and separate missing hook: '+$fact)}
+    }
+}
+$inputFollowupSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_input_followup_case.h'),[Text.Encoding]::UTF8)
+Assert-V1InputFollowupWiring $fixtureSource $targetedConfiguration $targetedSettings $inputFollowupSource $batchFailureOnly $lifecyclePrepare $lifecycleGuest
+Check $true 'static input follow-up shares actual rule and batch paths and two independently clocked real legacy-UP dock commits'
+Reject {Assert-V1InputFollowupWiring ($fixtureSource.Replace('portable_field(package,"guest_suite")!=s.suite','false')) $targetedConfiguration $targetedSettings $inputFollowupSource $batchFailureOnly $lifecyclePrepare $lifecycleGuest} 'static new follow-up cannot drop the actual readonly manifest suite comparison'
+Reject {Assert-V1InputFollowupWiring $fixtureSource ($targetedConfiguration.Replace('before_calls&&after_calls&&*before_calls==*after_calls','true')) $targetedSettings $inputFollowupSource $batchFailureOnly $lifecyclePrepare $lifecycleGuest} 'static excluded ordinary and Ctrl input cannot skip zero-writer evidence'
+Reject {Assert-V1InputFollowupWiring $fixtureSource $targetedConfiguration $targetedSettings ($inputFollowupSource.Replace('*dispatch==*observed','true')) $batchFailureOnly $lifecyclePrepare $lifecycleGuest} 'static new legacy dock cannot use an unrelated UP dispatch clock'
 function Assert-V1BatchAbortReleaseDestination([string]$Cases){
     $prepare=Get-V1FixtureFunctionText $Cases 'batch_loss_abort_cleanup_up'
     $flow=Get-V1FixtureFunctionText $Cases 'owned_second_member_native_failure_case'

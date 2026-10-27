@@ -5,7 +5,7 @@
 // does not require/claim that the outer SetWindowPos returned FALSE.
 void owned_batch_failure_only_case(State& s){
     settings_guest_scope(s);const auto original=chain_settings(s);
-    if(s.suite!="BatchFailureOnly"||!original.enabled||!original.rules.empty()||s.left||s.control)
+    if((s.suite!="BatchFailureOnly"&&s.suite!="InputFollowupOnly")||!original.enabled||!original.rules.empty()||s.left||s.control)
         throw std::runtime_error("batch_failure_exact_released_unexcluded_guest_required");
     const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto binary=hash(s.product);
     chain_check_product(s,pid,birth);

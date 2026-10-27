@@ -414,7 +414,7 @@ void settings_guest_move_effect(State& s,bool snap,std::string_view name){
     phase(s,0,g,14,3,expected,std::string(name),true);up(s,0,g,expected);
 }
 void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_view stage,std::optional<POINT> anchor_override=std::nullopt){
-    if(anchor_override&&s.suite!="ConfigurationChainOnly")throw std::runtime_error("settings_native_Move_anchor_override_wrong_suite");
+    if(anchor_override&&s.suite!="ConfigurationChainOnly"&&s.suite!="InputFollowupOnly")throw std::runtime_error("settings_native_Move_anchor_override_wrong_suite");
     const HWND h=s.frames[0].hwnd;const std::string label(stage);foreground(s,h);
     const auto before=visible(h);const auto anchor=anchor_override?anchor_override:hit_point(h,HTCAPTION);RECT positioning{},client{};
     if(!before||!anchor||!GetWindowRect(h,&positioning)||!GetClientRect(h,&client))

@@ -43,6 +43,35 @@ int main(){
     expect(qpc.snapshot().samples==result.samples,"snapshot is read-only and restart need not clear process statistics");
     v::TimingSnapshot saturated;saturated.samples=1;saturated.buckets[0]=1;saturated.saturated=true;
     expect(!saturated.percentile_upper_us(95),"saturated counters cannot assert percentile");
+    v::PlacementTiming placements;
+    placements.observe_native(1,true,{100,std::nullopt},200,10000000);
+    expect(placements.hook_snapshot().samples==1&&placements.legacy_dispatch_snapshot().samples==0,
+        "hook-only native observation does not invent a legacy sample");
+    placements.observe_native(2,true,{0,300},500,10000000);
+    expect(placements.hook_snapshot().samples==1&&placements.hook_snapshot().missing_clock==1&&
+        placements.legacy_dispatch_snapshot().samples==1&&placements.legacy_dispatch_snapshot().maximum_us==20,
+        "actual legacy dispatch has an independent duration and preserves missing hook origin");
+    placements.observe_native(3,true,{0,std::uint64_t{0}},600,10000000);
+    placements.observe_native(4,true,{0,std::nullopt},600,10000000);
+    expect(placements.hook_snapshot().missing_clock==3&&placements.legacy_dispatch_snapshot().samples==1&&
+        placements.legacy_dispatch_snapshot().missing_clock==1,
+        "applicable legacy zero is missing while public no-hook input is outside the legacy domain");
+    placements.observe_native(5,false,{0,700},0,10000000);
+    expect(placements.unfinished_calls()==1&&placements.unfinished_legacy_dispatch_calls()==1&&
+        placements.legacy_dispatch_snapshot().samples==1,"issued unknown completion is not a zero-duration sample");
+    const auto still_unknown=placements.observe_delayed(5,false,900,10000000);
+    expect(still_unknown.legacy_up_dispatch_qpc==700&&placements.unfinished_calls()==1&&
+        placements.legacy_dispatch_snapshot().samples==1,"a delayed observation without completion retains its original clock and unknown call");
+    const auto completed=placements.observe_delayed(5,true,1000,10000000);
+    expect(completed.hook_observed_qpc==0&&completed.legacy_up_dispatch_qpc==700&&
+        placements.unfinished_calls()==0&&placements.unfinished_legacy_dispatch_calls()==0&&
+        placements.hook_snapshot().missing_clock==4&&placements.legacy_dispatch_snapshot().samples==2&&
+        placements.legacy_dispatch_snapshot().maximum_us==30,"final delayed completion uses the issued legacy origin exactly once");
+    placements.observe_native(6,false,{1100,std::nullopt},0,10000000);
+    placements.observe_native(7,false,{0,std::uint64_t{0}},0,10000000);
+    expect(placements.unfinished_calls()==2&&placements.unfinished_legacy_dispatch_calls()==1&&
+        placements.hook_snapshot().samples==1&&placements.legacy_dispatch_snapshot().samples==2,
+        "final unfinished hook and applicable-missing legacy calls remain unknown without fabricated samples");
     if(failures)return EXIT_FAILURE;
     std::cout<<"V1 timing "<<checks<<" checks passed\n";return EXIT_SUCCESS;
 }

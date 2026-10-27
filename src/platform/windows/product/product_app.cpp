@@ -278,7 +278,7 @@ public:
     std::optional<Visual> deferred_drag_visual;
     struct PendingVisual {Snapshot identity;v::VisualOwnership planned;std::uint64_t generation{};bool temporary_alpha{};};
     std::map<std::uint64_t,PendingVisual> pending_visual;
-    v::TimingHistogram input_post_timing;std::map<std::uint64_t,std::uint64_t> delayed_input_qpc;
+    v::PlacementTiming input_post_timing;
     UINT_PTR seam_timer_serial{0x50420000};
     bool overlay_outline{};v::Rect overlay_bounds;std::vector<v::Rect> overlay_members;
     std::vector<FeedbackLine> overlay_magnet_edges,overlay_shared_edges;
@@ -365,7 +365,8 @@ public:
     std::vector<v::Item> items(const std::vector<Snapshot>& list)const{std::vector<v::Item> result;
         for(const auto& s:list)result.push_back({s.key,s.visible,s.limits});return result;}
     bool apply(const v::Plan& plan,std::vector<Snapshot> identities,std::uint64_t generation=0,bool completion=false,std::uint64_t observed_qpc=0,
-               std::optional<WindowWriter::ResizeRequest> resize=std::nullopt,HWND command_source=nullptr){
+               std::optional<WindowWriter::ResizeRequest> resize=std::nullopt,HWND command_source=nullptr,
+               std::optional<std::uint64_t> legacy_up_dispatch_qpc=std::nullopt){
         last_exact_receipts.clear();
         last_apply_revoked_only=false;
         if(!plan.accepted)return false;if(plan.placements.empty())return true;
@@ -413,10 +414,8 @@ public:
             only_terminal_withdrawal=only_terminal_withdrawal&&WindowWriter::preserves_terminal_receipt(
                 receipt,generation,capture,input.allowed(generation));
             if(receipt.native_attempted)++native_attempts;
-            if(receipt.native_attempted){
-                if(receipt.completion_known)input_post_timing.observe_qpc(observed_qpc,receipt.post_observed_qpc,input.counter_frequency());
-                else delayed_input_qpc[receipt.call_id]=observed_qpc; // At most the one issued worker call.
-            }
+            if(receipt.native_attempted)input_post_timing.observe_native(receipt.call_id,receipt.completion_known,
+                {observed_qpc,legacy_up_dispatch_qpc},receipt.post_observed_qpc,input.counter_frequency());
             if(diagnostic||!receipt.accepted)log.event("placement","\"generation\":"+std::to_string(generation)+",\"operation\":"+std::to_string(operations)+
                 ",\"intent_reason\":\""+escaped(plan.reason)+"\""+
                 ",\"key\":"+std::to_string(receipt.before.key)+",\"native_callsite_claimed\":"+(receipt.native_attempted?"true":"false")+
@@ -443,6 +442,9 @@ public:
                 ",\"destination_monitor\":"+std::to_string(receipt.destination?reinterpret_cast<std::uintptr_t>(receipt.destination->target.monitor):0)+
                 ",\"destination_window_dpi\":"+std::to_string(receipt.destination?receipt.destination->window_dpi:0)+
                 ",\"hook_observed_qpc\":"+std::to_string(observed_qpc)+
+                ",\"legacy_dispatch_timing_applicable\":"+(legacy_up_dispatch_qpc.has_value()?"true":"false")+
+                ",\"legacy_up_dispatch_qpc\":"+(legacy_up_dispatch_qpc&&*legacy_up_dispatch_qpc?std::to_string(*legacy_up_dispatch_qpc):"null")+
+                ",\"legacy_dispatch_origin\":"+(legacy_up_dispatch_qpc?"\"shield_WM_LBUTTONUP_dispatch\"":"null")+
                 ",\"normal_up_completion\":"+(completion?"true":"false"));
             if(receipt.after&&receipt.identity_valid&&gesture)gesture->expected[receipt.before.key]=*receipt.after;
             if(receipt.after&&receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact){
@@ -1033,7 +1035,7 @@ public:
     void restore_progress();
     void restore_timeout(UINT_PTR);
     void cancel_restore_wait();
-    void finish(v::End,std::uint64_t observed_qpc=0);
+    void finish(v::End,std::uint64_t observed_qpc=0,std::optional<std::uint64_t> legacy_up_dispatch_qpc=std::nullopt);
     void consume();
     void drain_button_admissions(bool final=false);
     void show_settings();
@@ -1065,9 +1067,8 @@ public:
                     ",\"recovery_commit_ack\":"+(acknowledged?"true":"false")+",\"new_write_authority_granted\":false");
                 continue;
             }
-            const auto found=delayed_input_qpc.find(r.call_id);
-            input_post_timing.observe_qpc(found==delayed_input_qpc.end()?0:found->second,r.post_observed_qpc,input.counter_frequency());
-            if(found!=delayed_input_qpc.end())delayed_input_qpc.erase(found);
+            const auto timing_origins=input_post_timing.observe_delayed(r.call_id,r.completion_known,
+                r.post_observed_qpc,input.counter_frequency());
             log.event("native_completion",
             "\"call_id\":"+std::to_string(r.call_id)+",\"key\":"+std::to_string(r.before.key)+
             ",\"native_attempted\":"+(r.native_attempted?"true":"false")+",\"native_succeeded\":"+(r.native_succeeded?"true":"false")+
@@ -1079,6 +1080,10 @@ public:
             ",\"preflight_started_qpc\":"+std::to_string(r.preflight_started_qpc)+
             ",\"geometry_observed_qpc\":"+std::to_string(r.geometry_observed_qpc)+
             ",\"post_observed_qpc\":"+std::to_string(r.post_observed_qpc)+
+            ",\"hook_observed_qpc\":"+std::to_string(timing_origins.hook_observed_qpc)+
+            ",\"legacy_dispatch_timing_applicable\":"+(timing_origins.legacy_up_dispatch_qpc.has_value()?"true":"false")+
+            ",\"legacy_up_dispatch_qpc\":"+(timing_origins.legacy_up_dispatch_qpc&&*timing_origins.legacy_up_dispatch_qpc?std::to_string(*timing_origins.legacy_up_dispatch_qpc):"null")+
+            ",\"legacy_dispatch_origin\":"+(timing_origins.legacy_up_dispatch_qpc?"\"shield_WM_LBUTTONUP_dispatch\"":"null")+
             ",\"post_track_limits_query_requested\":"+(r.post_track_limits_query_requested?(*r.post_track_limits_query_requested?"true":"false"):"null")+
             ",\"post_track_limits_carried_from_preflight\":"+(r.post_track_limits_carried_from_preflight?"true":"false")+
             ",\"explicit_destination_display_bound\":"+(r.destination?"true":"false")+
@@ -2008,7 +2013,7 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
         else if(input.allowed(e.generation)){const auto record=visual_begin(*fresh,true,static_cast<BYTE>(config.shake_alpha),false);if(record)visual[source.key]=*record;}
     }
 }
-void Application::finish(v::End reason,std::uint64_t observed_qpc){
+void Application::finish(v::End reason,std::uint64_t observed_qpc,std::optional<std::uint64_t> legacy_up_dispatch_qpc){
     if(native_move){input.revoke_generation(native_move->down.generation,reason);native_move.reset();}
     if(gesture)input.finish_generation(gesture->down.generation,reason);else input.revoke(reason);
     cancel_seam_timer();cancel_restore_wait();hide_preview();if(!gesture)return;auto state=std::move(*gesture);gesture.reset();epoch.finish(state.down.generation,reason);last_termination=reason;
@@ -2024,7 +2029,8 @@ void Application::finish(v::End reason,std::uint64_t observed_qpc){
                     ",\"native_attempted\":"+(claimed?"true":"false")+",\"request_started\":"+(requested?"true":"false")+
                     ",\"actual_state_completion\":\"not_observed_by_request_return\"");
             }
-            else if(apply({true,"normal_up_dock",{{current->key,*state.dock_rect}}},{*current},state.down.generation,true,observed_qpc))remember_receipt(*current,true);
+            else if(apply({true,"normal_up_dock",{{current->key,*state.dock_rect}}},{*current},state.down.generation,true,
+                observed_qpc,std::nullopt,nullptr,legacy_up_dispatch_qpc))remember_receipt(*current,true);
         }
     }else if(reason==v::End::Escape){
         if(state.was_maximized){
@@ -2220,7 +2226,8 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
         // finish() may commit an already-armed discrete dock preview, never a
         // late continuous motion plan. In-flight completion is observed by the
         // writer's existing exact receipt path, not recreated from this UP.
-        if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc);
+        if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc,
+            e.origin==InputOrigin::ShieldLegacy?std::optional<std::uint64_t>{e.resource_observed_qpc}:std::nullopt);
     }}
     else if(e.kind==InputKind::Abort){
         if(diagnostic&&e.abort_observation){
@@ -2512,8 +2519,13 @@ void Application::stop(){if(stopping)return;stopping=true;hide_preview("stop");i
         ",\"after_native_writer_stop_and_final_drain\":true,\"native_writer_exited\":"+(native_writer_exited?"true":"false")+
         ",\"issued_native_completion_unknown\":"+(issued_completion_unknown?"true":"false")+
         ",\"mouse_callback\":{"+timing_fields(input.callback_timing(),99)+",\"excludes_downstream_CallNextHookEx\":true}"+
-        ",\"hook_observed_to_postverify\":{"+timing_fields(input_post_timing.snapshot(),95)+
-        ",\"sample_unit\":\"native_placement\",\"endpoint\":\"geometry_and_post_context_complete\",\"not_physical_display_latency\":true,\"unfinished_calls\":"+std::to_string(delayed_input_qpc.size())+"}");
+        ",\"hook_observed_to_postverify\":{"+timing_fields(input_post_timing.hook_snapshot(),95)+
+        ",\"sample_unit\":\"native_placement\",\"endpoint\":\"geometry_and_post_context_complete\",\"not_physical_display_latency\":true,\"unfinished_calls\":"+std::to_string(input_post_timing.unfinished_calls())+"}"+
+        ",\"legacy_up_dispatch_to_postverify\":{"+timing_fields(input_post_timing.legacy_dispatch_snapshot(),95)+
+        ",\"origin\":\"shield_WM_LBUTTONUP_dispatch\",\"sample_unit\":\"applicable_native_placement\""+
+        ",\"endpoint\":\"geometry_and_post_context_complete\",\"not_hook_or_physical_input_latency\":true"+
+        ",\"unfinished_calls\":"+std::to_string(input_post_timing.unfinished_legacy_dispatch_calls())+
+        ",\"completion_unknown\":"+(input_post_timing.unfinished_legacy_dispatch_calls()?"true":"false")+"}");
     const bool recovery_stopped=recovery.stop();
     // A confirmed helper stop postverified all its held originals AFTER the
     // exact completion barrier. Retire local journals too, including a job

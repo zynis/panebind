@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <map>
 #include <optional>
 
 namespace panebind::core::v1 {
@@ -93,6 +94,53 @@ private:
     std::array<std::atomic<std::uint64_t>,timing_upper_us.size()+1> buckets_{};
     std::atomic<std::uint64_t> missing_clock_{},reversed_clock_{},conversion_overflow_{},maximum_us_{};
     std::atomic<bool> saturated_{};
+};
+
+// These are distinct observation domains, not interchangeable input origins.
+// A legacy dispatch is a queued UP handler entry, never a hook/physical clock.
+// nullopt means this native placement is not in that domain; an engaged zero
+// means it is applicable but its actual clock is missing.
+struct PlacementTimingOrigins {
+    std::uint64_t hook_observed_qpc{};
+    std::optional<std::uint64_t> legacy_up_dispatch_qpc;
+};
+
+// GUI-owner accounting for the existing immediate/issued/delayed lifecycle.
+// No clock, completion, or histogram result grants writer authority.
+class PlacementTiming final {
+public:
+    void observe_native(std::uint64_t call_id,bool completion_known,PlacementTimingOrigins origins,
+                        std::uint64_t post_qpc,std::uint64_t frequency) {
+        if(completion_known)observe(origins,post_qpc,frequency);
+        else pending_[call_id]=origins;
+    }
+    PlacementTimingOrigins observe_delayed(std::uint64_t call_id,bool completion_known,
+                                          std::uint64_t post_qpc,std::uint64_t frequency) {
+        const auto found=pending_.find(call_id);
+        const auto origins=found==pending_.end()?PlacementTimingOrigins{}:found->second;
+        if(completion_known){
+            observe(origins,post_qpc,frequency);
+            if(found!=pending_.end())pending_.erase(found);
+        }
+        return origins;
+    }
+    [[nodiscard]] TimingSnapshot hook_snapshot()const noexcept{return hook_.snapshot();}
+    [[nodiscard]] TimingSnapshot legacy_dispatch_snapshot()const noexcept{return legacy_dispatch_.snapshot();}
+    [[nodiscard]] std::size_t unfinished_calls()const noexcept{return pending_.size();}
+    [[nodiscard]] std::size_t unfinished_legacy_dispatch_calls()const noexcept {
+        std::size_t count{};for(const auto& item:pending_)if(item.second.legacy_up_dispatch_qpc.has_value())++count;
+        return count;
+    }
+private:
+    void observe(const PlacementTimingOrigins& origins,std::uint64_t post_qpc,std::uint64_t frequency)noexcept {
+        // Preserve the old all-native hook missing-clock population. A legacy
+        // clock does not fill its zero or alter its percentile denominator.
+        hook_.observe_qpc(origins.hook_observed_qpc,post_qpc,frequency);
+        if(origins.legacy_up_dispatch_qpc)
+            legacy_dispatch_.observe_qpc(*origins.legacy_up_dispatch_qpc,post_qpc,frequency);
+    }
+    TimingHistogram hook_,legacy_dispatch_;
+    std::map<std::uint64_t,PlacementTimingOrigins> pending_;
 };
 
 } // namespace panebind::core::v1
