@@ -362,6 +362,18 @@ inline bool matching_inflight_up_before_abort(std::string_view status,std::strin
         snapshot.take(",\"consumed_before\":false,\"aborted_before\":false,\"matching_branch_taken\":true,")&&
         snapshot.take("\"push_attempted\":false,\"push_succeeded\":false}}}")&&snapshot.text.empty();
 }
+// TEST receipt classification for the existing WindowWriter no-lease,
+// same-display NormalUp dock branch. A completed stage is not a fictitious
+// capture-context query. Actual identity/geometry and UP matching are checked
+// independently by the caller; this predicate cannot authorize a placement.
+inline bool legacy_dock_same_display_context_not_applicable(std::string_view row){
+    using namespace up_evidence_detail;
+    return unique_value(row,"\"normal_up_completion\":")=="true"&&
+        unique_value(row,"\"authority_after\":")=="false"&&
+        unique_value(row,"\"explicit_destination_display_bound\":")=="false"&&
+        unique_value(row,"\"post_context_checked\":")=="false"&&
+        unique_value(row,"\"post_context_valid\":")=="false"&&quoted(row,"\"post_context_reason\":","");
+}
 inline bool accepted_up_evidence(UpEvidenceMode mode,bool matching_diagnostic_event,
     std::string_view status,const UpEvidenceIdentity& expected,std::string_view legacy={},std::string_view gone={}){
     if(mode==UpEvidenceMode::DiagnosticEvent)return matching_diagnostic_event;

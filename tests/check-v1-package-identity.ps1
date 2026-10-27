@@ -2620,6 +2620,7 @@ function Assert-V1InputFollowupWiring([string]$Fixture,[string]$Configuration,[s
         'e::quoted(up,"\"source\":","shield_queued_legacy")',
         'e::number(native,"\"hook_observed_qpc\":")==0',
         'dispatch&&*dispatch&&observed&&*dispatch==*observed&&post&&*post>=*dispatch',
+        'product::guest::legacy_dock_same_display_context_not_applicable(native)&&clocks',
         'actual_expected[n]=expected[n];layout_up(set,g,actual_expected);')){
         if(-not $Dock.Contains($fact)){throw ('New legacy dock evidence needs its actual native/UP/dispatch identities and separate missing hook: '+$fact)}
     }
@@ -2630,6 +2631,7 @@ Check $true 'static input follow-up shares actual rule and batch paths and two i
 Reject {Assert-V1InputFollowupWiring ($fixtureSource.Replace('portable_field(package,"guest_suite")!=s.suite','false')) $targetedConfiguration $targetedSettings $inputFollowupSource $batchFailureOnly $lifecyclePrepare $lifecycleGuest} 'static new follow-up cannot drop the actual readonly manifest suite comparison'
 Reject {Assert-V1InputFollowupWiring $fixtureSource ($targetedConfiguration.Replace('before_calls&&after_calls&&*before_calls==*after_calls','true')) $targetedSettings $inputFollowupSource $batchFailureOnly $lifecyclePrepare $lifecycleGuest} 'static excluded ordinary and Ctrl input cannot skip zero-writer evidence'
 Reject {Assert-V1InputFollowupWiring $fixtureSource $targetedConfiguration $targetedSettings ($inputFollowupSource.Replace('*dispatch==*observed','true')) $batchFailureOnly $lifecyclePrepare $lifecycleGuest} 'static new legacy dock cannot use an unrelated UP dispatch clock'
+Reject {Assert-V1InputFollowupWiring $fixtureSource $targetedConfiguration $targetedSettings ($inputFollowupSource.Replace('product::guest::legacy_dock_same_display_context_not_applicable(native)&&clocks','true&&clocks')) $batchFailureOnly $lifecyclePrepare $lifecycleGuest} 'static legacy dock must classify its actual no-lease context rather than deleting or fabricating post-context facts'
 function Assert-V1BatchAbortReleaseDestination([string]$Cases){
     $prepare=Get-V1FixtureFunctionText $Cases 'batch_loss_abort_cleanup_up'
     $flow=Get-V1FixtureFunctionText $Cases 'owned_second_member_native_failure_case'

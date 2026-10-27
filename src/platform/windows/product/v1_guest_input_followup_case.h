@@ -13,8 +13,9 @@ void owned_legacy_dock_timing_case(State& s){
     config.magnet_move=false;config.magnet_resize=false;config.glue=false;
     config.preview=true;config.feedback=false;config.shake=false;config.drag_transparency=false;
     config.dock_actions=panebind::core::v1::default_settings().dock_actions;
-    const auto applied=chain_gui_save(s,config);LayoutFixtures set{s};set.create();
+    const auto applied=chain_gui_save(s,config);LayoutFixtures set{s};
     try{
+        set.create();
         const auto work=chain_work(set.frames[0].hwnd);
         if(work.width()<1200||work.height()<850)throw std::runtime_error("legacy_dock_timing_work_area_unavailable");
         const LONG mx=work.l+work.width()/2,my=work.t+work.height()/2;
@@ -52,10 +53,13 @@ void owned_legacy_dock_timing_case(State& s){
                 e::number(up,"\"generation\":")==g.generation&&e::number(native,"\"hook_observed_qpc\":")==0&&
                 e::unique_value(native,"\"native_callsite_claimed\":")=="true"&&
                 e::unique_value(native,"\"native_completion_known\":")=="true"&&
-                e::unique_value(native,"\"post_context_valid\":")=="true"&&clocks,
+                e::unique_value(native,"\"identity_valid\":")=="true"&&
+                e::unique_value(native,"\"exact\":")=="true"&&e::unique_value(native,"\"authority_after\":")=="false"&&
+                product::guest::legacy_dock_same_display_context_not_applicable(native)&&clocks,
                 "\"member\":"+std::to_string(n)+",\"generation\":"+std::to_string(g.generation)+
                 ",\"actual_UP\":"+quote(up)+",\"actual_native_receipt\":"+quote(native)+
                 ",\"clock_origin\":\"shield_WndProc_legacy_LEFTUP_dispatch_not_hook_or_hardware\","+
+                "\"post_context_scope\":\"same_display_discrete_no_lease_NA_actual_flags_retained\","+
                 "\"old_122_hook_samples_rebound\":false,\"not_physical_display_latency\":true");
             previous_generation=g.generation;
         }

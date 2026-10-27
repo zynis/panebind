@@ -594,5 +594,19 @@ int main() {
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::DiagnosticEvent,false,status,identity),false,"diagnostic missing event cannot use status")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::DiagnosticEvent,true,"",identity),true,"diagnostic retains actual event contract")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,true,"",identity),false,"snapshot mode cannot substitute event"))return 1;
+    // Actual 7a P583/P1570 carry these no-lease same-display completion facts.
+    // The old follow-up incorrectly required post_context_valid=true and
+    // would reject both despite their exact native geometry/identity receipts.
+    const std::string legacy_discrete_context=R"({"normal_up_completion":true,"authority_after":false,"explicit_destination_display_bound":false,"post_context_checked":false,"post_context_valid":false,"post_context_reason":""})";
+    const auto context_changed=[&](std::string_view from,std::string_view to){auto row=legacy_discrete_context;
+        const auto at=row.find(from);if(at==row.npos)std::abort();row.replace(at,from.size(),to);return row;};
+    if(!expect(guest::legacy_dock_same_display_context_not_applicable(legacy_discrete_context),true,"actual discrete completion preserves post-context N/A, not a fictitious failed lease check")||
+       !expect(guest::legacy_dock_same_display_context_not_applicable(context_changed("\"authority_after\":false","\"authority_after\":true")),false,"a terminal dock receipt cannot claim restored continuous input authority")||
+       !expect(guest::legacy_dock_same_display_context_not_applicable(context_changed("\"post_context_checked\":false","\"post_context_checked\":true")),false,"a checked context cannot masquerade as no-lease N/A")||
+       !expect(guest::legacy_dock_same_display_context_not_applicable(context_changed("\"post_context_valid\":false","\"post_context_valid\":true")),false,"N/A does not fabricate a valid query")||
+       !expect(guest::legacy_dock_same_display_context_not_applicable(context_changed("\"normal_up_completion\":true","\"normal_up_completion\":false")),false,"ordinary placement cannot borrow the discrete terminal contract")||
+       !expect(guest::legacy_dock_same_display_context_not_applicable(context_changed("\"explicit_destination_display_bound\":false","\"explicit_destination_display_bound\":true")),false,"destination transition requires its real post-context checks")||
+       !expect(guest::legacy_dock_same_display_context_not_applicable(context_changed("\"post_context_reason\":\"\"","\"post_context_reason\":\"failed\"")),false,"a reported context rejection is not N/A")||
+       !expect(guest::legacy_dock_same_display_context_not_applicable("{}"),false,"missing context facts cannot be accepted as N/A"))return 1;
     std::cout << checked << " guest-directory, UP-evidence, deadline and physical-log cases passed; bounded test-owned filesystem operations; no UI or input\n";
 }
