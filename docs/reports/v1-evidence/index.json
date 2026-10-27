@@ -3,11 +3,11 @@
   "record_date": "2026-10-27",
   "current_round_targeted_followup": {
     "path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
-    "sha256": "C7F60DF65BFBCCF922D1BBD7114F6DA06496AA0DC6E864BFCE65140B05BED6E8",
+    "sha256": "B2046E79CE93AAFBD6040D9382201CC5B91CBA952737CB654D854A5E37DE5D65",
     "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
-    "literal_excerpt_sha256": "5AEA5AA3C78D6FA5EF883EA90B596007BA0623E635580461CDAC841F007776EC",
+    "literal_excerpt_sha256": "5323342F4D4D9995458A9C956EF0DFB9F9A8E2C7A1C8C15A377B10C460C2AC1F",
     "product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
-    "current_scoped_results": "12cc D32/D33 accounting revalidated; f20a I07 DEV chain PASS. Initial failures and CreatePipe error5 retained. No whole NF02, tray, other chain or version PASS.",
+    "current_scoped_results": "12cc D32/D33 accounting revalidated; f20a I07 and 2bb I06 same-instance DEV chains PASS. 234bd current max/grid and recovery scoped PASS; fixed/real-app histories retained, not rerun or rebound. Initial/CreatePipe-error5/bd941 START failures retained. No I08, whole NF02, tray or version PASS.",
     "whole_version": "PARTIAL"
   },
   "current_round_restored_connection_environment": {
