@@ -1212,7 +1212,7 @@
         "next_action": "本Full部署保留11ae/dfdd历史身份；当前4f7 callback/Focus/规则和5f87普通包实际范围另见current_targeted_runtime/current_package，不能改绑此Full。新CurrentCore TEST仅构建，后续按影响执行必要当前链，不重跑独立900秒或旧专项。"
       },
     "implementation_inspected": "9EC7_REAL_LIVE_RESIZE_CALLBACK_D_R_SCOPED_RUNTIME_AND_ORDINARY_PACKAGE_TESTED",
-    "note": "独立DEV44/60、22/40=55%、modules0/PARTIAL保持原合同/身份。当前ccde/2579在bea0实际普通无参包入口/两Move真实UP/正常退出限定通过；42ab/d5f5/f78及4ff诊断证据保历史不改绑。f46九代几何/UP与WM_SIZING R/C差异、108 HC真实状态/恢复FAIL分开，均不授完整Medium桌面/五应用/托盘/HC/整版。",
+    "note": "独立DEV45/60、22/40=55%、chains3/12、modules0/PARTIAL。M03-F03按234bd/936 max/grid、b4b当前共享min、用户认可复用750固定及c452/a723/6e32真实Terminal约束影响继承闭合；各原源码/EXE/Run不换绑。最新已验普通入口为936/47ff/12c7，旧ccde/2579、42ab/d5f5/f78及诊断证据保历史。I10、NF02、完整Medium桌面/五应用/托盘/HC/显示及整版仍各有缺项。",
     "pending_product_note": "当前c452/49b3及独立011驱动Debug6e3限定实测见current_targeted_runtime；a723/6e3几何与真实收尾、普通217a已验，预算工具修复按6e3范围关闭，不改包内driver。旧ca56/0c50性能与c1a5/f7d6超时各保原FAIL；完整NF02、应用/托盘/HC/显示缺项分别保留。",
 
     "successor_live_Resize_candidate": {
@@ -2521,14 +2521,14 @@
       "B39",
       "B40"
     ],
-    "note": "独立DEV44/60、22/40=55%，模块0。新增M05-F04/B05由当前42ab G04 Debug/Release组合、f06a八方向/约束、750固定黑盒及4ff真实Terminal Resize→Move完整独立合同闭合；其它已过项及历史原身份保留。M05模块、托盘、五应用/完整Medium、显示和最终整链不自动通过；NF02保当前4ff p95桶99999us/max79352us不达50ms。固定60/40分母、B01-B32及硬门保持；PARTIAL不REA。"
+    "note": "独立DEV45/60、22/40=55%，chains3/12、模块0。M03-F03按当前936/234bd与b4b及明确固定/真实应用继承闭合，不增加B项；M05-F04/B05原42ab/G04/f06a/750/4ff合同及其它历史身份保留。模块、托盘、五应用/完整Medium、显示、I10及整版不自动通过；NF02保各原样本与当前936/b4b最终端点FAIL。固定60/40分母、B01-B32及硬门保持；PARTIAL不REA。"
   },
   "hard_gates": [
     {
       "id": "HG01",
       "description": "60功能/12模块DEV通过，B01-B32全部PASS。",
       "status": "BLOCKED",
-      "remaining_conditions": "实际独立DEV44/60、对标22/40=55%；仍缺16项独立功能、10项必选对标及模块/适用整版硬门。M05-F04/B05按当前G04+f06a+750+4ff独立合同闭合，不自动授M05模块、五应用、托盘、显示或最终整链。",
+      "remaining_conditions": "实际独立DEV45/60、对标22/40=55%、整链3/12；仍缺15项独立功能、10项必选对标及模块/适用整版硬门。M03-F03独立合同闭合不增加B项、不授M03模块或I10；M05-F04/B05及全部历史证据保持原身份，五应用、托盘、显示、NF与整版门不变。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     },
     {
@@ -3851,7 +3851,7 @@
         "scope": "TWO_OWNED_DEFAULT_ROUTE_CORE_ROUNDS_SAME_PID3948_IMPACT_REGRESSION_PASS_NOT_NEW_EXACT_RUN",
         "not_complete_contract_PASS": true
       },
-      "latest_runtime_component_observation": {
+      "historical_1f4_runtime_component_observation": {
         "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
         "binary_sha256": "8B3E350F2CC5E60C25DA4CFFE87027B57D930BF6DEE719B2ABC3C5B95A517226",
         "driver_source_sha": "79760ce7b858654f2ad9a41912ce21e468a18557",
@@ -3862,6 +3862,74 @@
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
         "scope": "Release1f4/9ec7+driver797：10NormalUp+g6一次abort。g6 +1共享Resize回调Rnative2136→C2135，P204 context_revalidated=false、P205明确拒绝、neighborquerynull/零native；实际退休后LL清理UP/释放detach/Gone，非NormalUp。g7恢复，g8min143/g10C MATCH exactnoop/g11Move完成；13native exact/postcontext，P393 max37162us/callback65max663us仅scope。正向两成员回调接受未运行，整Run仍托盘FAIL、Shell树UNKNOWN。",
         "not_complete_contract_PASS": true
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+        "binary_sha256": "8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238",
+        "driver_source_sha": "23e9da1a764d4bfd35446d31e76744ce36f1d19f",
+        "driver_binary_sha256": "5C1F35818D055F2A60D8C6231D32BDE3A8FA5EB7B63E3A5CC45FEDCB95FC4BBD",
+        "run_id": "234bd8799c5b42ee965b46410c723cb8",
+        "configuration": "Release",
+        "evidence_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+        "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+        "literal_lines_1_based": [
+          160,
+          205
+        ],
+        "scope": "NativeConstraintOnly：max450/candidate456拒绝、原DOWN拉回430及NormalUp；grid17实际API TRUE但nonexact→撤权，真实abort-UP、零新调用与后继Move/Ctrl；不授I10第二成员失败链或任意应用栅格学习。",
+        "not_complete_contract_PASS": false
+      },
+      "inherited_contract_evidence": [
+        {
+          "run_id": "b4b1064e56e9409f8fe0f1fc0b06162d",
+          "source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+          "binary_sha256": "8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238",
+          "evidence_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+          "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+          "literal_lines_1_based": [
+            300,
+            350
+          ],
+          "scope": "当前936同实例两轮T/L共享min交集钳制及原DOWN拉回；D273–309、D360–365实际成员矩形与真实UP，不靠继承冒充新测。"
+        },
+        {
+          "run_id": "750be16e09ed4f91824476db43792216",
+          "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+          "binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+          "evidence_path": "docs/reports/v1-evidence/750b-current-fixed-size-resize-review.json",
+          "literal_excerpt_path": "docs/reports/v1-evidence/750b-current-fixed-size-resize-excerpt.jsonl",
+          "scope": "用户明确认可复用已闭固定尺寸专项：D124–147/P49–65固定Resize真实UP/零native、D153–163/P95后继Move。保持42ab原身份；42ab后writer有实改，不声称全路径等价。固定尺寸核心交集未变，当前234bd/b4b及真实Terminal覆盖受影响限界/回读/恢复，未出现fixed新反例，不重跑。"
+        },
+        {
+          "run_ids": [
+            "a723ce9a988e455a9af5d22b2684ae20",
+            "6e3269161d484dc993985d9091aefbf3"
+          ],
+          "source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+          "release_binary_sha256": "10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560",
+          "debug_binary_sha256": "76354B8DBAB23395A9D5FA2B7990CE42C798A7AF7C5BF38764F0BE7D7D737C4D",
+          "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+          "literal_excerpt_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+          "literal_lines_1_based": [
+            [
+              997,
+              1062
+            ],
+            [
+              1103,
+              1172
+            ]
+          ],
+          "scope": "真实Terminal min143钳制、WM_SIZING C采用、两成员C=R接受/两exact、C!=R零native拒绝及真实abort-UP/后继操作。c452→936产品仅托盘键盘入口、mapped hook计时及stop汇总/drain，core几何、InputService、Catalog、writer/limits不变；按具体影响继承，不写为936现场重跑。"
+        }
+      ],
+      "historical_primary_identity": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "environment_id": "E02",
+        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "dev_status": "BLOCKED",
+        "assessment_scope": "CURRENT_11AE_SCOPED_OBSERVATIONS_NOT_COMPLETE_FEATURE_PASS"
       },
       "historical_failure": {
         "dev_status": "FAIL",
@@ -3886,21 +3954,25 @@
         "src/platform/windows/product/product_app.cpp"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "生产min/max、固定尺寸与actual postverify/拒绝已接线；8453及d49原生grid17非exact后拒绝真实执行，固定邻居/交集钳制已有局部实测。任意app栅格不伪造读取；d49 abort后实际UP未观察、恢复未通过，不表示完整DEV通过。",
-      "dev_status": "BLOCKED",
+      "implementation_note": "生产min/max、固定尺寸与actual postverify/保守拒绝已接线。当前936/234bd max/grid和b4b共享min真实闭合，结合用户认可复用750固定与c452真实Terminal约束证据，满足本功能独立DEV合同；历史失败及其原身份保留。",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M03-F03-DEV",
           "required_observation": "用有明确 min/max/grid 的原生 fixture 和真实应用验证；尺寸不足时几何不穿越，不能通过持续 SetWindowPos 震荡",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
             "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
             "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json",
             "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-            "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
+            "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+            "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+            "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+            "docs/reports/v1-evidence/750b-current-fixed-size-resize-review.json",
+            "docs/reports/v1-evidence/750b-current-fixed-size-resize-excerpt.jsonl"
           ],
           "observation_ids": [
             "PO-C01-NATIVE-FAILURES",
@@ -3915,10 +3987,10 @@
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
       ],
-      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+      "binary_sha256": "8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238",
       "environment_id": "E02",
-      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "run_id": "234bd8799c5b42ee965b46410c723cb8",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
@@ -3926,21 +3998,23 @@
         "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
         "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json",
         "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
-        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"
+        "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+            "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+            "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+            "docs/reports/v1-evidence/750b-current-fixed-size-resize-review.json",
+            "docs/reports/v1-evidence/750b-current-fixed-size-resize-excerpt.jsonl"
       ],
       "defects": [
         "V1-D01",
         "V1-D08"
       ],
-      "candidate_identity_ref": "current_package",
-      "assessment_scope": "CURRENT_11AE_SCOPED_OBSERVATIONS_NOT_COMPLETE_FEATURE_PASS",
-      "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
-      "observed": "【当前ccde/24a/f46】ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。【历史】【ccde/354/7bb真实应用最小值子合同】D1881实际native min714×152及frame18/9；D1888 rawheight142被独立oracle钳至143，P201一次native exact、无递归，D1891实际NormalUp；D1901/1904后继Move(+24,+18)和真实NormalUp成立。实际应用grid/WM_SIZING提案未验证，不授完整M03F03。【13a原失败及历史】【ccde/13a实际自声明最小值】D1529应用返回native714×152与frame差18/9，独立visible最小696×143及customheight已知；g6真实bottom4被TEST right2断言误拒，未完成clamp/后继Move，不授此合同PASS。【历史】当前212/e7 grid4105实际拒绝与后继恢复、477实际START/cancel/END后fresh geometry拒绝且零新placement已观察；不将这些已测子项再写为待跑。 【历史观察保留】c01 seq1957/1958 grid实际单次API TRUE/non-exact后停止；1964原代UP缺失，后续恢复不关闭原失败。 【当前11ae】3f8及dfdd真实grid API TRUE但nonexact拒绝、实际尺寸回读/零递归、后继Move/Ctrl与实际UP已验证；旧c01缺UP原FAIL只属其原构建。当前未发现同类owned产品失败，完整真实应用约束合同仍BLOCKED。",
-      "remaining_conditions": [
-        "当前c452/a723与6e32已实测真实Terminal min143钳制、WM_SIZING实际C采用、正向两成员C==R/两exact、C!=R零native拒绝/真实abort UP及后继操作；旧ccde R/C mismatch保原失败，不能再列上述分支未运行。",
-    "原min/max/grid原生fixture及750b固定尺寸零写/后继Move保留原身份；后继liveResize/limits路径实际改变，尚缺当前候选的max上界钳制、固定尺寸Resize零native且Move可继续、明确grid合法集合的postverify/非exact拒绝零递归及恢复的受影响回归。真实Terminal最小值/C偏好接受与拒绝已有当前实证，不再列为未运行，也不额外附加五应用模块门。"
-      ],
-  "next_action": "936aeb9构建封存后，复用现成fixed/grid约束入口，仅补当前liveResize/limits受影响的max/fixed/grid postverify、零递归与后继恢复断言；复用c452/a723及6e32已完成的Terminal最小值/C接受/拒绝，不重跑整套几何，不把单次WM_SIZING偏好称为任意栅格已学习。完整断言齐前本功能不授PASS。",
+      "candidate_identity_ref": "features.M03-F03.latest_runtime_component_observation",
+      "assessment_scope": "INDEPENDENT_M03_F03_DEV_CONTRACT_PASS_WITH_EXPLICIT_INHERITANCE_NOT_MODULE_OR_I10",
+      "status_basis": "CURRENT_936_MAX_GRID_SHARED_MIN_PLUS_USER_APPROVED_FIXED_AND_UNCHANGED_REAL_APP_CONSTRAINT_INHERITANCE",
+      "historical_observed_at_previous_assessment": "【当前ccde/24a/f46】ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。【历史】【ccde/354/7bb真实应用最小值子合同】D1881实际native min714×152及frame18/9；D1888 rawheight142被独立oracle钳至143，P201一次native exact、无递归，D1891实际NormalUp；D1901/1904后继Move(+24,+18)和真实NormalUp成立。实际应用grid/WM_SIZING提案未验证，不授完整M03F03。【13a原失败及历史】【ccde/13a实际自声明最小值】D1529应用返回native714×152与frame差18/9，独立visible最小696×143及customheight已知；g6真实bottom4被TEST right2断言误拒，未完成clamp/后继Move，不授此合同PASS。【历史】当前212/e7 grid4105实际拒绝与后继恢复、477实际START/cancel/END后fresh geometry拒绝且零新placement已观察；不将这些已测子项再写为待跑。 【历史观察保留】c01 seq1957/1958 grid实际单次API TRUE/non-exact后停止；1964原代UP缺失，后续恢复不关闭原失败。 【当前11ae】3f8及dfdd真实grid API TRUE但nonexact拒绝、实际尺寸回读/零递归、后继Move/Ctrl与实际UP已验证；旧c01缺UP原FAIL只属其原构建。当前未发现同类owned产品失败，完整真实应用约束合同仍BLOCKED。",
+      "observed": "936/234bd已实际完成max450候选456拒绝、原DOWN回拉430、真实UP与后继Move；明确grid17合法集合下API TRUE/nonexact后单次撤权/真实abort-UP/零递归及后继Move/Ctrl。b4b同936两轮共享min交集及原DOWN回拉有当前证据。750固定尺寸与c452/a723/6e32真实Terminal min143/C偏好接受拒绝按下列原身份及影响依据复用；这些合成完整独立功能DEV合同，不是五应用、M03模块、I10或NF02通过。",
+      "remaining_conditions": [],
+      "next_action": "本独立功能DEV已闭合，Human仍NOT_RUN；不重跑已闭fixed或已过几何。继续各自独立的M03模块、I10完整第二成员失效链、真实应用矩阵及NF02缺口；新aacd1ee候选仅构建中/现场NOT_RUN，不将本次936及继承证据改绑。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -10648,10 +10722,9 @@
         "PO-C656-R16-NOOP-AND-PER-IDENTITY-HISTORY-M03F02-F04-PASS"
       ],
       "remaining_conditions": [
-        "M03-F01: 见该功能remaining_conditions及next_action",
-        "M03-F03: 见该功能remaining_conditions及next_action"
+        "M03-F01: 见该功能remaining_conditions及next_action"
       ],
-      "next_action": "M03-F02/F04/F05独立合同已有实际证据；继续F01真实frame/DPI边界、F03真实应用尺寸约束和模块整合门，不重复已闭no-op/历史/第二成员失败专项。",
+      "next_action": "M03-F02/F03/F04/F05独立合同已有实际证据；继续F01真实frame/DPI边界与模块整合门。F03的234bd/936及明确fixed/真实应用继承不替代完整I10，不重复已闭专项。",
       "defects": [
         "V1-D17"
       ],

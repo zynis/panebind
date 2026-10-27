@@ -2,13 +2,13 @@
 
 ## 当前接续：936普通便携、三条DEV链及实际性能／恢复缺口（2026-10-27）
 
-**V1仍为PARTIAL：60/60已接通、44/60 DEV PASS、22/40＝55%、3/12整链（I05、I06、I07），真人UAT PENDING；不进入REA、不开放宿主试用。** 最新已实测普通便携为936／47ff／12c7，Release SHA-256 `8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`；c452／49b3原实测与旧失败身份全部保留，不重指其PASS到936。
+**V1仍为PARTIAL：60/60已接通、45/60 DEV PASS、22/40＝55%、3/12整链（I05、I06、I07），模块0，真人UAT PENDING；不进入REA、不开放宿主试用。** 最新已实测普通便携为936／47ff／12c7，Release SHA-256 `8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`；c452／49b3原实测与旧失败身份全部保留，不重指其PASS到936。
 
 - 原可信SSH已实际恢复，ZS-WORKSTATION／Professional／26200、Sandbox Enabled；本次只读空闲19.45GiB、C空闲35.31GiB、I空闲约647GiB。未确认具名可丢弃的完整Windows guest；没有启动或新建普通VM、修改宿主设置或触碰其它项目。[本次只读回执](v1-evidence/20261027-restored-ssh-environment.json)覆盖旧超时之后的实际状态，不改写旧回执。
 - `12cc7efb738d4c328649d6e9575da479`／a2驱动：真实mapped hook进入exact命令，公共命令hook=0保留missing；stop末完成纳入最终summary，另一故意未完成调用仍unknown／unfinished=1。D32／D33仅定向计量缺口关闭。停止中的post-context拒绝、非NormalUp和未知native清理照实保留；约297ms故意阻塞不是正常NF02预算通过，后继正常组合以b4b的真实统计另判。
 - `f20a47b5797646a8a98ed0750b5c9bd6`／同936、a2驱动：I07真实排除普通／Ctrl零writer、解除后新三成员恢复、导出8→实际改0／free→导入8／snap、损坏字节留档→默认启动→保留有效export并通过GUI恢复8，支持本链DEV PASS。不是自动恢复旧设置，不授五应用、托盘或整版通过。
 - `5075`、`c97`原失败保留；分别修正TEST离散命令post-context“不适用”判据、两独立native拖动的空间锚点。`87cb`与`653b`的CreatePipe失败保留；后者实际错误5，发生在child创建／actor DOWN前，但并非全Run零输入，原因仍UNKNOWN。不改DACL／token，而以现有事件和本Run一次性完成回执替换新增TEST传输。`23e9da1`构建与宿主拒绝只属当时检查点；下列234bd／2bb及后继传输Run是各自实际结果，产品936未重建。
-- `234bd8799c5b42ee965b46410c723cb8`／23e9驱动实际完成max450吸附候选456拒绝→原DOWN锚点拉回430→真实UP后Move；grid17真实API返回成功但回读nonexact→撤权→单次abort清理UP→后继Move／Ctrl。仅补该约束范围，旧固定尺寸专项沿用已关闭身份；不重跑八向、固定尺寸、Full或900秒。
+- **M03-F03独立DEV合同闭合**：`234bd8799c5b42ee965b46410c723cb8`／936／23e9实际完成max450候选456拒绝→原DOWN拉回430→真实UP后Move；grid17实际API TRUE/nonexact→撤权→真实abort-UP→后继Move／Ctrl。结合b4b当前936两轮共享min交集、用户明确认可复用的[750固定尺寸](v1-evidence/750b-current-fixed-size-resize-review.json)，以及[c452／a723与6e32真实Terminal min143、C接受／拒绝及恢复](v1-evidence/20261024-targeted-guest-review.json)，满足原功能合同。固定核心交集不变，c452→936未改writer／limits／输入几何；各证据保各自原源码／EXE／Run，不称936重跑旧专项。不增加B项、不授M03模块、I10、五应用矩阵或NF02；新aacd1ee构建候选现场仍NOT_RUN。
 - `2bb056899c4f46f8898ddc32787540e2`／23e9驱动：同936 PID4008完成I06的原半透明／置顶→DragGlass真实Move及UP→两次Shake及UP→Pause／Resume→正常public Exit。实际属性、preview销毁和全部输入／writer退出在TEST恢复原fixture属性前确认，支持I06 DEV链PASS；不由guest销毁推断。
 - `bd941e650614447eafca6506243d2f9f`保留child尚无DOWN／START的失败；TEST manifest读取修正后，`94a15ed861f04b7b80b70bdfc1177213`和`00c92394d11b457c8053b70eb0fa88d7`均真实DOWN／START／capture、一次exact Move、96B packet和actor held exit0。两次随后都观察到未知发起者的`rgnupdt.exe`／Console前台及FocusLost，不是30秒Deadline；00c实际18.656秒。94a旧pre-UP判据导致未发cleanupUP；00c新判据已核唯一abort-UP及同代LL QPC、实际Gone／detach，但不是NormalUp、客户UP投递或supervisor后继。停止此无变量Deadline路线，不操作未知Console，也不授I08 PASS。
 - `12c7ce5b63fd4e9ead64a8b33375d23d`：原47ff ZIP在中文空格目录无参普通启动、唯一可见中文GUI、二启同实例、Save／Cancel实际说明、保存距离0改变Move、两次真实Raw／legacy NormalUp、正常退出和原文件字节核验，限定入口PASS。setup PID6608与真正ZIP PID4192／FILETIME分开；不是托盘、宿主试用或完整I12。当前包ZIP SHA-256 `536885FFE82AEF68D1A0D8D23C079120BA9B40A2D2900A3F804F5B7781865030`，manifest `91C3D4D85AC0DAAC573721F1BF756B4F0ED73337D39B66234EF153CEAE4AE848`。
