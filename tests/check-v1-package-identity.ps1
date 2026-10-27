@@ -1204,6 +1204,17 @@ function Assert-V1TargetedAccountingRecoveryWiring([string]$Fixture,[string]$Tim
     if($Actor -match '\b(CreatePipe|UpdateProcThreadAttribute)\s*\(' -or $Actor.Contains('ERROR_BROKEN_PIPE')){
         throw 'Targeted disconnect must replace the new pipe dependency, not add a runtime fallback or claim an unobserved EOF.'
     }
+    $abortUp=Get-V1FixtureFunctionText $Disconnect 'input_actor_disconnect_cleanup_up'
+    foreach($value in @('s.product_pid&&row.size()<=16384&&row.find_first_of("\r\n")==row.npos&&',
+        'geometry_history_receipt(s,row,type)&&e::number(row,"\"generation\":")==generation;',
+        'resource_receipt(row,"gesture_input_resource")','resource_receipt(ended,"gesture_end")',
+        'e::unique_value(gone,"\"overlay_destroyed\":")=="true"',
+        'e::unique_value(gone,"\"detach_completed\":")=="true"&&e::unique_value(gone,"\"detach_succeeded\":")=="true"',
+        's.left_up_send_qpc=static_cast<std::uint64_t>(before.QuadPart);',
+        'inserted==1?abort_cleanup_up_receipt(s,offset,generation):AbortCleanupUpReceipt{};',
+        'return observed.matched;')){
+        if(-not $abortUp.Contains($value)){throw ('Pre-UP abort resources need actual launch/type/generation while the actual cleanup UP remains strict: '+$value)}
+    }
 }
 $targetedTiming=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_timing_boundary_case.h'),[Text.Encoding]::UTF8)
 $targetedConfiguration=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_configuration_chain_case.h'),[Text.Encoding]::UTF8)
@@ -1220,6 +1231,11 @@ Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('process_birth(child_process.value)==child_birth&&immutable','true')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects dropping held child identity and actual packet immutability'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('std::string(after_bytes.data(),after_bytes.size())==packet_before_bytes&&after_hash==packet_before_hash;','true;')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects replacing actual before/after bytes and hash with a claimed boolean'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('portable_field(package,"guest_suite")!="DriverDisconnectOnly"','portable_field(identity,"guest_suite")!="DriverDisconnectOnly"')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect must read the actual full manifest suite after files, not the binary identity prefix'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('resource_receipt(ended,"gesture_end")','e::receipt(ended,"gesture_end",identity)')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP end cannot require the not-yet-existing actual UP send clock'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('&&e::number(row,"\"generation\":")==generation;',';')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP resource receipt cannot drop its exact generation'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('geometry_history_receipt(s,row,type)&&','true&&')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP resource receipt cannot replace the actual same-launch and type matcher'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('e::unique_value(gone,"\"overlay_destroyed\":")=="true"','true')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP cleanup cannot omit actual overlay destruction'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('return observed.matched;','return true;')) $lifecyclePrepare $lifecycleGuest} 'static actual cleanup UP cannot be accepted without its strict observed receipt'
 function Assert-V1StandardLogonIdentityWiring([string]$Probe,[string]$Guest){
     $start=$Guest.IndexOf('    if($standardLogonIdentity){',[StringComparison]::Ordinal)
     $end=$Guest.IndexOf('    if($probeDesktop -and -not $standardNativeClients -and -not $standardLogonIdentity){',$start,[StringComparison]::Ordinal)

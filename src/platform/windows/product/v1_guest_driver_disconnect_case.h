@@ -7,14 +7,21 @@ bool input_actor_disconnect_cleanup_up(State& s,LayoutFixtures& set,std::size_t 
     std::uint64_t generation,bool& attempted){
     if(attempted||!s.left||s.left_up_attempted||!generation)return false;
     namespace e=product::guest::up_evidence_detail;
-    const product::guest::UpEvidenceIdentity identity{s.product_pid,s.product_source,generation,0};
+    // These are pre-UP abort/resource facts. The UP-specific receipt matcher
+    // correctly requires an actual UP-send QPC, which does not exist yet.
+    // Keep launch/PID/source/type/generation/shape checks without inventing
+    // that QPC; the later actual UP uses the original strict matcher below.
+    const auto resource_receipt=[&](std::string_view row,std::string_view type){
+        return s.product_pid&&row.size()<=16384&&row.find_first_of("\r\n")==row.npos&&
+            geometry_history_receipt(s,row,type)&&e::number(row,"\"generation\":")==generation;
+    };
     const HWND source=set.frames[0].hwnd;std::string ended,gone;
     const bool resources_gone=wait([&]{
         ended=record(s,offset,"gesture_end",generation);gone.clear();
         std::istringstream rows(product_log_since(s,offset));std::string row;
-        while(std::getline(rows,row))if(e::receipt(row,identity,"gesture_input_resource")&&
+        while(std::getline(rows,row))if(resource_receipt(row,"gesture_input_resource")&&
             e::quoted(row,"\"fact\":","isolation_gone"))gone=row;
-        return e::receipt(ended,identity,"gesture_end")&&e::unique_value(ended,"\"normal_up\":")=="false"&&
+        return resource_receipt(ended,"gesture_end")&&e::unique_value(ended,"\"normal_up\":")=="false"&&
             e::unique_value(ended,"\"pending_retired\":")=="true"&&
             e::unique_value(gone,"\"overlay_destroyed\":")=="true"&&
             e::unique_value(gone,"\"detach_completed\":")=="true"&&e::unique_value(gone,"\"detach_succeeded\":")=="true";
