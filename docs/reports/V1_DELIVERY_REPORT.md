@@ -1,16 +1,19 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：936计量边界实测、I07整链及剩余恢复验证（2026-10-27）
+## 当前接续：936普通便携、三条DEV链及实际性能／恢复缺口（2026-10-27）
 
-**V1仍为PARTIAL：60/60已接通、44/60 DEV PASS、22/40＝55%、2/12整链（I06、I07），真人UAT PENDING；不进入REA、不开放宿主试用。** 产品继续使用936原EXE，Release SHA-256 `8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`；c452／49b3原实测与旧失败身份不变。
+**V1仍为PARTIAL：60/60已接通、44/60 DEV PASS、22/40＝55%、3/12整链（I05、I06、I07），真人UAT PENDING；不进入REA、不开放宿主试用。** 最新已实测普通便携为936／47ff／12c7，Release SHA-256 `8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`；c452／49b3原实测与旧失败身份全部保留，不重指其PASS到936。
 
 - 原可信SSH已实际恢复，ZS-WORKSTATION／Professional／26200、Sandbox Enabled；本次只读空闲19.45GiB、C空闲35.31GiB、I空闲约647GiB。未确认具名可丢弃的完整Windows guest；没有启动或新建普通VM、修改宿主设置或触碰其它项目。[本次只读回执](v1-evidence/20261027-restored-ssh-environment.json)覆盖旧超时之后的实际状态，不改写旧回执。
-- `12cc7efb738d4c328649d6e9575da479`／a2驱动：真实mapped hook进入exact命令，公共命令hook=0保留missing；stop末完成纳入最终summary，另一故意未完成调用仍unknown／unfinished=1。D32／D33仅定向计量缺口关闭。停止中的post-context拒绝、非NormalUp和未知native清理照实保留；约297ms故意阻塞不是正常NF02预算通过，完整NF02仍缺正常整版分母。
+- `12cc7efb738d4c328649d6e9575da479`／a2驱动：真实mapped hook进入exact命令，公共命令hook=0保留missing；stop末完成纳入最终summary，另一故意未完成调用仍unknown／unfinished=1。D32／D33仅定向计量缺口关闭。停止中的post-context拒绝、非NormalUp和未知native清理照实保留；约297ms故意阻塞不是正常NF02预算通过，后继正常组合以b4b的真实统计另判。
 - `f20a47b5797646a8a98ed0750b5c9bd6`／同936、a2驱动：I07真实排除普通／Ctrl零writer、解除后新三成员恢复、导出8→实际改0／free→导入8／snap、损坏字节留档→默认启动→保留有效export并通过GUI恢复8，支持本链DEV PASS。不是自动恢复旧设置，不授五应用、托盘或整版通过。
-- `5075`、`c97`原失败保留；分别修正TEST离散命令post-context“不适用”判据、两独立native拖动的空间锚点。`87cb`与`653b`的CreatePipe失败保留；后者实际错误5，发生在child创建／actor DOWN前，但并非全Run零输入，原因仍UNKNOWN。不改DACL／token，而以现有事件和本Run一次性完成回执替换新增TEST传输。新驱动`23e9da1`的Debug／Release构建、各两项offline、282项静态检查及六次宿主Exit78已通过，产品936未重建；新传输与两个窄入口现场仍NOT_RUN。
+- `5075`、`c97`原失败保留；分别修正TEST离散命令post-context“不适用”判据、两独立native拖动的空间锚点。`87cb`与`653b`的CreatePipe失败保留；后者实际错误5，发生在child创建／actor DOWN前，但并非全Run零输入，原因仍UNKNOWN。不改DACL／token，而以现有事件和本Run一次性完成回执替换新增TEST传输。`23e9da1`构建与宿主拒绝只属当时检查点；下列234bd／2bb及后继传输Run是各自实际结果，产品936未重建。
 - `234bd8799c5b42ee965b46410c723cb8`／23e9驱动实际完成max450吸附候选456拒绝→原DOWN锚点拉回430→真实UP后Move；grid17真实API返回成功但回读nonexact→撤权→单次abort清理UP→后继Move／Ctrl。仅补该约束范围，旧固定尺寸专项沿用已关闭身份；不重跑八向、固定尺寸、Full或900秒。
 - `2bb056899c4f46f8898ddc32787540e2`／23e9驱动：同936 PID4008完成I06的原半透明／置顶→DragGlass真实Move及UP→两次Shake及UP→Pause／Resume→正常public Exit。实际属性、preview销毁和全部输入／writer退出在TEST恢复原fixture属性前确认，支持I06 DEV链PASS；不由guest销毁推断。
-- `bd941e650614447eafca6506243d2f9f`保留I08新失败：child尚无DOWN／START。已定位TEST从manifest的files前缀读取其后guest_suite的确定性错误，不是归因于产品。最小修复`6c6c7c1`从完整manifest唯一读取suite，仍核原Run／SHA／权限；D/R构建、各两项offline、静态反例及两次宿主Exit78通过。新I08现场复验尚未运行。
+- `bd941e650614447eafca6506243d2f9f`保留child尚无DOWN／START的失败；TEST manifest读取修正后，`94a15ed861f04b7b80b70bdfc1177213`和`00c92394d11b457c8053b70eb0fa88d7`均真实DOWN／START／capture、一次exact Move、96B packet和actor held exit0。两次随后都观察到未知发起者的`rgnupdt.exe`／Console前台及FocusLost，不是30秒Deadline；00c实际18.656秒。94a旧pre-UP判据导致未发cleanupUP；00c新判据已核唯一abort-UP及同代LL QPC、实际Gone／detach，但不是NormalUp、客户UP投递或supervisor后继。停止此无变量Deadline路线，不操作未知Console，也不授I08 PASS。
+- `12c7ce5b63fd4e9ead64a8b33375d23d`：原47ff ZIP在中文空格目录无参普通启动、唯一可见中文GUI、二启同实例、Save／Cancel实际说明、保存距离0改变Move、两次真实Raw／legacy NormalUp、正常退出和原文件字节核验，限定入口PASS。setup PID6608与真正ZIP PID4192／FILETIME分开；不是托盘、宿主试用或完整I12。当前包ZIP SHA-256 `536885FFE82AEF68D1A0D8D23C079120BA9B40A2D2900A3F804F5B7781865030`，manifest `91C3D4D85AC0DAAC573721F1BF756B4F0ED73337D39B66234EF153CEAE4AE848`。
+- `b4b1064e56e9409f8fe0f1fc0b06162d`：同936 PID6544两轮不重启，smartDock on／off→实际边／角／Shift拉伸→Undo→微移／增高→GUI改热键后实际操作，支持I05独立DEV PASS。运行中的unmapped客户透传仅按dfdd原实证及未改路由继承，**不是b4b新客户测试**；不额外附加五应用／托盘门。其余owned回环／T-L／视觉组合有实际结果，不替代真实应用I02／I03、跨屏I04或I11的900秒。
+- **NF02仍FAIL**：b4b最终drain后callback453／p99桶999µs／max1305µs；native端点122样本、discarded／missing34、p95桶99999µs／max147558µs，unfinished0。缺起点按2次NormalUp dock与32次public命令分类保留，不补钟、不重算完整分位。四次正常角拉伸慢值从第二DOWN开始，不是首击间隔，也不是147ms的单一API耗时。下一步仅有界核查该前置数据流／真实分流与分类端点，不能把全部挂到VM条件或重复900秒。
 
 [本轮原始摘录与身份索引](v1-evidence/20261027-targeted-followup-review.json)保留每Run产品／驱动／封包身份、原件位置、哈希和精确guest清理。真实托盘前置未成立，D31继续待现场；客户初始化、完整non-elevated桌面、200%／独立多屏／混合DPI分别保留缺项。Sandbox可用不等于这些条件已满足，不以VM建设阻断上述可做工作。
 

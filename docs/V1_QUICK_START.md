@@ -2,16 +2,15 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
-最新已实测普通便携入口为`c452bfdb750fed6714e7bdf6a4505ea4051cde21`／49b3包：217a实际验证空参数Medium/non-elevated可见GUI、二启同实例、保存影响Move、两代真实Raw／legacy NormalUp及正常退出。Release a723完整12代（11次NormalUp、一次安全拒绝后的abort清理）、15次exact native及资源收尾通过限定几何范围。
+最新已实测普通便携入口为`936aeb9e3be25021ef7c6f7f0953de4eb3944fcf`／47ff包：12c7实际验证中文空格目录空参数Medium/non-elevated可见GUI、二启同实例、保存改变Move、两代真实Raw／legacy NormalUp及正常退出。setup与真正ZIP产品实例分开核验；c452／49b3／217a及a723原记录保持原身份，不改绑到936。
 
-截至2026-10-27，以上仍是**已实测普通便携入口基线**，不是后续源码修复的全部验收结果。936原产品EXE已用独立驱动完成计量边界、I07配置整链、I06同实例视觉及退出整链和max／grid限定验证，详见[集中报告当前段](reports/V1_DELIVERY_REPORT.md)；它不换绑49b3原包，也不代表托盘键盘入口已通过。936新便携包47ff已封装并核验哈希，但其普通无参入口尚未另行现场验证，不能写成49b3已验结果。真实托盘尚未点击、客户初始化、高对比scheme恢复及完整进程树退出各有独立缺口；完整NF02／真实应用／显示合同仍未通过，**不开放宿主试用，不授整版PASS。**
+截至2026-10-27，936已实测I05拉伸／快捷键、I06视觉生命周期、I07配置规则三条DEV链，及计量边界、max／grid限定范围；均不是整版通过。b4b两轮组合的最终NF02仍FAIL（完整端点p95桶99999µs／max147558µs，缺起点34保留）；I08两次真实actor退出后由未知起因前台变化提前FocusLost，非30秒Deadline，已停止无变量重复此路线。00c仅确认abort清理UP，不是NormalUp或后继恢复通过。真实托盘仍未点击，客户初始化、高对比scheme恢复、完整进程树及显示合同分别未齐；**不开放宿主试用，不授整版PASS。**
 
-- 当前产品／已验便携包内TEST源码：`c452bfdb750fed6714e7bdf6a4505ea4051cde21`。
-- 当前已实测Release EXE SHA-256：`10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560`。
-- 本批Release TEST driver SHA-256：`BAE815489A5F3440903DCDBA9F647BDD8ADB152202395BB9E4CAF555F6677A14`；后继TEST预算变化不换绑产品／旧运行证据。
-- 独立Debug补验驱动：`011ed1c458612491d878db7a2db70f72824fff03`／SHA-256 `3634CD95470E76DF5FE3DC261976D26ED7970A71C6767EAF03C9E9CC683B7013`，只绑定6e3，不改49b3原包driver身份。
-- 当前已验普通便携包：`uat/v1-portable/49b36fc6fd0845da8714559a6de47132/PaneBindV1-Release-49b36fc6fd0845da8714559a6de47132.zip`。
-- ZIP SHA-256：`410D5AF9C70042A21BA639B8B396A1B5151F35802466E8EA0A43276A0D06AD94`；manifest SHA-256：`8D11632A795502509B4E3F295152B4526984912F73905BA0EEE584158F9ECDA4`。
+- 当前产品源码：`936aeb9e3be25021ef7c6f7f0953de4eb3944fcf`；原包包装源码`dc672392c045d12c75f823d2bae0414f313f64dc`。
+- 当前已实测Release EXE SHA-256：`8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`。
+- 普通入口验证Run：`12c7ce5b63fd4e9ead64a8b33375d23d`，独立TEST driver源码`6c6c7c1f385fbf2b7cafd18001b8e9efa4754c72`／SHA-256 `715814197BFFD897214CE137708873DF504B76CC77BEADE51F7D51F55914C477`；driver不在普通用户包内，不是正常运行前置。
+- 当前已验普通便携包：`uat/v1-portable/47ff7d898ef34e91adebf581ec6a58c6/PaneBindV1-Release-47ff7d898ef34e91adebf581ec6a58c6.zip`。
+- ZIP SHA-256：`536885FFE82AEF68D1A0D8D23C079120BA9B40A2D2900A3F804F5B7781865030`；manifest SHA-256：`91C3D4D85AC0DAAC573721F1BF756B4F0ED73337D39B66234EF153CEAE4AE848`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
 自动测试driver、产品与包装身份分别记录；仅改驱动或文档不替换产品EXE，产品实际变化则建立新候选并按影响复验，旧包不换绑。历史构建、分数、失败原件和下一动作只在[集中报告](reports/V1_DELIVERY_REPORT.md)、[验收表](reports/V1_ACCEPTANCE.json)及[证据索引](reports/v1-evidence/index.json)维护。包内manifest／说明保留封包时点，后续实测由仓库报告补充，不改原包；本页不并列多个“当前版本”。自动DEV不等于真人UAT或普通宿主试用许可。
