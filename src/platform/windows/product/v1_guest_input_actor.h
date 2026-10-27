@@ -58,11 +58,53 @@ struct InputActorDisconnectPipe {
     Handle reader,writer,ready,close_ack;
     std::vector<unsigned char> attributes;LPPROC_THREAD_ATTRIBUTE_LIST list{};HANDLE inherited{};
     ~InputActorDisconnectPipe(){if(list)DeleteProcThreadAttributeList(list);}
-    void create(){
+    void create(State& s){
         SECURITY_ATTRIBUTES security{sizeof(security),nullptr,TRUE};HANDLE r{},w{};
-        if(!CreatePipe(&r,&w,&security,4096))throw std::runtime_error("I08_disconnect_CreatePipe_failed");
-        reader.value=r;writer.value=w;
-        if(!SetHandleInformation(reader.value,HANDLE_FLAG_INHERIT,0))throw std::runtime_error("I08_disconnect_read_handle_inheritance_failed");
+        LARGE_INTEGER before{},after{};const bool before_known=QueryPerformanceCounter(&before)!=FALSE;
+        const auto before_tick=GetTickCount64();SetLastError(ERROR_SUCCESS);
+        const BOOL created=CreatePipe(&r,&w,&security,4096);
+        const DWORD create_error=created?ERROR_SUCCESS:GetLastError();
+        const auto after_tick=GetTickCount64();const bool after_known=QueryPerformanceCounter(&after)!=FALSE;
+        // CreatePipe's outputs are indeterminate on failure. Only adopt/query
+        // them after actual API success; never close a guessed output handle.
+        if(created){reader.value=r;writer.value=w;}
+        DWORD read_flags{},write_flags{};BOOL read_known=FALSE,write_known=FALSE;DWORD read_error{},write_error{};
+        if(created){
+            SetLastError(ERROR_SUCCESS);read_known=GetHandleInformation(reader.value,&read_flags);read_error=read_known?ERROR_SUCCESS:GetLastError();
+            SetLastError(ERROR_SUCCESS);write_known=GetHandleInformation(writer.value,&write_flags);write_error=write_known?ERROR_SUCCESS:GetLastError();
+        }
+        s.log.emit("I08_disconnect_CreatePipe_actual",
+            "\"actual_caller_PID\":"+std::to_string(GetCurrentProcessId())+",\"actual_caller_TID\":"+std::to_string(GetCurrentThreadId())+
+            ",\"CreatePipe_attempted\":true,\"CreatePipe_native_BOOL\":"+std::to_string(created)+
+            ",\"CreatePipe_return\":"+(created?"true":"false")+",\"CreatePipe_error_on_failure\":"+
+            (created?"null":std::to_string(create_error))+",\"requested_buffer_bytes\":4096,\"security_attributes_bytes\":"+
+            std::to_string(security.nLength)+",\"security_descriptor_is_null\":true,\"default_token_DACL_requested\":true,"+
+            "\"bInheritHandle_requested\":true,\"security_or_token_modified\":false,\"fallback_attempted\":false,"+
+            "\"output_handles_adopted\":"+(created?"true":"false")+
+            ",\"GetHandleInformation_attempted\":"+(created?"true":"false")+
+            ",\"reader_flags_known\":"+(read_known?"true":"false")+",\"reader_flags\":"+(read_known?std::to_string(read_flags):"null")+
+            ",\"reader_flags_error\":"+(created?std::to_string(read_error):"null")+
+            ",\"writer_flags_known\":"+(write_known?"true":"false")+",\"writer_flags\":"+(write_known?std::to_string(write_flags):"null")+
+            ",\"writer_flags_error\":"+(created?std::to_string(write_error):"null")+
+            ",\"before_tick\":"+std::to_string(before_tick)+",\"after_tick\":"+std::to_string(after_tick)+
+            ",\"before_qpc\":"+(before_known?std::to_string(before.QuadPart):"null")+
+            ",\"after_qpc\":"+(after_known?std::to_string(after.QuadPart):"null")+
+            ",\"child_creation_attempted\":false,\"actor_input_sent\":false,\"error_is_not_root_cause_proof\":true");
+        if(!created)throw std::runtime_error("I08_disconnect_CreatePipe_failed");
+        SetLastError(ERROR_SUCCESS);const BOOL set_read=SetHandleInformation(reader.value,HANDLE_FLAG_INHERIT,0);
+        const DWORD set_error=set_read?ERROR_SUCCESS:GetLastError();DWORD read_after{};
+        SetLastError(ERROR_SUCCESS);const BOOL read_after_known=GetHandleInformation(reader.value,&read_after);
+        const DWORD read_after_error=read_after_known?ERROR_SUCCESS:GetLastError();
+        s.log.emit("I08_disconnect_pipe_inheritance_actual",
+            "\"SetHandleInformation_attempted\":true,\"mask\":"+std::to_string(HANDLE_FLAG_INHERIT)+",\"requested_flags\":0,"+
+            "\"SetHandleInformation_native_BOOL\":"+std::to_string(set_read)+",\"SetHandleInformation_return\":"+(set_read?"true":"false")+
+            ",\"SetHandleInformation_error_on_failure\":"+(set_read?"null":std::to_string(set_error))+
+            ",\"reader_flags_after_known\":"+(read_after_known?"true":"false")+
+            ",\"reader_flags_after\":"+(read_after_known?std::to_string(read_after):"null")+
+            ",\"reader_flags_after_error\":"+std::to_string(read_after_error)+
+            ",\"child_creation_attempted\":false,\"inherited_HANDLE_LIST_count_requested\":1");
+        if(!set_read||!read_after_known||(read_after&HANDLE_FLAG_INHERIT)||!write_known||!(write_flags&HANDLE_FLAG_INHERIT))
+            throw std::runtime_error("I08_disconnect_read_handle_inheritance_failed");
         SIZE_T size{};(void)InitializeProcThreadAttributeList(nullptr,1,0,&size);
         if(!size||size>65536)throw std::runtime_error("I08_disconnect_attribute_size_invalid");
         attributes.resize(size);auto* proposed=reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attributes.data());
@@ -372,7 +414,7 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
     const auto point=layout_hit(set,0,HTCAPTION);if(!point)throw std::runtime_error("I08_actor_real_caption_hit_unavailable");
     cursor(s,*point);const auto hover=GetTickCount64();(void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
     std::array<wchar_t,32768> self{};if(!GetModuleFileNameW(nullptr,self.data(),static_cast<DWORD>(self.size())))throw std::runtime_error("I08_actor_fixture_image_unavailable");
-    InputActorDisconnectPipe transport;if(disconnect)transport.create();
+    InputActorDisconnectPipe transport;if(disconnect)transport.create(s);
     std::wstring command=L"\""+std::wstring(self.data())+(disconnect?L"\" --input-actor-disconnect-once ":L"\" --input-actor-once ")+s.run+L" "+std::to_wstring(GetCurrentProcessId())+L" "+
         std::to_wstring(process_birth(GetCurrentProcess()))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(source))+L" "+std::to_wstring(set.thread)+L" "+
         std::to_wstring(point->x)+L" "+std::to_wstring(point->y)+L" "+std::to_wstring(point->x-40)+L" "+std::to_wstring(point->y+35);

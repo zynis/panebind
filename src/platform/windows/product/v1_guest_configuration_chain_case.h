@@ -18,9 +18,30 @@ void configuration_chain_excluded_Ctrl_attempt(State& s){
             throw std::runtime_error("configuration_chain_excluded_owned_setup_failed");
     const auto before_status=geometry_history_status(s);
     const auto before_calls=e::number(before_status,"\"native_callsite_claims\":");
+    // These are two independent drags, not a requested native double click.
+    // Use the receiver's actual preceding DOWN, not a guessed delay, and move
+    // the one existing second anchor beyond the whole system click rectangle.
+    const auto previous=stretch_native_down(s.frames[0]);
+    const auto ordinary_anchor=hit_point(s.frames[0].hwnd,HTCAPTION);
+    const int click_x=GetSystemMetrics(SM_CXDOUBLECLK),click_y=GetSystemMetrics(SM_CYDOUBLECLK);
+    if(!previous.known||!previous.count||!previous.qpc||previous.message!=WM_NCLBUTTONDOWN||previous.hit!=HTCAPTION||
+       previous.hwnd!=reinterpret_cast<std::uintptr_t>(s.frames[0].hwnd)||previous.pid!=GetCurrentProcessId()||
+       previous.tid!=s.owner||previous.extra!=0x50425631||!ordinary_anchor||click_x<1||click_x>128||click_y<1||click_y>128)
+        throw std::runtime_error("configuration_chain_previous_native_DOWN_or_click_metrics_unknown");
+    const auto separated_x=static_cast<std::int64_t>(previous.point.x)-click_x-1;
+    if(separated_x<LONG_MIN||separated_x>LONG_MAX)throw std::runtime_error("configuration_chain_separate_anchor_overflow");
+    const POINT separated{static_cast<LONG>(separated_x),ordinary_anchor->y};
+    const auto dx=static_cast<std::int64_t>(separated.x)-previous.point.x;
+    const auto dy=static_cast<std::int64_t>(separated.y)-previous.point.y;
+    const bool outside=dx>click_x||dx<-click_x||dy>click_y||dy<-click_y;
+    s.log.check("configuration_chain_independent_native_drags_spatially_separated",outside,
+        "\"actual_previous_native_DOWN\":"+previous.json()+",\"new_single_anchor\":["+
+        std::to_string(separated.x)+","+std::to_string(separated.y)+"],\"system_double_click_rectangle\":["+
+        std::to_string(click_x)+","+std::to_string(click_y)+"],\"extra_clicks\":0,\"extra_wait_ms\":0,"
+        "\"prior_failure_DBLCLK_message_proven\":false,\"fresh_caption_still_required\":true");
     const auto mark=read_product(s).size();
     key(s,VK_CONTROL,true);
-    settings_guest_native_move(s,36,21,"configuration_chain_excluded_Ctrl_Move");
+    settings_guest_native_move(s,36,21,"configuration_chain_excluded_Ctrl_Move",separated);
     key(s,VK_CONTROL,false);
     const auto after_status=geometry_history_status(s);
     const auto after_calls=e::number(after_status,"\"native_callsite_claims\":");

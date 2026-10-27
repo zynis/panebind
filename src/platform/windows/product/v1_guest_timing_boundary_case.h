@@ -117,6 +117,8 @@ void mapped_origin(State& s){
         };
         send(true);const bool actual=wait([&]{observed_down=record(s,mark,"input_button_observed");generation=number(observed_down,"\"generation\":");
             command=record(s,mark,"mapped_command_completed",generation);mapped=placement(s,mark,0,expected,true);
+            const auto native_before=e::number(mapped,"\"native_before_qpc\":"),native_after=e::number(mapped,"\"native_after_qpc\":"),
+                geometry_qpc=e::number(mapped,"\"geometry_observed_qpc\":"),post_qpc=e::number(mapped,"\"post_observed_qpc\":");
             return geometry_history_receipt(s,observed_down,"input_button_observed")&&e::quoted(observed_down,"\"kind\":","DOWN")&&
                 e::quoted(observed_down,"\"source\":","WH_MOUSE_LL")&&e::quoted(observed_down,"\"route\":","mapped")&&
                 e::quoted(observed_down,"\"action\":","MoveRight")&&e::number(observed_down,"\"button\":")==3&&
@@ -125,10 +127,22 @@ void mapped_origin(State& s){
                 field(command,"handler_returned",true)&&e::quoted(command,"\"action\":","MoveRight")&&
                 e::number(command,"\"generation\":")==generation&&
                 geometry_history_receipt(s,mapped,"placement")&&e::number(mapped,"\"key\":")==key&&
+                // This same-display discrete command has no live capture
+                // lease: unchecked/false is NOT a failed live post-context.
+                // Keep its actual native/identity/geometry completion proof;
+                // never accept a checked-but-invalid live context here.
+                e::number(mapped,"\"generation\":")==0&&e::quoted(mapped,"\"intent_reason\":","command")&&
+                field(mapped,"normal_up_completion",false)&&field(mapped,"explicit_destination_display_bound",false)&&
+                field(mapped,"post_context_checked",false)&&field(mapped,"post_context_valid",false)&&
+                e::quoted(mapped,"\"post_context_reason\":","")&&e::quoted(mapped,"\"reason\":","exact_native_completion")&&
+                field(mapped,"native_callsite_claimed",true)&&field(mapped,"native_attempted",true)&&
+                field(mapped,"native_succeeded",true)&&field(mapped,"native_completion_known",true)&&
+                field(mapped,"identity_valid",true)&&field(mapped,"exact",true)&&e::number(mapped,"\"call_id\":").value_or(0)>0&&
                 e::number(mapped,"\"hook_observed_qpc\":")==e::number(observed_down,"\"hook_observed_qpc\":")&&
-                e::number(mapped,"\"native_before_qpc\":").value_or(0)>=e::number(observed_down,"\"hook_observed_qpc\":").value_or(UINT64_MAX)&&
-                field(mapped,"post_context_valid",true)&&e::number(mapped,"\"post_observed_qpc\":").value_or(0)>=
-                    e::number(mapped,"\"native_after_qpc\":").value_or(UINT64_MAX)&&set.owns(0)&&visible(h)==expected;
+                native_before&&native_after&&geometry_qpc&&post_qpc&&*native_before>0&&
+                *native_before>=e::number(observed_down,"\"hook_observed_qpc\":").value_or(UINT64_MAX)&&
+                *native_after>=*native_before&&*geometry_qpc>=*native_after&&*post_qpc>=*geometry_qpc&&
+                set.owns(0)&&visible(h)==expected;
         },2000);
         // Always attempt this pair's unique UP before reporting a failed
         // command assertion. No extra DOWN or guessed product UP is added.
