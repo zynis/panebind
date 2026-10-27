@@ -3285,7 +3285,7 @@
         "合格Medium/non-elevated Explorer文件根、真实编辑器与浏览器直接接入及独立工具窗/排除正反合同尚未齐。当前c452 Terminal实际资格和增强已成立，不能概括为所有Medium/sourceGUI均不可用。",
         "69f4实际Cabinet RID8192且elevated=true（不是High），Shell单条exact path仍未确认；Notepad有官方包但注册staging原因未明，Code restricted-primary-token准备失败与held child底层原因分列，Edge无产品时原生页初始化/正常关闭未成立。"
       ],
-      "next_action": "先取得各应用可工作的原生根与精确身份/正常关闭，再补该功能正反资格；保留69f4、e1fc、8ffa及Code exact-version研究原身份。不放宽权限、路径或应用sandbox，不重复无变量启动/注册；远端本轮只发生一次TCP连接超时、未认证，不能把旧远端环境当成当前已可用能力。",
+      "next_action": "先取得各应用可工作的原生根与精确身份/正常关闭，再补该功能正反资格；保留69f4、e1fc、8ffa及Code exact-version研究原身份。不放宽权限、路径或应用sandbox，不重复无变量启动/注册。10月27日原可信SSH已恢复、现有授权Sandbox已实际运行936限定测试；完整non-elevated Shell/客户前置仍分别未成立，连接恢复不等于应用资格PASS。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS"
@@ -3519,7 +3519,7 @@
       "observed": "c01 seq774实际只有一块3050×1668/DPI144屏，跨屏明确ENVIRONMENT_BLOCKED。",
       "remaining_conditions": [
         "尚无实际双屏负工作区、100%/150%混合DPI、重新排列/断开后取回与各屏工作区的完整显示矩阵；当前实测单屏150%不能替代。",
-        "本轮本机仅已核ZS-T14P Home26200及实际资源/ISO存在；没有由此证明可创建或已运行合格VM。远端192.168.1.6:22一次8秒TCP超时且未认证，远端当前VM/RAM/Sandbox能力UNKNOWN；旧Pro/Sandbox只保历史。"
+        "10月26日本机资源/ISO和远端TCP超时保历史；27日原可信SSH已恢复并确认ZS-WORKSTATION Professional26200/Sandbox Enabled及约19.45GiB空闲物理内存。当前单屏Sandbox已用于936限定链，但具名完整guest、guest双独立显示与混合DPI仍未确认，没有启动或新建普通VM。"
       ],
       "next_action": "需要既有授权内真正可用的隔离双显示器/负坐标/混合DPI及拓扑变更能力后补E03/E04/E05；不改宿主显示/内存/其它任务，不把负source坐标或纯几何模型当真实负工作区，也不将全部缺项归Sandbox。",
       "partial_observation_ids": [
@@ -13657,12 +13657,32 @@
       "name": "视觉状态",
       "sequence": "原半透明/置顶窗→开启拖动透明→拖动结束→摇动开/关→暂停→退出",
       "required_observation": "每个阶段恢复正确旧状态，不把用户自有属性清掉；预览/关系层无残留",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
-      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+      "binary_sha256": "8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238",
       "environment_id": "E02",
-      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "run_id": "2bb056899c4f46f8898ddc32787540e2",
+      "ordered_runtime_observation": {
+        "source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+        "binary_sha256": "8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238",
+        "driver_source_sha": "23e9da1a764d4bfd35446d31e76744ce36f1d19f",
+        "driver_binary_sha256": "5C1F35818D055F2A60D8C6231D32BDE3A8FA5EB7B63E3A5CC45FEDCB95FC4BBD",
+        "packaging_head": "aed487a7fe54e04763f4c127462eb9d1cd57e44a",
+        "configuration": "Release",
+        "suite": "VisualLifecycleChainOnly",
+        "run_id": "2bb056899c4f46f8898ddc32787540e2",
+        "product_PID": 4008,
+        "product_birth_filetime_decimal": "134375518990759501",
+        "environment_scope": "AUTOMATED_OWNED_MEDIUM_GUEST_NOT_COMPLETE_MEDIUM_DESKTOP",
+        "result": "PASS_I06_SAME_INSTANCE_VISUAL_LIFECYCLE_AND_ACTUAL_EXIT_ONLY",
+        "raw_fixture_path": "uat/v1-control/2bb056899c4f46f8898ddc32787540e2/collection-20261027T051939551Z-05916093974742a1af63195d286610d8/2bb056899c4f46f8898ddc32787540e2-release-fixture.jsonl",
+        "raw_fixture_sha256": "06CB50C1A57F35601780CBBC8A38F63A94677F9D2AAB5BE4025CF493BDAC2F10",
+        "raw_product_sha256": "CD8C07C75F2385587E7126C5D10FCC97B1C0B8D3D4B28503CCEBD758BF285FCE",
+        "observations": "D114 app-owned173/toptrue; D122 DragGlass190/true then D131 realUP173/true; D187 app changes its own baseline173/false; D205 Shake190/true then D229 restore173/false; D237-240 Pause/Resume; D302-303 real GUI config restore preserves tuple; D310 preview hidden; P180 final timing/P181 actual shutdown; D312 public quit/held exit0; D317 actual client delivery; D318 resources/preview/tuple oracle before TEST tuple restoreD319. g1/g2/g3 real Raw+legacy UP/release/detach/Gone, P67/121/158 NormalUp. Single product PID/birth, no restart or guest-destruction cleanup claim.",
+        "human_uat": "NOT_RUN",
+        "whole_version_PASS": false
+      },
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
@@ -13673,20 +13693,19 @@
         "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
         "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl",
         "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json",
-        "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+        "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl"
       ],
       "defects": [
         "V1-D02",
         "V1-D08",
         "V1-D25"
       ],
-      "candidate_identity_ref": "current_package",
-      "observed": "c01 visual1779实际原属性/拖动透明/摇动/暂停/退出子流程通过；临时在途1859仍失败。；90b8第二shake实际restore在UP前被context拒绝（152/153），原属性未恢复；新R6待现场。；625 Release真实两shake与NormalUp/资源退出通过，D25定向关闭；完整合同其余条件仍未齐。 当前证据：11ae/3f8与dfdd真实半透明/置顶、正常退出同EXE新PID、在途视觉恢复等有限子项已运行，不能拼多个PID为同一生命周期。",
-      "remaining_conditions": [
-        "已测原alpha/topmost所有权、DragGlass恢复、两次Shake、Pause/Resume与退出子范围保留；当前候选尚缺在同一生命周期按原半透明/置顶→DragGlass结束→Shake开/关→暂停→退出完整顺序的证据。",
-        "系统Shake共存是M09-F05/B21独立未齐条件，不把它改写成I06规定步骤；stop最后drain后的视觉/输入资源汇总修复尚待新构建/实测。"
-      ],
-      "next_action": "复用已闭所有权/在途恢复/摇动动作，只核完整链缺失顺序与最终drain后的收尾；不重开旧D25或普通透明专项，不拼多个PID成同一生命周期。",
+      "candidate_identity_ref": "integration_chains.I06.ordered_runtime_observation",
+      "observed": "936/23e9/2bb0同PID4008依guide I06完成原半透明/置顶→DragGlass真实Move及UP恢复→app自改baseline后两次Shake开关及各自真实UP→实际Pause/Resume→同实例public Exit。最终173/非置顶、preview销毁、capture/关联/hooks/writer退出先有实际后验，之后才TEST恢复原fixture属性；不是拼多个PID或由guest销毁推断清理。历史90b8失败与625、11ae/dfdd有限子范围保原身份。",
+      "remaining_conditions": [],
+      "next_action": "I06规定DEV链已闭合，不重复旧视觉所有权、D25或I06专项。系统Shake共存、五类应用、托盘与整版环境硬门分别仍未齐，真人UAT NOT_RUN；后续生产变化仅按影响复验。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -13697,7 +13716,7 @@
         "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
         "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES"
       ],
-      "status_basis": "CURRENT_11AE_SCOPED_RUNTIME_OBSERVED_COMPLETE_CHAIN_GAPS_BLOCKED_HISTORY_RETAINED",
+      "status_basis": "CURRENT_936_2BB0_SAME_INSTANCE_I06_DEV_PASS_HUMAN_NOT_RUN_HISTORY_RETAINED",
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
         "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
@@ -13936,7 +13955,7 @@
       "remaining_conditions": [
         "7117生产session-change通知注入和恢复子范围已测，但真实第二虚拟桌面切换、显示DPI/拓扑变化及实际锁定/解锁尚无对应环境/完整链事实。"
       ],
-      "next_action": "仅在既有授权内实际具备这些隔离能力时补真实状态变化与恢复首手势。当前远端一次TCP超时未认证，远端VM能力本轮UNKNOWN；旧单桌面/旧Pro事实不能补当前环境PASS。",
+      "next_action": "仅在既有授权内实际具备这些隔离能力时补真实状态变化与恢复首手势。10月27日原可信SSH已恢复且确认现有Sandbox可用；真实第二虚拟桌面、锁定/解锁、拓扑/混合DPI与具名完整guest能力仍未证实。旧超时回执保历史，不再作为当前连接阻断，也不由恢复SSH授环境PASS。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS"

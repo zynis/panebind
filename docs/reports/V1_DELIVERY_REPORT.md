@@ -2,13 +2,15 @@
 
 ## 当前接续：936计量边界实测、I07整链及剩余恢复验证（2026-10-27）
 
-**V1仍为PARTIAL：60/60已接通、44/60 DEV PASS、22/40＝55%、1/12整链（I07），真人UAT PENDING；不进入REA、不开放宿主试用。** 产品继续使用936原EXE，Release SHA-256 `8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`；c452／49b3原实测与旧失败身份不变。
+**V1仍为PARTIAL：60/60已接通、44/60 DEV PASS、22/40＝55%、2/12整链（I06、I07），真人UAT PENDING；不进入REA、不开放宿主试用。** 产品继续使用936原EXE，Release SHA-256 `8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`；c452／49b3原实测与旧失败身份不变。
 
 - 原可信SSH已实际恢复，ZS-WORKSTATION／Professional／26200、Sandbox Enabled；本次只读空闲19.45GiB、C空闲35.31GiB、I空闲约647GiB。未确认具名可丢弃的完整Windows guest；没有启动或新建普通VM、修改宿主设置或触碰其它项目。[本次只读回执](v1-evidence/20261027-restored-ssh-environment.json)覆盖旧超时之后的实际状态，不改写旧回执。
 - `12cc7efb738d4c328649d6e9575da479`／a2驱动：真实mapped hook进入exact命令，公共命令hook=0保留missing；stop末完成纳入最终summary，另一故意未完成调用仍unknown／unfinished=1。D32／D33仅定向计量缺口关闭。停止中的post-context拒绝、非NormalUp和未知native清理照实保留；约297ms故意阻塞不是正常NF02预算通过，完整NF02仍缺正常整版分母。
 - `f20a47b5797646a8a98ed0750b5c9bd6`／同936、a2驱动：I07真实排除普通／Ctrl零writer、解除后新三成员恢复、导出8→实际改0／free→导入8／snap、损坏字节留档→默认启动→保留有效export并通过GUI恢复8，支持本链DEV PASS。不是自动恢复旧设置，不授五应用、托盘或整版通过。
 - `5075`、`c97`原失败保留；分别修正TEST离散命令post-context“不适用”判据、两独立native拖动的空间锚点。`87cb`与`653b`的CreatePipe失败保留；后者实际错误5，发生在child创建／actor DOWN前，但并非全Run零输入，原因仍UNKNOWN。不改DACL／token，而以现有事件和本Run一次性完成回执替换新增TEST传输。新驱动`23e9da1`的Debug／Release构建、各两项offline、282项静态检查及六次宿主Exit78已通过，产品936未重建；新传输与两个窄入口现场仍NOT_RUN。
-- 另核实max／grid约束与I06同生命周期最终Exit为现有条件可补的具体缺口：只接已有函数的窄入口，不重跑八向、固定尺寸、旧视觉所有权、Full或900秒。当前新增入口现场NOT_RUN，不据源码接通授PASS。
+- `234bd8799c5b42ee965b46410c723cb8`／23e9驱动实际完成max450吸附候选456拒绝→原DOWN锚点拉回430→真实UP后Move；grid17真实API返回成功但回读nonexact→撤权→单次abort清理UP→后继Move／Ctrl。仅补该约束范围，旧固定尺寸专项沿用已关闭身份；不重跑八向、固定尺寸、Full或900秒。
+- `2bb056899c4f46f8898ddc32787540e2`／23e9驱动：同936 PID4008完成I06的原半透明／置顶→DragGlass真实Move及UP→两次Shake及UP→Pause／Resume→正常public Exit。实际属性、preview销毁和全部输入／writer退出在TEST恢复原fixture属性前确认，支持I06 DEV链PASS；不由guest销毁推断。
+- `bd941e650614447eafca6506243d2f9f`保留I08新失败：child尚无DOWN／START。已定位TEST从manifest的files前缀读取其后guest_suite的确定性错误，不是归因于产品。最小修复`6c6c7c1`从完整manifest唯一读取suite，仍核原Run／SHA／权限；D/R构建、各两项offline、静态反例及两次宿主Exit78通过。新I08现场复验尚未运行。
 
 [本轮原始摘录与身份索引](v1-evidence/20261027-targeted-followup-review.json)保留每Run产品／驱动／封包身份、原件位置、哈希和精确guest清理。真实托盘前置未成立，D31继续待现场；客户初始化、完整non-elevated桌面、200%／独立多屏／混合DPI分别保留缺项。Sandbox可用不等于这些条件已满足，不以VM建设阻断上述可做工作。
 
@@ -43,11 +45,11 @@
 - p99 **严格小于1ms**，输入到实际几何＋post-context 完成的 p95 **严格小于50ms**；串行 follower 保留共同输入起点，不只计 native API。未解释的正常持续大于100ms停顿须调查；故意 writer stall 单独作为恢复证据。
 - 完成摘要在真实 writer stop／最后 drain 后；全部正常样本的 missing／reversed／overflow／unfinished／饱和均须核算，不能删除慢值、遗漏末次完成或把未知当0。无法解释完整分母时仍不通过。
 
-### 只读环境结论与一个最小方案（尚未执行）
+### 环境结论与一个最小方案（10月26日历史检查及27日更新，建设尚未执行）
 
 [本轮只读回执](v1-evidence/20261026-environment-readonly-review.json)区分实际观察与历史：T14p 为 Home／26200，物理内存31.49GiB，可用5.66GiB，已提交56.18／66.00GiB。已确认用户给定 ISO 文件存在（7,371,034,624字节），未挂载、未安装；未确认任何具名、可丢弃的完整 Windows VM。发现 vmwp 不等于可复用 VM，未触碰它。初次受限 CIM 的 access denied 经同一只读查询权限解决，空值转0不作为实测内存。
 
-ZS-Workstation 的原可信 SSH 本次只有一次有界 TCP 连接，端口22超时、未进入认证，远端查询根本未执行。因此当前内存、显示、Sandbox 占用和注册 VM 都是 **UNKNOWN**；此前 Professional／26200／已启用且实际运行过 Sandbox 只是历史确认，不当成本轮可用性。未改 SSH、宿主、CrossRec 或其它文件，没有启动 guest／新建 VM／发送输入／定时检查。
+10月26日检查时，ZS-Workstation 的原可信 SSH 在端口22超时、未进入认证，远端查询未执行；该回执保留原范围。**27日此连接阻断已解除**：[当前只读回执](v1-evidence/20261027-restored-ssh-environment.json)实际确认 Professional／26200、Sandbox Enabled、约19.45GiB可用物理内存；05:01基础OS复核约19.37GiB，性能提供器提交计数查询超时，后者保持UNKNOWN而非沿用旧值。既有Sandbox已用于本任务新Run；没有启动或新建普通VM、修改宿主设置、CrossRec或其它项目，也没有宿主合成输入／定时检查。完整Windows guest的具名实例、双独立显示能力仍未确认，不能由SSH恢复推出已具备。
 
 **推荐只选 ZS-Workstation 上一个独立、完整 Windows11 x64 Medium 桌面 guest 的路线；不是现在启动它。** 优先采用经所有者确认可丢弃的现有具名 VM，目前没有可靠读到该名字／路径；不能虚构。若确无现成 guest，下一次需要用户决定的唯一建设方案为：在 `I:\PaneBindMVP1Runs\` 新目录中建立专属 Hyper-V Generation2 guest，建议4 vCPU、8GiB固定内存、96GiB动态 VHDX、Secure Boot／vTPM；前提是确认该主机现有 Hyper-V 能力、许可和不影响 CrossRec 的资源配额。该配置是工程预算，不是已安装事实或已授权系统变更；8GiB不从当前 T14p 的5.66GiB空闲硬挤。建议分配前主机至少有12GiB可用物理内存及不少于8GiB提交余量；若不能保证，不抢资源、不强关应用，暂不建设。
 
@@ -59,7 +61,7 @@ ZS-Workstation 的原可信 SSH 本次只有一次有界 TCP 连接，端口22�
 
 现有自动 driver 的 Sandbox 账户／目录检查不能直接移用到普通 VM。只有明确选定 guest 及其归属之后，才为该具名实例增加精确身份／RunId／输入输出标记的适配，并先复验宿主拒绝；不删除保护、不加任意 `--force`，也不把产品普通入口可启动等同自动控制通道可用。本轮没有选定或启动此类 VM，相关适配不预填完成。
 
-**需用户处理／决定的集中最小项**：先恢复原台式机 LAN／SSH 可达（或提供变更后地址），不要求改安全设置；之后只有在未能确认现成可丢弃完整 guest 时，才需决定上述专属 guest／资源预算及缺少的独立双显示能力。当前只读检查不能据旧空闲或 Home 标签宣布台式机一定够用、必须购买或整版已完成。已有 Sandbox 保留为已验证的有限隔离能力，不为相同前置失败重复实验；没有将本轮环境缺项当作开发计划完成。
+**确需用户决定的环境能力**：原台式机LAN／SSH已恢复，不再要求用户处理。只有完整non-elevated桌面／真实应用前置，以及独立双显示和混合DPI仍缺；当前不建设VM。上述专属guest只是供决定的预算方案，不承诺Hyper-V可满足双屏。若有现成可丢弃完整guest，需先明确名称、归属、许可与显示能力；否则由用户决定是否另行授权建设及资源配额。当前Sandbox内不依赖这些条件的功能继续执行，不为相同应用前置失败无变量重试，也不把环境缺项当作计划完成。
 
 ### 本轮新候选与验证身份
 
