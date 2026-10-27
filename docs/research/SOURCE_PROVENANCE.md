@@ -3773,3 +3773,15 @@ its sole cause or predict a latency improvement. The production change needs
 its own source/binary identity, actual dispatcher-wiring regressions and the
 affected contextual-double-click/continuous-operation guest verification;
 research, compilation or a smaller call count is not runtime PASS.
+
+### 2026-10-27 — native popup test readiness (official documentation only)
+
+Reviewed Microsoft's `GetMenuItemRect` documentation:
+https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmenuitemrect
+Popup item screen rectangles are meaningful only after the menu is displayed.
+The guest-only standard-controls driver therefore waits, within its existing
+bounded readiness interval, for two matching item rectangles whose centre
+actually hits its exact visible popup HWND/PID/TID before moving the pointer.
+This observation neither changes the menu nor grants product authority. The
+original 6b2b failure did not record that rectangle: its value and the unique
+cause remain unknown. No external implementation code was copied or adapted.

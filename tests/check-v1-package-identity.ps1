@@ -2610,4 +2610,34 @@ Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('if
 Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('if(stages)stages->begin_qpc=diagnostic_qpc();',''))} 'static begin entry cannot be reconstructed from a later clock'
 Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('stages->members_fresh_qpc=diagnostic_qpc();','stages->members_fresh_qpc=e.hook_observed_qpc;'))} 'static a hook timestamp cannot masquerade as selected-member collection completion'
 Reject {Assert-V1ContextualDoubleClickStages ($liveResizeApplication.Replace('begin(e,stages?&*stages:nullptr);','const auto returned_qpc=diagnostic_qpc();begin(e,stages?&*stages:nullptr);'))} 'static handler return must be observed only after the actual call returns'
+function Assert-V1LogStreamReuse([string]$Application){
+    $match=[regex]::Match($Application,'(?s)class Log \{(?<body>.*?)\r?\n\};')
+    if(-not $match.Success){throw 'Actual product Log class missing.'}
+    $body=$match.Groups['body'].Value
+    foreach($fact in @('std::ofstream stream_;',
+        'void close_stream(){if(stream_.is_open())stream_.close();stream_.clear();}',
+        'void open(fs::path p){close_stream();path_=std::move(p);}',
+        'const auto actual_size=fs::file_size(path_,ec);',
+        'if(!ec&&actual_size>512*1024){close_stream();auto old=path_;old+=L".1";fs::remove(old,ec);fs::rename(path_,old,ec);}',
+        'if(!stream_.is_open()||!stream_){close_stream();stream_.open(path_,std::ios::app|std::ios::binary);}',
+        'if(path_.empty())return false;','if(!stream_)return false;',
+        '\"sequence\":"<<++sequence_',
+        'stream_.flush();return stream_.good();')){
+        if(-not $body.Contains($fact)){throw ('Log reuse cannot lose actual file bounds, reset/rotation order, append visibility or real stream failure: '+$fact)}
+    }
+    $write=$body.IndexOf('stream_<<"{\"schema\":\"panebind-v1/1\"',[StringComparison]::Ordinal)
+    $flush=$body.IndexOf('stream_.flush();',[StringComparison]::Ordinal)
+    if($write -lt 0 -or $flush -le $write -or $body.Contains('fs::exists(') -or
+       [regex]::Matches($body,'std::ofstream\s+').Count -ne 1 -or
+       [regex]::Matches($body,'stream_\.open\(').Count -ne 1){
+        throw 'The actual row must precede its flush; each event cannot add an exists prequery or a new local/redundant stream.'
+    }
+}
+Assert-V1LogStreamReuse $liveResizeApplication
+Check $true 'static product Log reuses one append stream, retains actual size-based rotation and flushes each row without claiming storage durability'
+Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('void open(fs::path p){close_stream();path_=std::move(p);}','void open(fs::path p){path_=std::move(p);}'))} 'static changing a Log path cannot retain the old file stream'
+Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('if(!ec&&actual_size>512*1024){close_stream();','if(!ec&&actual_size>512*1024){'))} 'static rotation must close its own stream before removing or renaming files'
+Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('stream_.flush();return stream_.good();','return stream_.good();'))} 'static held log streams must expose each actual row to the existing evidence reader'
+Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('stream_.flush();return stream_.good();','stream_.flush();return true;'))} 'static a failed stream cannot be reported as a successful row flush'
+Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('const auto actual_size=fs::file_size(path_,ec);','const auto actual_size=fs::exists(path_,ec)?fs::file_size(path_,ec):0;'))} 'static Log cannot restore the redundant per-row exists prequery'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

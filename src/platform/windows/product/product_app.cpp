@@ -160,16 +160,22 @@ std::wstring action_label(v::Action a){
     return index<labels.size()?labels[index]:L"不支持的操作";
 }
 class Log {
-    fs::path path_;std::uint64_t sequence_{};
+    fs::path path_;std::uint64_t sequence_{};std::ofstream stream_;
+    void close_stream(){if(stream_.is_open())stream_.close();stream_.clear();}
 public:
-    void open(fs::path p){path_=std::move(p);}
-    void event(std::string_view type,std::string fields={}){
-        if(path_.empty())return;
+    void open(fs::path p){close_stream();path_=std::move(p);}
+    bool event(std::string_view type,std::string fields={}){
+        if(path_.empty())return false;
         std::error_code ec;
-        if(fs::exists(path_,ec)&&fs::file_size(path_,ec)>512*1024){auto old=path_;old+=L".1";fs::remove(old,ec);fs::rename(path_,old,ec);}
-        std::ofstream out(path_,std::ios::app|std::ios::binary);
-        if(out)out<<"{\"schema\":\"panebind-v1/1\",\"source_sha\":\""<<PANEBIND_BUILD_SHA<<"\",\"sequence\":"<<++sequence_
+        const auto actual_size=fs::file_size(path_,ec);
+        if(!ec&&actual_size>512*1024){close_stream();auto old=path_;old+=L".1";fs::remove(old,ec);fs::rename(path_,old,ec);}
+        if(!stream_.is_open()||!stream_){close_stream();stream_.open(path_,std::ios::app|std::ios::binary);}
+        if(!stream_)return false;
+        stream_<<"{\"schema\":\"panebind-v1/1\",\"source_sha\":\""<<PANEBIND_BUILD_SHA<<"\",\"sequence\":"<<++sequence_
             <<",\"process_id\":"<<GetCurrentProcessId()<<",\"tick\":"<<GetTickCount64()<<",\"type\":\""<<escaped(type)<<"\""<<(fields.empty()?"":",")<<fields<<"}\n";
+        // Preserve each row's visibility to the existing evidence reader. This
+        // is a stream flush, not a physical-storage durability guarantee.
+        stream_.flush();return stream_.good();
     }
     const fs::path& path()const{return path_;}
 };

@@ -198,14 +198,61 @@ void owned_standard_controls_case(State& s){
            !SendMessageTimeoutW(u->root,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(bar.x),static_cast<short>(bar.y)),
                SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit)||hit!=HTMENU)throw std::runtime_error("standard_controls_fresh_native_menu_hit_unknown");
         button(s,true);button(s,false);
-        if(!wait([&]{GUITHREADINFO g{sizeof(g)};return u->menu_opened.load()==1&&GetGUIThreadInfo(u->owner,&g)&&
-            g.hwndMenuOwner==u->root&&GetMenuItemRect(nullptr,u->popup,0,&menu);},1000))
-            throw std::runtime_error("standard_controls_actual_owned_popup_not_opened");
-        POINT item{(menu.left+menu.right)/2,(menu.top+menu.bottom)/2};cursor(s,item);const HWND popup=WindowFromPoint(item);DWORD popup_pid{};
-        GUITHREADINFO gui{sizeof(gui)};
-        if(!u->exact_root()||GetForegroundWindow()!=u->root||GetWindowThreadProcessId(popup,&popup_pid)!=u->owner||
-           popup_pid!=u->pid||gui_class(popup)!=L"#32768"||!GetGUIThreadInfo(u->owner,&gui)||gui.hwndMenuOwner!=u->root||
-           !GetMenuItemRect(nullptr,u->popup,0,&r)||!EqualRect(&r,&menu))throw std::runtime_error("standard_controls_fresh_owned_popup_identity_changed");
+        struct PopupFacts{RECT rect{};POINT centre{};HWND hwnd{},menu_owner{};DWORD pid{},tid{};
+            bool rect_known{},centre_known{},gui_known{};};
+        PopupFacts popup_first,popup_second;PopupFacts* last_popup=&popup_first;
+        const char* popup_reason="not_observed";unsigned popup_reads{};
+        const auto read_popup=[&](PopupFacts& f){
+            f={};last_popup=&f;++popup_reads;
+            if(!u->exact_root()){popup_reason="owned_root_changed";return false;}
+            if(GetForegroundWindow()!=u->root){popup_reason="foreground_changed";return false;}
+            if(u->menu_opened.load()!=1||!IsMenu(u->menu)||!IsMenu(u->popup)||GetMenu(u->root)!=u->menu||
+               GetSubMenu(u->menu,0)!=u->popup){popup_reason="exact_menu_not_open";return false;}
+            GUITHREADINFO g{sizeof(g)};f.gui_known=GetGUIThreadInfo(u->owner,&g)!=FALSE;f.menu_owner=g.hwndMenuOwner;
+            if(!f.gui_known||f.menu_owner!=u->root||g.hwndMoveSize){popup_reason="GUI_menu_owner_not_exact";return false;}
+            f.rect_known=GetMenuItemRect(nullptr,u->popup,0,&f.rect)!=FALSE;
+            if(!f.rect_known){popup_reason="item_rect_query_failed";return false;}
+            if(f.rect.left>=f.rect.right||f.rect.top>=f.rect.bottom){popup_reason="item_rect_empty";return false;}
+            f.centre={static_cast<LONG>((static_cast<std::int64_t>(f.rect.left)+f.rect.right)/2),
+                static_cast<LONG>((static_cast<std::int64_t>(f.rect.top)+f.rect.bottom)/2)};f.centre_known=true;
+            f.hwnd=WindowFromPoint(f.centre);f.tid=GetWindowThreadProcessId(f.hwnd,&f.pid);
+            if(!f.hwnd||f.pid!=u->pid||f.tid!=u->owner||!IsWindowVisible(f.hwnd)||gui_class(f.hwnd)!=L"#32768"){
+                popup_reason="item_centre_not_exact_owned_popup";return false;}
+            return true;
+        };
+        const auto popup_ready=[&]{
+            popup_first={};popup_second={};
+            if(!read_popup(popup_first)||!read_popup(popup_second))return false;
+            if(popup_first.hwnd!=popup_second.hwnd||!EqualRect(&popup_first.rect,&popup_second.rect)){
+                popup_reason="fresh_popup_or_rect_changed";return false;}
+            popup_reason="ready";return true;
+        };
+        const auto popup_record=[&](bool ready){
+            const auto rect_json=[](const PopupFacts& f){return f.rect_known?"["+std::to_string(f.rect.left)+","+
+                std::to_string(f.rect.top)+","+std::to_string(f.rect.right)+","+std::to_string(f.rect.bottom)+"]":std::string("null");};
+            const auto& f=*last_popup;
+            s.log.emit("standard_controls_native_popup_ready","\"ready\":"+std::string(ready?"true":"false")+
+                ",\"reason\":"+quote(popup_reason)+",\"read_count\":"+std::to_string(popup_reads)+",\"wait_cap_ms\":1000"+
+                ",\"first_rect\":"+rect_json(popup_first)+",\"second_rect\":"+rect_json(popup_second)+
+                ",\"centre\":"+(f.centre_known?"["+std::to_string(f.centre.x)+","+std::to_string(f.centre.y)+"]":"null")+
+                ",\"popup_HWND\":"+(f.centre_known?std::to_string(reinterpret_cast<std::uintptr_t>(f.hwnd)):"null")+
+                ",\"popup_PID\":"+(f.tid?std::to_string(f.pid):"null")+",\"popup_TID\":"+(f.tid?std::to_string(f.tid):"null")+
+                ",\"GUI_menu_owner\":"+(f.gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(f.menu_owner)):"null")+
+                ",\"two_fresh_rects_equal\":"+(popup_first.rect_known&&popup_second.rect_known?
+                    (EqualRect(&popup_first.rect,&popup_second.rect)?"true":"false"):"null")+",\"cursor_not_moved_by_observation\":true");
+        };
+        const bool popup_observed=wait(popup_ready,1000);popup_record(popup_observed);
+        if(!popup_observed)throw std::runtime_error("standard_controls_actual_owned_popup_not_ready");
+        const HWND popup=popup_second.hwnd;menu=popup_second.rect;const POINT item=popup_second.centre;
+        // The readiness log is not authority: recheck after IO, before moving the
+        // cursor, and again after the actual move before the unique native pair.
+        if(!popup_ready()||popup_second.hwnd!=popup||!EqualRect(&popup_second.rect,&menu)){
+            if(popup_reason==std::string("ready"))popup_reason="popup_changed_before_cursor";
+            popup_record(false);throw std::runtime_error("standard_controls_fresh_owned_popup_identity_changed");}
+        cursor(s,item);
+        if(!popup_ready()||popup_second.hwnd!=popup||!EqualRect(&popup_second.rect,&menu)){
+            if(popup_reason==std::string("ready"))popup_reason="popup_changed_before_pair";
+            popup_record(false);throw std::runtime_error("standard_controls_fresh_owned_popup_identity_changed");}
         button(s,true);button(s,false);
         s.log.check("standard_controls_actual_native_menu_WM_COMMAND",wait([&]{return u->menu_commands.load()==1&&
             standard_controls_idle(*u)&&standard_controls_released();},1000),"\"menu_ID\":21004,\"WM_COMMAND_injected\":false");
