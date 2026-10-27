@@ -7,7 +7,7 @@
 - 原可信SSH已实际恢复，ZS-WORKSTATION／Professional／26200、Sandbox Enabled；本次只读空闲19.45GiB、C空闲35.31GiB、I空闲约647GiB。未确认具名可丢弃的完整Windows guest；没有启动或新建普通VM、修改宿主设置或触碰其它项目。[本次只读回执](v1-evidence/20261027-restored-ssh-environment.json)覆盖旧超时之后的实际状态，不改写旧回执。
 - `12cc7efb738d4c328649d6e9575da479`／a2驱动：真实mapped hook进入exact命令，公共命令hook=0保留missing；stop末完成纳入最终summary，另一故意未完成调用仍unknown／unfinished=1。D32／D33仅定向计量缺口关闭。停止中的post-context拒绝、非NormalUp和未知native清理照实保留；约297ms故意阻塞不是正常NF02预算通过，完整NF02仍缺正常整版分母。
 - `f20a47b5797646a8a98ed0750b5c9bd6`／同936、a2驱动：I07真实排除普通／Ctrl零writer、解除后新三成员恢复、导出8→实际改0／free→导入8／snap、损坏字节留档→默认启动→保留有效export并通过GUI恢复8，支持本链DEV PASS。不是自动恢复旧设置，不授五应用、托盘或整版通过。
-- `5075`、`c97`原失败保留；分别修正TEST离散命令post-context“不适用”判据、两独立native拖动的空间锚点。`87cb`与`653b`的CreatePipe失败保留；后者实际错误5，发生在child创建／actor DOWN前，但并非全Run零输入，原因仍UNKNOWN。不改DACL／token，而以现有事件和本Run一次性完成回执替换新增TEST传输；新通路尚待构建及现场验证。
+- `5075`、`c97`原失败保留；分别修正TEST离散命令post-context“不适用”判据、两独立native拖动的空间锚点。`87cb`与`653b`的CreatePipe失败保留；后者实际错误5，发生在child创建／actor DOWN前，但并非全Run零输入，原因仍UNKNOWN。不改DACL／token，而以现有事件和本Run一次性完成回执替换新增TEST传输。新驱动`23e9da1`的Debug／Release构建、各两项offline、282项静态检查及六次宿主Exit78已通过，产品936未重建；新传输与两个窄入口现场仍NOT_RUN。
 - 另核实max／grid约束与I06同生命周期最终Exit为现有条件可补的具体缺口：只接已有函数的窄入口，不重跑八向、固定尺寸、旧视觉所有权、Full或900秒。当前新增入口现场NOT_RUN，不据源码接通授PASS。
 
 [本轮原始摘录与身份索引](v1-evidence/20261027-targeted-followup-review.json)保留每Run产品／驱动／封包身份、原件位置、哈希和精确guest清理。真实托盘前置未成立，D31继续待现场；客户初始化、完整non-elevated桌面、200%／独立多屏／混合DPI分别保留缺项。Sandbox可用不等于这些条件已满足，不以VM建设阻断上述可做工作。

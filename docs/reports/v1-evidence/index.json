@@ -3,7 +3,7 @@
   "record_date": "2026-10-27",
   "current_round_targeted_followup": {
     "path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
-    "sha256": "E538565D0925CDC92D0E8DA9FC84634CBEE2F381007D78D203A608380F98A5DC",
+    "sha256": "C7F60DF65BFBCCF922D1BBD7114F6DA06496AA0DC6E864BFCE65140B05BED6E8",
     "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
     "literal_excerpt_sha256": "5AEA5AA3C78D6FA5EF883EA90B596007BA0623E635580461CDAC841F007776EC",
     "product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",

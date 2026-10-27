@@ -3,6 +3,32 @@
   "record_date": "2026-10-27",
   "scope": "保留首三批936/d12真实失败、同936/a2ce的Timing与I07复验；追加653b实际CreatePipe error5前置失败。不是新任务书、验收表或功能计分器。",
   "historical_initial_scope": "首三批936产品/d12独立驱动真实失败封存；不是新任务书、验收表或功能计分器。",
+  "latest_driver_candidate": {
+    "source_sha": "23e9da1a764d4bfd35446d31e76744ce36f1d19f",
+    "product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+    "product_rebuilt": false,
+    "build_receipt": "uat/v1-control/driver-boundary-23e9da1-6f31c21d610f454cb5f912fa12fb18d3/receipt.json",
+    "build_receipt_sha256": "641718E302CAD11DF48052F2909A7AB192CD575CF6C793FFE0E7F93036DD422E",
+    "release_binary_sha256": "5C1F35818D055F2A60D8C6231D32BDE3A8FA5EB7B63E3A5CC45FEDCB95FC4BBD",
+    "debug_binary_sha256": "969C5834484734B87C4A3806930119D28F3F63F7ECBA10976BC455BB73744642",
+    "build_result": "Debug/Release PASS; each configuration v1-guest-path and v1-layout PASS; 282 static checks PASS",
+    "host_guard_receipt": "uat/v1-host-guard/6ed9946244a240e995d208325aa49ef3/receipt.json",
+    "host_guard_receipt_sha256": "A9AFBE5D2661A11393BF6FAC3505B70E32E4579554271AE6033CF9B3D09E8121",
+    "host_guard_result": "Six full-argv ordinary-host invocations refused with exit78; no product GUI or input",
+    "field_status_at_build_checkpoint": "NOT_RUN",
+    "next_scope": ["DriverDisconnectOnly file/event transport", "NativeConstraintOnly maximum/grid", "VisualLifecycleChainOnly same-instance Exit"]
+  },
+  "pre_next_batch_readonly_resources": {
+    "observed_utc": "2026-10-27T05:01:29.6198015Z",
+    "hostname": "ZS-WORKSTATION",
+    "free_physical_bytes": 20797427712,
+    "os_reported_free_virtual_KiB": 16620204,
+    "commit_counter": "UNKNOWN: previous performance-provider query timed out; not retried",
+    "sandbox_instances": [],
+    "host_changes": false,
+    "ordinary_VM_started_or_created": false,
+    "method": "One timed-out performance-provider query followed by one basic OS/process read; not periodic monitoring"
+  },
   "evidence_policy": {
     "literal_excerpt": "逐行UTF-8原文本（不含原行尾形式）；未解析再序列化原始JSONL，64位原文保留。review中FILETIME/start_ticks只由原文regex提取为十进制字符串。",
     "native_order": "JSONL顺序不是不同生产者共同原生时序。测试SendInput/Raw计数/停止guest均不替代实际UP或产品权限与清理证据。",
@@ -1692,7 +1718,7 @@
     "new_benchmark_PASS": 0,
     "whole_version": "PARTIAL",
     "human_uat": "NOT_RUN",
-    "historical_acceptance_effect_below": "下方acceptance_effect为首三失败封存时的原快照，不覆盖本次限定复核，也不提升整版/功能计分。" 
+    "historical_acceptance_effect_below": "下方acceptance_effect为首三失败封存时的原快照，不覆盖本次限定复核，也不提升整版/功能计分。"
   },
   "acceptance_effect": {
     "new_feature_PASS": 0,
