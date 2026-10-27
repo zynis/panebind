@@ -2424,7 +2424,7 @@ function Assert-V1PlacementTimingOrigins([string]$Application,[string]$Timing){
     foreach($fact in @('v::PlacementTiming input_post_timing;',
         'if(receipt.native_attempted)input_post_timing.observe_native(receipt.call_id,receipt.completion_known,',
         '{observed_qpc,legacy_up_dispatch_qpc},receipt.post_observed_qpc,input.counter_frequency());',
-        'input_post_timing.observe_delayed(r.call_id,r.completion_known,',
+        'input_post_timing.observe_delayed(r.call_id,r.native_attempted,r.completion_known,',
         'r.post_observed_qpc,input.counter_frequency());',
         'finish(e.end,e.hook_observed_qpc,',
         'e.origin==InputOrigin::ShieldLegacy?std::optional<std::uint64_t>{e.resource_observed_qpc}:std::nullopt);',
@@ -2439,6 +2439,7 @@ function Assert-V1PlacementTimingOrigins([string]$Application,[string]$Timing){
         'if(completion_known)observe(origins,post_qpc,frequency);',
         'else pending_[call_id]=origins;',
         'const auto origins=found==pending_.end()?PlacementTimingOrigins{}:found->second;',
+        'if(!native_attempted)return origins;',
         'if(completion_known){',
         'if(found!=pending_.end())pending_.erase(found);',
         'hook_.observe_qpc(origins.hook_observed_qpc,post_qpc,frequency);',
@@ -2456,6 +2457,8 @@ Check $true 'static typed clocks retain actual hook origin, separate applicable 
 Reject {Assert-V1PlacementTimingOrigins $liveResizeApplication ($placementTimingSource.Replace('hook_.observe_qpc(origins.hook_observed_qpc,post_qpc,frequency);','hook_.observe_qpc(origins.legacy_up_dispatch_qpc.value_or(origins.hook_observed_qpc),post_qpc,frequency);'))} 'static legacy dispatch cannot replace a missing hook origin'
 Reject {Assert-V1PlacementTimingOrigins ($liveResizeApplication.Replace('std::optional<std::uint64_t>{e.resource_observed_qpc}','std::nullopt')) $placementTimingSource} 'static actual queued legacy UP must retain its real resource dispatch clock'
 Reject {Assert-V1PlacementTimingOrigins $liveResizeApplication ($placementTimingSource.Replace('if(completion_known){','if(true){'))} 'static an issued-unknown completion cannot erase its typed origin or create a completed timing sample'
+Reject {Assert-V1PlacementTimingOrigins ($liveResizeApplication.Replace('observe_delayed(r.call_id,r.native_attempted,r.completion_known,','observe_delayed(r.call_id,true,r.completion_known,')) $placementTimingSource} 'static an unissued delayed admission cannot be counted as an actual native placement'
+Reject {Assert-V1PlacementTimingOrigins $liveResizeApplication ($placementTimingSource.Replace('if(!native_attempted)return origins;','if(!native_attempted){pending_.erase(call_id);return origins;}'))} 'static an unissued delayed fact cannot erase a previously issued unknown timing origin'
 function Assert-V1NativeConstraintOnlyWiring([string]$Fixture,[string]$Resize,[string]$Narrow,[string]$Grid,[string]$Prepare,[string]$Guest){
     $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
     $branch=[regex]::Match($entry,'(?s)if\(s\.suite=="NativeConstraintOnly"\)\{(?<body>.*?)return;\s*\}')

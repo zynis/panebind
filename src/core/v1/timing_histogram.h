@@ -114,10 +114,14 @@ public:
         if(completion_known)observe(origins,post_qpc,frequency);
         else pending_[call_id]=origins;
     }
-    PlacementTimingOrigins observe_delayed(std::uint64_t call_id,bool completion_known,
+    PlacementTimingOrigins observe_delayed(std::uint64_t call_id,bool native_attempted,bool completion_known,
                                           std::uint64_t post_qpc,std::uint64_t frequency) {
         const auto found=pending_.find(call_id);
         const auto origins=found==pending_.end()?PlacementTimingOrigins{}:found->second;
+        // A timed-out admission can later complete without ever issuing a
+        // native call. It is not a native timing sample. If its receipt
+        // contradicts a recorded issue, preserve that pending UNKNOWN too.
+        if(!native_attempted)return origins;
         if(completion_known){
             observe(origins,post_qpc,frequency);
             if(found!=pending_.end())pending_.erase(found);

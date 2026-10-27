@@ -1067,7 +1067,7 @@ public:
                     ",\"recovery_commit_ack\":"+(acknowledged?"true":"false")+",\"new_write_authority_granted\":false");
                 continue;
             }
-            const auto timing_origins=input_post_timing.observe_delayed(r.call_id,r.completion_known,
+            const auto timing_origins=input_post_timing.observe_delayed(r.call_id,r.native_attempted,r.completion_known,
                 r.post_observed_qpc,input.counter_frequency());
             log.event("native_completion",
             "\"call_id\":"+std::to_string(r.call_id)+",\"key\":"+std::to_string(r.before.key)+

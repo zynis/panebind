@@ -59,10 +59,10 @@ int main(){
     placements.observe_native(5,false,{0,700},0,10000000);
     expect(placements.unfinished_calls()==1&&placements.unfinished_legacy_dispatch_calls()==1&&
         placements.legacy_dispatch_snapshot().samples==1,"issued unknown completion is not a zero-duration sample");
-    const auto still_unknown=placements.observe_delayed(5,false,900,10000000);
+    const auto still_unknown=placements.observe_delayed(5,true,false,900,10000000);
     expect(still_unknown.legacy_up_dispatch_qpc==700&&placements.unfinished_calls()==1&&
         placements.legacy_dispatch_snapshot().samples==1,"a delayed observation without completion retains its original clock and unknown call");
-    const auto completed=placements.observe_delayed(5,true,1000,10000000);
+    const auto completed=placements.observe_delayed(5,true,true,1000,10000000);
     expect(completed.hook_observed_qpc==0&&completed.legacy_up_dispatch_qpc==700&&
         placements.unfinished_calls()==0&&placements.unfinished_legacy_dispatch_calls()==0&&
         placements.hook_snapshot().missing_clock==4&&placements.legacy_dispatch_snapshot().samples==2&&
@@ -72,6 +72,23 @@ int main(){
     expect(placements.unfinished_calls()==2&&placements.unfinished_legacy_dispatch_calls()==1&&
         placements.hook_snapshot().samples==1&&placements.legacy_dispatch_snapshot().samples==2,
         "final unfinished hook and applicable-missing legacy calls remain unknown without fabricated samples");
+    const auto unissued=placements.observe_delayed(8,false,true,1200,10000000);
+    expect(!unissued.hook_observed_qpc&&!unissued.legacy_up_dispatch_qpc&&
+        placements.hook_snapshot().samples==1&&placements.hook_snapshot().missing_clock==4&&
+        placements.legacy_dispatch_snapshot().samples==2&&placements.legacy_dispatch_snapshot().missing_clock==1&&
+        placements.unfinished_calls()==2,
+        "unissued delayed admission does not invent a native sample or a missing clock");
+    const auto contradictory=placements.observe_delayed(7,false,true,1300,10000000);
+    expect(contradictory.legacy_up_dispatch_qpc==std::uint64_t{0}&&
+        placements.unfinished_calls()==2&&placements.unfinished_legacy_dispatch_calls()==1&&
+        placements.hook_snapshot().missing_clock==4&&placements.legacy_dispatch_snapshot().missing_clock==1,
+        "unissued delayed fact cannot erase an already-issued unknown or its applicable-missing origin");
+    const auto resolved=placements.observe_delayed(7,true,true,1400,10000000);
+    expect(resolved.legacy_up_dispatch_qpc==std::uint64_t{0}&&
+        placements.unfinished_calls()==1&&placements.unfinished_legacy_dispatch_calls()==0&&
+        placements.hook_snapshot().missing_clock==5&&placements.legacy_dispatch_snapshot().missing_clock==2&&
+        placements.hook_snapshot().samples==1&&placements.legacy_dispatch_snapshot().samples==2,
+        "subsequent actual issued completion consumes its retained origin exactly once");
     if(failures)return EXIT_FAILURE;
     std::cout<<"V1 timing "<<checks<<" checks passed\n";return EXIT_SUCCESS;
 }
