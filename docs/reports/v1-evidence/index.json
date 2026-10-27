@@ -3,11 +3,11 @@
   "record_date": "2026-10-27",
   "current_round_targeted_followup": {
     "path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
-    "sha256": "B2046E79CE93AAFBD6040D9382201CC5B91CBA952737CB654D854A5E37DE5D65",
+    "sha256": "AE4FFA7C74D3D96D5C73255E679105C296FBB4239A94E0E7C9092E402168CBD1",
     "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
-    "literal_excerpt_sha256": "5323342F4D4D9995458A9C956EF0DFB9F9A8E2C7A1C8C15A377B10C460C2AC1F",
+    "literal_excerpt_sha256": "9D3480FFFFE8BF141D23BC7E96D26F6EB0EA82858D69D161A0AEF02BD6F6BCAA",
     "product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
-    "current_scoped_results": "12cc D32/D33 accounting revalidated; f20a I07 and 2bb I06 same-instance DEV chains PASS. 234bd current max/grid and recovery scoped PASS; fixed/real-app histories retained, not rerun or rebound. Initial/CreatePipe-error5/bd941 START failures retained. No I08, whole NF02, tray or version PASS.",
+    "current_scoped_results": "12cc D32/D33, f20a I07, 2bb I06 and 234bd max/grid retain their scope/identity. Added 94a real actor/packet/exit0 then early FocusLost and unsent cleanupUP; 00c early FocusLost again, with actual single abort cleanupUP verified but no Deadline/successor/I08 PASS. 12c7 true936/47ff ordinary ZIP entry and b4b same-PID two owned core rounds scoped PASS; b4b final NF02 p95 bucket99999us/missing34 does not meet the full budget. Initial/CreatePipe/bd941 failures and all historical bytes retained; no new feature/B score, tray or whole-version PASS.",
     "whole_version": "PARTIAL"
   },
   "current_round_restored_connection_environment": {

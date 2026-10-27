@@ -3722,3 +3722,54 @@ an existing Run file; flush success does not imply close or reader delivery.
 The held read-only handle denies write/delete sharing, and actual file identity,
 bytes/hash and child process exit are independently checked. The original pinned
 prior-art reviews remain reference-only. No external implementation was reused.
+
+### 2026-10-27: bounded contextual-double-click preparation review
+
+Re-read mature MIT PowerToys/FancyZones at the existing exact pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a`:
+[`WindowMouseSnap.cpp`](https://raw.githubusercontent.com/microsoft/PowerToys/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZonesLib/WindowMouseSnap.cpp)
+and the root LICENSE were actually readable. The source separates processable
+source admission, work-area selection and mode-dependent snap/overlay work.
+This is architectural reference, not evidence that PaneBind may remove its
+own qualification, native-handoff or writer checks.
+
+Mature GPL-3.0-or-later AltSnap remains reference-only at
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d`. Its raw `hooks.c` request returned
+cache miss; the pinned GitHub HTML exposed only the first 1000 source lines,
+including the GPL header and worker/message declarations. The later candidate
+enumeration implementation was not newly read. The actual
+[#681 issue](https://github.com/RamonUnch/AltSnap/issues/681) and its closing
+link to [#682](https://github.com/RamonUnch/AltSnap/pull/682) were read for the
+occluded-candidate history; the direct #682 request returned cache miss.
+The previously recorded detailed source/PR/commit reviews are reused, not
+represented as fresh full-source or #682 inspection. No upstream code is
+copied, translated, mechanically rewritten or adapted; no new attribution
+obligation or GPL reuse decision is introduced.
+
+The official [EnumWindows contract](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumwindows)
+was actually read. A callback stopping enumeration and API failure must not
+be mistaken for a complete topology snapshot. Enumeration does not itself
+grant native write authority or make a later operation's context fresh.
+
+PaneBind's local data-flow review found one unused observation in the exact
+contextual double-click branch (`clicks == 2`, border/corner, Stretch enabled
+and source feature allowed): `active.targets` is consumed by later continuous
+motion/dock-preview paths, but this branch instead performs its one discrete
+stretch, revokes admission and finishes Paused. The planned narrow change only
+omits that unused targets enumeration. It retains the first `catalog.all`
+source membership/completeness/occlusion gate, selected participants' actual
+identity/geometry/limits reads, the final separately sampled stretch `other`
+set, original DOWN, native END, epoch/input revocation and writer admission.
+Read-only candidates never become writer participants or window authority.
+
+Reusing the first topology for the final `other` set was considered and is not
+part of this change: a neighbour can move, close or change eligibility during
+participant queries, changing the nearest legal stretch boundary. The retained
+final sampling avoids introducing that additional stale-candidate window.
+The existing `b4b1064e56e9409f8fe0f1fc0b06162d` / 936 product timing FAIL and
+its original source/binary identity remain unchanged. Current clocks locate
+long preflight-preparation time but do not prove the unused enumeration is
+its sole cause or predict a latency improvement. The production change needs
+its own source/binary identity, actual dispatcher-wiring regressions and the
+affected contextual-double-click/continuous-operation guest verification;
+research, compilation or a smaller call count is not runtime PASS.
