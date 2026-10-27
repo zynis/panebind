@@ -9,6 +9,23 @@
   "human_uat": "PENDING",
   "source_identity": {
     "latest_ordinary_portable_runtime": {
+      "product_source_sha": "aacd1ee87598bfe3eaddded6542639147e212c90",
+      "release_binary_sha256": "AF7EC73A5B7A62C6ABF56D1A3B0F1DD1F030611B9B3EECB4B11DBC518D40ADB1",
+      "package_id": "6af574185d5b4cc1b81745bd12a593ec",
+      "package_packaging_head": "9e7136734c6e867e107568d8f8d6e15035e6cf25",
+      "run_id": "91bc71e42f7e41d29d5655094aa8a71b",
+      "driver_source_sha": "9e7136734c6e867e107568d8f8d6e15035e6cf25",
+      "driver_binary_sha256": "A86038997DBE96493D5FFD5225E57D0DD0B3C130EE6405E2AC76FC7A82832433",
+      "zip_sha256": "2203E540B84E5F1F94684D3A9DBA018412BE38E5786302FA0A992487CB3A764D",
+      "manifest_sha256": "D3ED82389CB8B7DE43BCFF8E751987692FBDF0F4C9DE80302B1D864FB51DFA0D",
+      "evidence_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+      "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+      "result": "PASS_SCOPED_TRUE_NO_ARGUMENT_ZIP_GUI_SETTINGS_EFFECT_TWO_NORMALUP_NORMAL_EXIT",
+      "identity_scope": "setup PID6784与真正ZIP PID6940/birth134375575944890478分开；7载荷逐项字节核合。936/47ff/12c7及c452/49b3原记录不改绑；历史flat current_package不重指。",
+      "host_trial": "NOT_AUTHORIZED",
+      "whole_I12_PASS": false
+    },
+    "historical_936_ordinary_portable_runtime": {
       "product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
       "release_binary_sha256": "8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238",
       "package_id": "47ff7d898ef34e91adebf581ec6a58c6",
@@ -1212,7 +1229,7 @@
         "next_action": "本Full部署保留11ae/dfdd历史身份；当前4f7 callback/Focus/规则和5f87普通包实际范围另见current_targeted_runtime/current_package，不能改绑此Full。新CurrentCore TEST仅构建，后续按影响执行必要当前链，不重跑独立900秒或旧专项。"
       },
     "implementation_inspected": "9EC7_REAL_LIVE_RESIZE_CALLBACK_D_R_SCOPED_RUNTIME_AND_ORDINARY_PACKAGE_TESTED",
-    "note": "独立DEV45/60、22/40=55%、chains3/12、modules0/PARTIAL。M03-F03按234bd/936 max/grid、b4b当前共享min、用户认可复用750固定及c452/a723/6e32真实Terminal约束影响继承闭合；各原源码/EXE/Run不换绑。最新已验普通入口为936/47ff/12c7，旧ccde/2579、42ab/d5f5/f78及诊断证据保历史。I10、NF02、完整Medium桌面/五应用/托盘/HC/显示及整版仍各有缺项。",
+    "note": "独立DEV45/60、22/40=55%、chains4/12（I05/I06/I07/I10）、modules0/PARTIAL。M03-F05原已PASS，63a4仅作当前aacd失败恢复复验，不重复加功能分。I10按63a4同PID连续批次失效/回读/真实abort-UP/新Move/接触/Ctrl与未变936/234bd max/grid、b4b min及明确750 fixed继承闭合，各原身份不换绑。aacd/6271两轮owned核心已运行但NF02仍FAIL；最新已验普通入口为aacd/6af5/91bc，936/47ff/12c7与历史flat current_package均保原身份。NF02、完整Medium桌面/五应用/托盘/HC/显示及整版仍各有缺项。",
     "pending_product_note": "当前c452/49b3及独立011驱动Debug6e3限定实测见current_targeted_runtime；a723/6e3几何与真实收尾、普通217a已验，预算工具修复按6e3范围关闭，不改包内driver。旧ca56/0c50性能与c1a5/f7d6超时各保原FAIL；完整NF02、应用/托盘/HC/显示缺项分别保留。",
 
     "successor_live_Resize_candidate": {
@@ -2521,14 +2538,14 @@
       "B39",
       "B40"
     ],
-    "note": "独立DEV45/60、22/40=55%，chains3/12、模块0。M03-F03按当前936/234bd与b4b及明确固定/真实应用继承闭合，不增加B项；M05-F04/B05原42ab/G04/f06a/750/4ff合同及其它历史身份保留。模块、托盘、五应用/完整Medium、显示、I10及整版不自动通过；NF02保各原样本与当前936/b4b最终端点FAIL。固定60/40分母、B01-B32及硬门保持；PARTIAL不REA。"
+    "note": "独立DEV45/60、22/40=55%，chains4/12、模块0。63a4复验原已PASS的M03-F05并按明示组合闭合I10，不新增功能或B分。M03-F03、M05-F04/B05及其它历史身份保留；模块、托盘、五应用/完整Medium、显示及整版不自动通过。NF02保各原样本，当前aacd/6271最终端点仍FAIL，不与旧936/b4b混算。固定60/40分母、B01-B32及硬门保持；PARTIAL不REA。"
   },
   "hard_gates": [
     {
       "id": "HG01",
       "description": "60功能/12模块DEV通过，B01-B32全部PASS。",
       "status": "BLOCKED",
-      "remaining_conditions": "实际独立DEV45/60、对标22/40=55%、整链3/12；仍缺15项独立功能、10项必选对标及模块/适用整版硬门。M03-F03独立合同闭合不增加B项、不授M03模块或I10；M05-F04/B05及全部历史证据保持原身份，五应用、托盘、显示、NF与整版门不变。",
+      "remaining_conditions": "实际独立DEV45/60、对标22/40=55%、整链4/12；仍缺15项独立功能、10项必选对标及模块/适用整版硬门。I10按63a4当前连续失败恢复与明确未变约束证据继承闭合，M03-F05原已PASS不重复计分；不授M03模块。M05-F04/B05及全部历史证据保持原身份，五应用、托盘、显示、NF与整版门不变。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     },
     {
@@ -4014,7 +4031,7 @@
       "historical_observed_at_previous_assessment": "【当前ccde/24a/f46】ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。【历史】【ccde/354/7bb真实应用最小值子合同】D1881实际native min714×152及frame18/9；D1888 rawheight142被独立oracle钳至143，P201一次native exact、无递归，D1891实际NormalUp；D1901/1904后继Move(+24,+18)和真实NormalUp成立。实际应用grid/WM_SIZING提案未验证，不授完整M03F03。【13a原失败及历史】【ccde/13a实际自声明最小值】D1529应用返回native714×152与frame差18/9，独立visible最小696×143及customheight已知；g6真实bottom4被TEST right2断言误拒，未完成clamp/后继Move，不授此合同PASS。【历史】当前212/e7 grid4105实际拒绝与后继恢复、477实际START/cancel/END后fresh geometry拒绝且零新placement已观察；不将这些已测子项再写为待跑。 【历史观察保留】c01 seq1957/1958 grid实际单次API TRUE/non-exact后停止；1964原代UP缺失，后续恢复不关闭原失败。 【当前11ae】3f8及dfdd真实grid API TRUE但nonexact拒绝、实际尺寸回读/零递归、后继Move/Ctrl与实际UP已验证；旧c01缺UP原FAIL只属其原构建。当前未发现同类owned产品失败，完整真实应用约束合同仍BLOCKED。",
       "observed": "936/234bd已实际完成max450候选456拒绝、原DOWN回拉430、真实UP与后继Move；明确grid17合法集合下API TRUE/nonexact后单次撤权/真实abort-UP/零递归及后继Move/Ctrl。b4b同936两轮共享min交集及原DOWN回拉有当前证据。750固定尺寸与c452/a723/6e32真实Terminal min143/C偏好接受拒绝按下列原身份及影响依据复用；这些合成完整独立功能DEV合同，不是五应用、M03模块、I10或NF02通过。",
       "remaining_conditions": [],
-      "next_action": "本独立功能DEV已闭合，Human仍NOT_RUN；不重跑已闭fixed或已过几何。继续各自独立的M03模块、I10完整第二成员失效链、真实应用矩阵及NF02缺口；新aacd1ee候选仅构建中/现场NOT_RUN，不将本次936及继承证据改绑。",
+      "next_action": "本独立功能DEV已闭合，Human仍NOT_RUN；不重跑已闭fixed或已过几何。63a4/aacd已补真实第二成员失效及同实例恢复并按明示继承闭合I10；各936/234bd及历史证据不改绑。继续M03模块的应用/环境门与NF02，当前aacd/6271虽核心回环通过仍未达NF02预算。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -4213,7 +4230,19 @@
       "status_basis": "FULL_INDEPENDENT_FEATURE_CONTRACT_ACTUAL_RELEASE_MEDIUM_E7_EVIDENCE_READONLY_REASSESSMENT_NOT_NEW_RUNTIME",
       "observed": "同212/e7 Release Medium：D4119真实三成员Ctrl Resize g10；D4121实际第二成员于原生sizing回调销毁，产品seq445首成员exact、446 API TRUE但身份失效、447非NormalUp/pending退休。D4127/4130实际状态可见、第三0且不补偿、真实abort-UP与capture/release/detach/Gone；D4139/4151/4164从实际部分布局经新g11/12/13 Move、重连、Ctrl，两幸存窗及真实UP均成立。产品seq78/81与658/659另证Esc有效源exact恢复。按指南290行独立合同完整PASS；真实应用组/可视反馈/模块/Full另门，不作为本功能新增要求。 【历史观察原文保留】当前212/e7 batch4175第二成员真实故障、停止第三、状态后验和后继新代组件通过；grid4105也有实际拒绝与恢复范围。旧R7失败不是本候选尚未运行的结论。 【历史观察保留】R7/4e9 actor默认Deadline及后继Move/Resize、在途完成后实际状态恢复通过；batch实际两次native/第三0保留，1636因normalizedUP空仍FAIL，实际status417有同代LL观察待driver定向修订；grid1576真实清理UP仍缺。",
       "remaining_conditions": [],
-      "next_action": "本M03-F05独立合同已由同212/e7原始实际证据完整闭合，不重复第二成员故障/恢复专项。仅后续产品或相关writer/收尾实现有实质变化时按影响复验；M03其余功能、可视反馈、应用模块与最终Full/环境硬门独立继续，历史全批FAIL不改写。",
+      "next_action": "本功能原已由212/e7完整闭合；63a4/aacd已按当前生产影响复验第二成员真实失效、第三零写及同实例新Move/接触/Ctrl恢复，不再重复此专项、不重复加分。Esc历史恢复及原SHA保留，不称63a4重跑Esc；M03模块/应用/环境及整版硬门独立继续。",
+      "current_failure_recovery_revalidation": {
+        "run_id": "63a4fc64c4aa4416b024878a7067f33a",
+        "product_source_sha": "aacd1ee87598bfe3eaddded6542639147e212c90",
+        "product_binary_sha256": "AF7EC73A5B7A62C6ABF56D1A3B0F1DD1F030611B9B3EECB4B11DBC518D40ADB1",
+        "driver_source_sha": "9e7136734c6e867e107568d8f8d6e15035e6cf25",
+        "driver_binary_sha256": "A86038997DBE96493D5FFD5225E57D0DD0B3C130EE6405E2AC76FC7A82832433",
+        "evidence_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+        "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+        "result": "PASS_CURRENT_FAILURE_RECOVERY_PORTION_NO_NEW_FEATURE_SCORE",
+        "observed": "PID6724/birth134375573930108853同启动：g1首exact/次实际API TRUE后身份失效/第三0，真实SourceLost与Release/Detach/Gone；唯一客户区cleanup-UP实际LL为g1；g2普通Move、g3形成接触、g4双幸存Ctrl均exact及真实Raw/legacy NormalUp，配置恢复并正常退出。",
+        "historical_Esc_scope": "212/e7原实测保原身份，63a4未重跑；不是本Run全功能重验或应用/模块PASS"
+      },
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-C01-INDEPENDENT",
@@ -14142,13 +14171,16 @@
       "name": "约束和失效",
       "sequence": "min/max/grid fixture 组 Resize→强制第二成员 native failure→回读→开始新合法手势",
       "required_observation": "无无穷重试/尺寸穿越/悬挂；失败不冒充成功，后续状态正确",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
-      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "source_sha": "aacd1ee87598bfe3eaddded6542639147e212c90",
+      "binary_sha256": "AF7EC73A5B7A62C6ABF56D1A3B0F1DD1F030611B9B3EECB4B11DBC518D40ADB1",
       "environment_id": "E02",
-      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "run_id": "63a4fc64c4aa4416b024878a7067f33a",
       "evidence_paths": [
+        "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+        "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+        "docs/reports/v1-evidence/750b-current-fixed-size-resize-review.json",
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
@@ -14160,13 +14192,17 @@
         "V1-D01",
         "V1-D08"
       ],
-      "candidate_identity_ref": "current_package",
-      "observed": "c01实际grid单次拒绝但原g6UP缺失；第二成员API TRUE+身份失效/无第三调用/幸存新Move/Ctrl子链PASS，未观察API FALSE。；R7/4e9 grid1576缺实际本代LL清理UP；batch1636 normalizedUP为空但417真实同代LL观察，实际two native/third0保留，driver解析修订待实测。 当前证据：11ae/3f8与dfdd实际在途旧call完成后不恢复权限、grid API TRUE非exact拒绝、第二成员API TRUE身份丢失/第三0及存活成员后继Move/Ctrl已运行。原g5/grid abort不写NormalUp。",
-      "remaining_conditions": [
+      "candidate_identity_ref": "current_contract_evaluation",
+      "historical_defect_scope_note": "原D01/D08及旧Run FAIL保留，不因本I10组合DEV裁定关闭其余应用/输入/整版范围；本链当前无剩余判据。",
+      "observed": "63a4/aacd Release Medium，同PID6724连续完成有真实min/max配置的三成员Ctrl Resize→首exact/次实际API TRUE后身份失效/第三0→实际部分态回读→真实g1 LL abort-UP/资源退出→新g2普通Move→g3实际接触→g4双幸存Ctrl及三代NormalUp→配置恢复/正常Exit。234bd/936 max/grid与b4b组min、750 fixed按原身份和未变依赖继承，组合闭合本I10 DEV，不假同PID或重测。",
+      "remaining_conditions": [],
+      "next_action": "本I10独立DEV组合已闭合，不再重复max/grid/fixed或第二成员故障。只在实际相关生产变更后按影响复验；继续其余整链/应用/显示/NF02及整版硬门，Human仍NOT_RUN，不授M03/M07模块或整版PASS。",
+      "historical_observed": "c01实际grid单次拒绝但原g6UP缺失；第二成员API TRUE+身份失效/无第三调用/幸存新Move/Ctrl子链PASS，未观察API FALSE。；R7/4e9 grid1576缺实际本代LL清理UP；batch1636 normalizedUP为空但417真实同代LL观察，实际two native/third0保留，driver解析修订待实测。 当前证据：11ae/3f8与dfdd实际在途旧call完成后不恢复权限、grid API TRUE非exact拒绝、第二成员API TRUE身份丢失/第三0及存活成员后继Move/Ctrl已运行。原g5/grid abort不写NormalUp。",
+      "historical_remaining_conditions": [
         "已有原生min/max/grid拒绝、第二成员API TRUE后身份失效/第三0、在途完成不复权及后继Move/Ctrl实证；当前Terminal实际C采用/两成员接受与拒绝也只是对应子范围。",
         "尚缺规定min/max/grid组Resize与强制第二成员真实native失败后回读/新合法手势的完整组合。API TRUE后的身份失效不能伪称API FALSE；必要失败分支须明确，不扩成无边界故障矩阵。"
       ],
-      "next_action": "先锁定现有生产writer尚未覆盖的第二成员native失败判据及约束交集断言，只补该窄组合与第三0/恢复；不回退旧R7或重跑已过几何，也不因当前缺整链把原真实abort写成NormalUp。",
+      "historical_next_action": "先锁定现有生产writer尚未覆盖的第二成员native失败判据及约束交集断言，只补该窄组合与第三0/恢复；不回退旧R7或重跑已过几何，也不因当前缺整链把原真实abort写成NormalUp。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -14176,7 +14212,18 @@
         "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
         "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES"
       ],
-      "status_basis": "CURRENT_11AE_SCOPED_RUNTIME_OBSERVED_COMPLETE_CHAIN_GAPS_BLOCKED_HISTORY_RETAINED",
+      "status_basis": "CURRENT_AACD_CONTINUOUS_BATCH_FAILURE_AND_SAME_PROCESS_RECOVERY_WITH_EXPLICIT_UNCHANGED_CONSTRAINT_INHERITANCE_DEV_PASS",
+      "current_contract_evaluation": {
+        "product_source_sha": "aacd1ee87598bfe3eaddded6542639147e212c90",
+        "driver_source_sha": "9e7136734c6e867e107568d8f8d6e15035e6cf25",
+        "driver_binary_sha256": "A86038997DBE96493D5FFD5225E57D0DD0B3C130EE6405E2AC76FC7A82832433",
+        "run_id": "63a4fc64c4aa4416b024878a7067f33a",
+        "actual_continuous_scope": "D136–148/P62–77真实第二成员身份失效、第三0及唯一g1 abort-UP；D157/169/182与P96/124/154/155实际新Move/接触/Ctrl，g2/3/4真实Raw/legacy NormalUp、Release/Detach/Gone；D253配置恢复、P198正常退出，未重启产品或重摆幸存窗。",
+        "inherited_constraint_runs": ["234bd8799c5b42ee965b46410c723cb8", "b4b1064e56e9409f8fe0f1fc0b06162d", "750be16e09ed4f91824476db43792216"],
+        "inheritance_basis": "936→aacd唯一生产差异为contextual double-click跳过未使用targets；writer/catalog/input/core布局和I10单击Move/CtrlResize的完整targets分支未变。750 fixed按用户明确认可保42ab原身份；不是aacd新测或与63a4同PID。",
+        "raw_suite_whole_I10_PASS_false_preserved": true,
+        "independent_review_scope": "原窄suite不自签全合同；本字段依据当前连续失效恢复与明示继承作组合DEV裁定，不增加功能/B分、不授模块/整版/应用矩阵/NF02。"
+      },
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
