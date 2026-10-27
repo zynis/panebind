@@ -1098,7 +1098,7 @@ function Assert-V1MappingRemainderWiring([string]$Fixture,[string]$Mapping,[stri
        -not $hotkeyScope.Value.Contains('cleanup(s);') -or -not $hotkeyScope.Value.Contains('hotkey_remainder_only_summary') -or
        $hotkeyScope.Value.Contains('owned_mapping_regions_case') -or $hotkeyScope.Value.Contains('owned_mapping_modifier_double_case') -or
        -not $drive.Contains('s.suite=="HotkeyRemainderOnly"') -or -not $gate.Contains('s.suite!="HotkeyRemainderOnly"') -or
-       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly"||s.suite=="NativeConstraintOnly"||s.suite=="BatchFailureOnly"||s.suite=="VisualLifecycleChainOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
+       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly"||s.suite=="NativeConstraintOnly"||s.suite=="BatchFailureOnly"||s.suite=="StandardControlsOnly"||s.suite=="VisualLifecycleChainOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
        -not $Mapping.Contains('s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"')){
         throw 'Hotkey-only continuation must reach only its actual remaining phase with the same released-input guest gate and cleanup.'
     }
@@ -1154,6 +1154,9 @@ function Assert-V1TargetedAccountingRecoveryWiring([string]$Fixture,[string]$Tim
         @('ConfigurationChainOnly','same_product_configuration_exclusion_import_and_corrupt_recovery_chain','owned_configuration_chain_case','configuration_chain'),
         @('DriverDisconnectOnly','actual_input_actor_exit_packet_immutability_and_supervisor_successor','owned_driver_disconnect_case','driver_disconnect'))){
         $suite=$case[0];$name=$case[2]
+        # DriverDisconnectOnly additionally excludes its three blind cleanup
+        # and post-stop input paths, each checked against its actual body below.
+        $expectedExclusions=if($suite -eq 'DriverDisconnectOnly'){5}else{2}
         $scope=[regex]::Match($entry,('(?s)if\(s\.suite=="'+[regex]::Escape($suite)+'"\)\{(?<body>.*?)return;\s*\}'))
         if(-not $scope.Success -or [regex]::Matches($scope.Groups['body'].Value,'\bphase\s*\(').Count -ne 1 -or
            -not $scope.Value.Contains(('phase("'+$case[1]+'",'+$name+');')) -or
@@ -1161,7 +1164,7 @@ function Assert-V1TargetedAccountingRecoveryWiring([string]$Fixture,[string]$Tim
            -not $Fixture.Contains(('#include "platform/windows/product/v1_guest_'+$case[3]+'_case.h"')) -or
            -not $Fixture.Contains(('else if(value==L"'+$suite+'")s.suite="'+$suite+'";')) -or
            -not $drive.Contains(('s.suite=="'+$suite+'"')) -or
-           [regex]::Matches($Fixture,('s\.suite!="'+[regex]::Escape($suite)+'"')).Count -ne 2 -or
+            [regex]::Matches($Fixture,('s\.suite!="'+[regex]::Escape($suite)+'"')).Count -ne $expectedExclusions -or
            -not $released.Success -or -not $released.Groups['suites'].Value.Contains(('s.suite=="'+$suite+'"')) -or
            -not $Prepare.Contains(("'"+$suite+"'")) -or -not $Guest.Contains(("'"+$suite+"'"))){
             throw ('Targeted suite lost its single actual phase, cleanup, parser, manifest, released-input or package gate: '+$suite)
@@ -1184,7 +1187,7 @@ function Assert-V1TargetedAccountingRecoveryWiring([string]$Fixture,[string]$Tim
        -not $Settings.Contains('if(while_excluded)while_excluded(s);') -or
        -not $Disconnect.Contains('owned_input_actor_exit_transport(s,set,pid,birth,true);') -or
        -not $Actor.Contains('input_actor_disconnect_cleanup_up(s,set,offset,g.generation,test_up)') -or
-       -not $Actor.Contains('interruption_recovery(s,set,g.generation);')){
+       -not $Actor.Contains('interruption_recovery(s,set,g.generation,disconnect);')){
         throw 'Targeted recovery must retain old settings entry, actual abort UP and same-process successor.'
     }
     foreach($value in @('static_assert(sizeof(InputActorDisconnectPacket)==96);',
@@ -1236,6 +1239,128 @@ Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('geometry_history_receipt(s,row,type)&&','true&&')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP resource receipt cannot replace the actual same-launch and type matcher'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('e::unique_value(gone,"\"overlay_destroyed\":")=="true"','true')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP cleanup cannot omit actual overlay destruction'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('return observed.matched;','return true;')) $lifecyclePrepare $lifecycleGuest} 'static actual cleanup UP cannot be accepted without its strict observed receipt'
+function Assert-V1DisconnectFailureContinuation([string]$Fixture,[string]$Actor){
+    $transport=Get-V1FixtureFunctionText $Actor 'owned_input_actor_exit_transport'
+    $phase=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
+    $cleanup=Get-V1FixtureFunctionText $Fixture 'cleanup'
+    foreach($fact in @('const bool interrupted_focus=disconnect&&geometry_history_receipt(s,ended,"gesture_end")&&',
+        'e::number(ended,"\"generation\":")==g.generation&&e::number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::FocusLost)&&',
+        'e::unique_value(ended,"\"normal_up\":")=="false"&&e::unique_value(ended,"\"pending_retired\":")=="true";',
+        'if(interrupted_focus){','s.log.failed=true; // The original 30-second assertion still FAILS.',
+        '\"case\":\"I08_input_actor_exit_real_default_30s_Deadline\",\"result\":\"FAIL\"',
+        '}else s.log.check("I08_input_actor_exit_real_default_30s_Deadline",actual_deadline,deadline_fields);',
+        'if(disconnect){cleanup_checked=true;s.log.check("I08_disconnect_single_supervisor_abort_UP_observed",',
+        'if(disconnect&&!cleanup_checked&&!test_up&&actor_down_possible){',
+        'interruption_recovery(s,set,g.generation,disconnect);')){
+        if(-not $transport.Contains($fact)){throw ('Only actual retired FocusLost may continue without closing the original Deadline failure or retrying rejected UP: '+$fact)}
+    }
+    foreach($fact in @('if(s.left&&!s.left_up_attempted&&s.suite!="DriverDisconnectOnly"){',
+        '}else if(s.suite=="DriverDisconnectOnly"&&(failed||blocked||not_run)){',
+        '"reason":"failed_disconnect_scope_no_extra_GUI_or_input"')){
+        if(-not $phase.Contains($fact) -and -not $phase.Contains($fact.Replace('"','\"'))){
+            throw ('Failed disconnect phase must not add blind UP or GUI recovery: '+$fact)
+        }
+    }
+    if(-not $cleanup.Contains('if(s.left&&s.suite!="DriverDisconnectOnly"){') -or
+       -not $cleanup.Contains('check_delivery=current_stop_confirmed&&s.suite!="DriverDisconnectOnly"') -or
+       -not $Fixture.Contains('"result\":"+quote(s.log.failed?"FAIL":"PASS")')){
+        throw 'Disconnect cleanup and summary cannot manufacture a released pair, post-stop input or overall PASS.'
+    }
+}
+Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor
+Check $true 'static disconnect continuation preserves the failed Deadline, requires actual same-generation retired FocusLost and rejects duplicate or blind cleanup input'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('s.log.failed=true; // The original 30-second assertion still FAILS.',''))} 'static observed FocusLost recovery cannot erase the original failed Deadline'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('e::number(ended,"\"generation\":")==g.generation&&',''))} 'static disconnect continuation cannot accept another generation terminal receipt'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('if(disconnect&&!cleanup_checked&&!test_up&&actor_down_possible){','if(disconnect&&!test_up&&actor_down_possible){'))} 'static rejected strict cleanup cannot be retried by the actor catch'
+Reject {Assert-V1DisconnectFailureContinuation ($fixtureSource.Replace('if(s.left&&!s.left_up_attempted&&s.suite!="DriverDisconnectOnly"){','if(s.left&&!s.left_up_attempted){')) $targetedActor} 'static failed disconnect phase cannot append an unguarded fallback UP'
+Reject {Assert-V1DisconnectFailureContinuation ($fixtureSource.Replace('check_delivery=current_stop_confirmed&&s.suite!="DriverDisconnectOnly"','check_delivery=current_stop_confirmed')) $targetedActor} 'static failed disconnect cannot create an unrelated post-stop client click'
+function Assert-V1DisconnectNonactivatingRecovery([string]$Layouts,[string]$Interruptions){
+    $down=Get-V1FixtureFunctionText $Layouts 'layout_down'
+    $up=Get-V1FixtureFunctionText $Layouts 'layout_up'
+    $motion=Get-V1FixtureFunctionText $Layouts 'layout_phase'
+    $recovery=Get-V1FixtureFunctionText $Interruptions 'interruption_recovery'
+    foreach($fact in @('bool require_existing_foreground=false',
+        'const bool foreground_return=!require_existing_foreground&&SetForegroundWindow(h)!=FALSE;',
+        'require_existing_foreground?desktop()&&GetForegroundWindow()==h:',
+        'if(require_existing_foreground&&(!desktop()||!set.owns(source)||GetForegroundWindow()!=h))',
+        'if(require_existing_foreground||preparation||!exact||!geometry_unchanged||!native_idle||!set.owns(source))')){
+        if(-not $down.Contains($fact)){throw ('Disconnect successor cannot activate or reprepare foreground, while old default behavior remains: '+$fact)}
+    }
+    if([regex]::Matches($down,[regex]::Escape('if(!require_existing_foreground)layout_failed_start_release(s,g.generation,down_sent);')).Count -ne 2 -or
+       -not $motion.Contains('if(require_existing_foreground&&(!desktop()||!set.owns(source)||GetForegroundWindow()!=set.frames[source].hwnd))')){
+        throw 'Nonactivating START failure or motion cannot reach the old unqualified UP or a no-longer-foreground target.'
+    }
+    foreach($fact in @('bool require_existing_foreground=false',
+        'strict_ready=cache_bound&&g.generation&&member==0&&shield_actual&&foreground==source&&foreground_gui_known;',
+        'if(require_existing_foreground){',
+        'if(!strict_ready||!desktop()||!s.left||s.left_up_attempted||!set.owns(0)||set.frames[0].hwnd!=strict_source||',
+        'GetForegroundWindow()!=strict_source||!s.process||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT||',
+        'GetProcessId(s.process)!=s.product_pid||process_birth(s.process)!=s.product_evidence.birth()||',
+        'GetWindowThreadProcessId(strict_source,&source_pid)!=set.thread||source_pid!=GetCurrentProcessId()||',
+        'GetWindowThreadProcessId(strict_overlay,&overlay_pid)!=strict_overlay_tid||!strict_overlay_tid||overlay_pid!=s.product_pid||',
+        '(hit_root!=strict_source&&hit_root!=strict_overlay)||!GetGUIThreadInfo(set.thread,&source_gui)||',
+        '!GetGUIThreadInfo(strict_overlay_tid,&overlay_gui)||source_gui.hwndCapture!=strict_overlay||',
+        'overlay_gui.hwndCapture!=strict_overlay||!idle(source_gui)||!idle(overlay_gui))',
+        'throw std::runtime_error("layout_nonactivating_unique_UP_destination_unknown_pending_retained");')){
+        if(-not $up.Contains($fact)){throw ('The unique successor UP needs actual exact-generation source and capture routing before send: '+$fact)}
+    }
+    if(-not $recovery.Contains('bool require_existing_foreground=false') -or
+       -not $recovery.Contains('layout_down(set,0,HTCAPTION,false,require_existing_foreground);') -or
+       -not $recovery.Contains('layout_down(set,0,HTBOTTOM,false,require_existing_foreground);') -or
+       [regex]::Matches($recovery,[regex]::Escape('layout_up(set,next,actual,require_existing_foreground);')).Count -ne 2 -or
+       -not $recovery.Contains('"I08_recovery_actual_Move_exact",require_existing_foreground)') -or
+       -not $recovery.Contains('"I08_recovery_actual_Resize_exact",require_existing_foreground)')){
+        throw 'Both actual successor Move and Resize must carry the same nonactivating mode through DOWN, movement and unique UP.'
+    }
+}
+$interruptionRecoverySource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_interruptions.h'),[Text.Encoding]::UTF8)
+Assert-V1DisconnectNonactivatingRecovery $layoutSource $interruptionRecoverySource
+Check $true 'static disconnect successors keep exact existing foreground through both Move and Resize and reject unknown unique-UP destinations'
+Reject {Assert-V1DisconnectNonactivatingRecovery ($layoutSource.Replace('!require_existing_foreground&&SetForegroundWindow(h)!=FALSE','SetForegroundWindow(h)!=FALSE')) $interruptionRecoverySource} 'static disconnect successor cannot activate its source to manufacture recovery'
+Reject {Assert-V1DisconnectNonactivatingRecovery ($layoutSource.Replace('if(require_existing_foreground||preparation||','if(preparation||')) $interruptionRecoverySource} 'static disconnect rejection cannot fall through to the old activating reprepare'
+Reject {Assert-V1DisconnectNonactivatingRecovery ($layoutSource.Replace('if(!require_existing_foreground)layout_failed_start_release(s,g.generation,down_sent);','layout_failed_start_release(s,g.generation,down_sent);')) $interruptionRecoverySource} 'static disconnect failed START cannot issue an unqualified fallback UP'
+Reject {Assert-V1DisconnectNonactivatingRecovery ($layoutSource.Replace('if(!strict_ready||!desktop()||!s.left||s.left_up_attempted||','if(!desktop()||!s.left||s.left_up_attempted||')) $interruptionRecoverySource} 'static missing or retired capture facts cannot authorize a successor UP'
+Reject {Assert-V1DisconnectNonactivatingRecovery $layoutSource ($interruptionRecoverySource.Replace('layout_up(set,next,actual,require_existing_foreground);','layout_up(set,next,actual);'))} 'static successor UP cannot silently drop the nonactivating mode'
+function Assert-V1StandardControlsWiring([string]$Fixture,[string]$Controls,[string]$Prepare,[string]$Guest){
+    $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
+    $case=Get-V1FixtureFunctionText $Controls 'owned_standard_controls_case'
+    $scope=[regex]::Match($entry,'(?s)if\(s\.suite=="StandardControlsOnly"\)\{(?<body>.*?)return;\s*\}')
+    if(-not $scope.Success -or [regex]::Matches($scope.Value,'\bphase\s*\(').Count -ne 1 -or
+       -not $scope.Value.Contains('phase("actual_owned_standard_controls_transparency",owned_standard_controls_case);') -or
+       -not $scope.Value.Contains('cleanup(s);') -or
+       -not $Fixture.Contains('#include "platform/windows/product/v1_guest_standard_controls_case.h"') -or
+       -not $Fixture.Contains('if(standard_controls_ui_message(h,message,wp,lp))return 0;') -or
+       -not $Fixture.Contains('else if(value==L"StandardControlsOnly")s.suite="StandardControlsOnly";') -or
+       [regex]::Matches($Fixture,'s\.suite!="StandardControlsOnly"').Count -ne 2 -or
+       -not $Prepare.Contains("'StandardControlsOnly'") -or -not $Guest.Contains("'StandardControlsOnly'")){
+        throw 'The actual standard-controls case needs its exact guest/parser/manifest/UI-procedure and single-phase wiring.'
+    }
+    $positive=$case.IndexOf('layout_phase(set,0,gesture,24,17,{moved},"standard_controls_same_root_actual_title_Move");',[StringComparison]::Ordinal)
+    $normalUp=$case.IndexOf('layout_up(set,gesture,{moved});',[StringComparison]::Ordinal)
+    $controlsAt=$case.IndexOf('standard_controls_request(u,1)',[StringComparison]::Ordinal)
+    if($positive -lt 0 -or $normalUp -le $positive -or $controlsAt -le $normalUp){
+        throw 'Zero-write controls must belong to the same root already admitted by an actual enhanced Move and normal UP.'
+    }
+    foreach($fact in @('header->code==TCN_SELCHANGE&&u.exact_child(u.tab)',
+        'HIWORD(w)==BN_CLICKED&&','reinterpret_cast<HWND>(l)==u.button&&u.exact_child(u.button)',
+        'u->tab_changes.load()==1&&u->tab_selection.load()==1',
+        'u->button_clicks.load()==1','standard_controls_click(s,u,u->edit,2,from,to);',
+        'SendMessageTimeoutW(u->edit,EM_GETSEL,0,0,','LOWORD(selection)==0&&HIWORD(selection)==3',
+        'u->menu_commands.load()==1&&','number(status,"\"native_callsite_claims\":")==claims&&',
+        'visible(u->root)==moved&&standard_controls_idle(*u)',
+        'row.find("\"type\":\"gesture_start\"")','row.find("\"native_attempted\":true")')){
+        if(-not $Controls.Contains($fact)){throw ('Native child notifications and no-enhancement evidence cannot be replaced by injection success: '+$fact)}
+    }
+    if($Controls -match '\b(?:SendMessage(?:Timeout)?W?|PostMessageW?)\s*\([^;]*\b(?:WM_COMMAND|WM_NOTIFY|BM_CLICK|TCM_SETCURSEL|EM_SETSEL)\b'){
+        throw 'Actual control activation cannot be synthesized as a notification or selection-setting message.'
+    }
+}
+$standardControlsSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_standard_controls_case.h'),[Text.Encoding]::UTF8)
+Assert-V1StandardControlsWiring $fixtureSource $standardControlsSource $lifecyclePrepare $lifecycleGuest
+Check $true 'static standard-controls suite reuses a genuinely enhanced root before native notifications, selection and zero-product-write checks'
+Reject {Assert-V1StandardControlsWiring $fixtureSource ($standardControlsSource.Replace('layout_phase(set,0,gesture,24,17,{moved},"standard_controls_same_root_actual_title_Move");','')) $lifecyclePrepare $lifecycleGuest} 'static an unqualified or wholly excluded root cannot masquerade as native-input transparency'
+Reject {Assert-V1StandardControlsWiring $fixtureSource ($standardControlsSource.Replace('u->tab_changes.load()==1&&u->tab_selection.load()==1','true')) $lifecyclePrepare $lifecycleGuest} 'static tab success requires an actual native notification and changed selection'
+Reject {Assert-V1StandardControlsWiring $fixtureSource ($standardControlsSource.Replace('number(status,"\"native_callsite_claims\":")==claims&&','true&&')) $lifecyclePrepare $lifecycleGuest} 'static standard controls cannot infer zero product writes from their own input return'
 function Assert-V1StandardLogonIdentityWiring([string]$Probe,[string]$Guest){
     $start=$Guest.IndexOf('    if($standardLogonIdentity){',[StringComparison]::Ordinal)
     $end=$Guest.IndexOf('    if($probeDesktop -and -not $standardNativeClients -and -not $standardLogonIdentity){',$start,[StringComparison]::Ordinal)

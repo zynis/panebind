@@ -403,7 +403,7 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
     const auto offset=read_product(s).size();STARTUPINFOW startup{};startup.cb=sizeof(startup);PROCESS_INFORMATION child{};
     const DWORD flags=CREATE_NO_WINDOW|CREATE_SUSPENDED;
     if(!CreateProcessW(self.data(),command.data(),nullptr,nullptr,FALSE,flags,nullptr,s.output.c_str(),&startup,&child))throw std::runtime_error("I08_actor_create_failed");
-    Handle child_process(child.hProcess),child_thread(child.hThread);bool test_up=false,actor_stop_attempted=false,actor_send_count_known=false,actor_resumed=false;
+    Handle child_process(child.hProcess),child_thread(child.hThread);bool test_up=false,cleanup_checked=false,actor_stop_attempted=false,actor_send_count_known=false,actor_resumed=false;
     std::uint64_t actor_inserted{};
     const auto child_birth=process_birth(child_process.value);
     const auto stop_test_actor=[&]{
@@ -723,34 +723,49 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
             "\"actual_DOWN\":"+quote(actual_down)+",\"actual_native_receipt\":"+quote(native));
         std::string ended;const bool terminal=wait([&]{ended=record(s,offset,"gesture_end",g.generation);
             return !ended.empty()||!set.owns(0)||GetForegroundWindow()!=source||!actual_up(s,offset,g.generation).empty();},35000);
+        // A foreground event can precede the GUI's real terminal receipt.
+        // Observe that receipt once within a finite bound; never infer End2
+        // or a root cause from the foreground change itself.
+        if(disconnect&&ended.empty())(void)wait([&]{ended=record(s,offset,"gesture_end",g.generation);return !ended.empty();},1500);
         const auto before_tick=number(actor,"\"before_tick\":"),end_tick=number(ended,"\"tick\":");
-        s.log.check("I08_input_actor_exit_real_default_30s_Deadline",terminal&&set.owns(0)&&GetForegroundWindow()==source&&s.left&&actual_up(s,offset,g.generation).empty()&&
+        const bool actual_deadline=terminal&&set.owns(0)&&GetForegroundWindow()==source&&s.left&&actual_up(s,offset,g.generation).empty()&&
             number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::Deadline)&&ended.find("\"normal_up\":false")!=std::string::npos&&
-            ended.find("\"pending_retired\":true")!=std::string::npos&&before_tick&&end_tick>=before_tick&&end_tick-before_tick>=30000,
-            "\"generation\":"+std::to_string(g.generation)+",\"configured_production_deadline_ms\":30000,\"actor_before_SendInput_tick\":"+
+            ended.find("\"pending_retired\":true")!=std::string::npos&&before_tick&&end_tick>=before_tick&&end_tick-before_tick>=30000;
+        namespace e=product::guest::up_evidence_detail;
+        const bool interrupted_focus=disconnect&&geometry_history_receipt(s,ended,"gesture_end")&&
+            e::number(ended,"\"generation\":")==g.generation&&e::number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::FocusLost)&&
+            e::unique_value(ended,"\"normal_up\":")=="false"&&e::unique_value(ended,"\"pending_retired\":")=="true";
+        const std::string deadline_fields="\"generation\":"+std::to_string(g.generation)+",\"configured_production_deadline_ms\":30000,\"actor_before_SendInput_tick\":"+
             std::to_string(before_tick)+",\"actual_end_tick\":"+std::to_string(end_tick)+",\"actual_elapsed_ms\":"+
             (end_tick>=before_tick?std::to_string(end_tick-before_tick):"null")+",\"actual_end\":"+quote(ended)+
             ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
-            ",\"physical_button_held_not_inferred\":true,\"driver_notification_not_fabricated\":true");
+            ",\"physical_button_held_not_inferred\":true,\"driver_notification_not_fabricated\":true";
+        if(interrupted_focus){
+            s.log.failed=true; // The original 30-second assertion still FAILS.
+            s.log.emit("case","\"case\":\"I08_input_actor_exit_real_default_30s_Deadline\",\"result\":\"FAIL\","+deadline_fields);
+            s.log.emit("I08_disconnect_terminal_classification","\"status\":\"ACTUAL_FOCUS_LOST_DEFAULT_DEADLINE_NOT_OBSERVED\",\"initiator_or_root_cause\":\"UNKNOWN\","
+                "\"recovery\":\"NOT_RUN\",\"failure_preserved\":true,\"new_input_authority\":false");
+        }else s.log.check("I08_input_actor_exit_real_default_30s_Deadline",actual_deadline,deadline_fields);
         const auto calls=[&]{const auto rows=constraint_generation_placements(s,offset,g.generation);return std::count_if(rows.begin(),rows.end(),[](const auto& row){return row.find("\"native_callsite_claimed\":true")!=std::string::npos;});};
         const auto baseline=calls();const auto barrier=constraint_last_product_sequence(s);
         if(!disconnect)cursor(s,{point->x-11,point->y+47});
         const auto status_offset=read_product(s).size();
-        s.log.check("I08_actor_Deadline_no_new_native_calls",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);})&&
+        s.log.check(interrupted_focus?"I08_actor_FocusLost_no_new_native_calls":"I08_actor_Deadline_no_new_native_calls",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);})&&
             calls()==baseline&&baseline>0&&visible(source)==moved);
-        // This UP is a test cleanup action after actual Deadline, not product
+        // This UP is a test cleanup action after actual termination, not product
         // NormalUp, a replay, or a product recovery feature.
-        if(disconnect)s.log.check("I08_disconnect_single_supervisor_abort_UP_observed",
-            input_actor_disconnect_cleanup_up(s,set,offset,g.generation,test_up));
+        if(disconnect){cleanup_checked=true;s.log.check("I08_disconnect_single_supervisor_abort_UP_observed",
+            input_actor_disconnect_cleanup_up(s,set,offset,g.generation,test_up));}
         else{button(s,false);test_up=true;}
         s.log.check("I08_actor_test_UP_sent_and_native_resources_idle",wait([&]{GUITHREADINFO gui{sizeof(gui)};return !s.left&&
             set.owns(0)&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;})&&calls()==baseline&&
             record(s,offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos,
             "\"actual_matching_product_UP\":"+(actual_up(s,offset,g.generation).empty()?"null":quote(actual_up(s,offset,g.generation)))+
             ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"UP_delivery_not_inferred\":true,\"not_NormalUp\":true");
-        interruption_idle(s,set,true);chain_check_product(s,product_pid,product_birth);interruption_recovery(s,set,g.generation);
+        interruption_idle(s,set,true);chain_check_product(s,product_pid,product_birth);interruption_recovery(s,set,g.generation,disconnect);
         chain_check_product(s,product_pid,product_birth);
-        s.log.emit("I08_input_actor_exit_scope","\"status\":\"INPUT_ACTOR_EXIT_DEADLINE_AND_RECOVERY_OBSERVED\",\"source_destroyed\":false,\"product_driver_channel\":false,"
+        s.log.emit("I08_input_actor_exit_scope","\"status\":"+quote(interrupted_focus?"PARTIAL_ACTOR_EXIT_FOCUS_LOST_ABORT_UP_AND_RECOVERY_OBSERVED":"INPUT_ACTOR_EXIT_DEADLINE_AND_RECOVERY_OBSERVED")+
+            ",\"default_30s_Deadline_observed\":"+(actual_deadline?"true":"false")+",\"original_failure_preserved\":"+(interrupted_focus?"true":"false")+",\"source_destroyed\":false,\"product_driver_channel\":false,"
             "\"actual_main_fixture_test_UP\":true,\"same_product_new_Move_Resize\":true,\"whole_I08_PASS\":false,\"human_uat\":\"NOT_RUN\""+
             std::string(disconnect?",\"actual_input_child_exit_and_packet_immutability_observed\":true,\"recovery_input_sender\":\"original_supervisor\",\"new_input_actor_Move_Resize\":\"NOT_RUN\"":""));
     }catch(...){
@@ -778,7 +793,7 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
                 observed_down.find("\"kind\":\"DOWN\"")!=observed_down.npos&&down_qpc>s.left_down_send_qpc&&down_qpc>s.left_up_send_qpc&&!s.left){
                 s.left_up_attempted=false;s.left=true;s.left_down_send_qpc=down_qpc;}
             const bool actor_down_possible=actor_resumed&&(s.left||!actor_send_count_known||actor_inserted>=1);
-            if(disconnect&&!test_up&&actor_down_possible){
+            if(disconnect&&!cleanup_checked&&!test_up&&actor_down_possible){
                 const bool observed=input_actor_disconnect_cleanup_up(s,set,offset,generation,test_up);
                 s.log.emit("I08_disconnect_failed_scope_cleanup","\"single_test_UP_attempted\":"+std::string(test_up?"true":"false")+
                     ",\"actual_abort_UP_observed\":"+(observed?"true":"false")+",\"functional_PASS\":false");

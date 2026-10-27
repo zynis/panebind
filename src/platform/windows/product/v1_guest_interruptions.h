@@ -55,18 +55,20 @@ void interruption_idle(State& s,LayoutFixtures& set,bool enabled){
         ",\"resident_hook_expected_until_final_product_exit\":true,\"full_shutdown_not_inferred\":true");
     chain_preview_hidden(s,"I08_actual_gesture_overlay_hidden");
 }
-void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
+void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired,bool require_existing_foreground=false){
     std::vector<Rect> actual;
     for(std::size_t n=0;n<set.active;++n){const auto r=visible(set.frames[n].hwnd);
         if(!set.owns(n)||!r)throw std::runtime_error("I08_recovery_actual_member_identity_unknown");actual.push_back(*r);}
-    auto next=layout_down(set,0,HTCAPTION,false);
+    auto next=layout_down(set,0,HTCAPTION,false,require_existing_foreground);
     s.log.check("I08_recovery_new_generation",next.generation>retired);
-    actual[0]=translated(actual[0],35,25);layout_phase(set,0,next,35,25,actual,"I08_recovery_actual_Move_exact");layout_up(set,next,actual);
-    next=layout_down(set,0,HTBOTTOM,false);actual[0].b+=24;
-    layout_phase(set,0,next,0,24,actual,"I08_recovery_actual_Resize_exact");layout_up(set,next,actual);
+    actual[0]=translated(actual[0],35,25);layout_phase(set,0,next,35,25,actual,"I08_recovery_actual_Move_exact",require_existing_foreground);layout_up(set,next,actual,require_existing_foreground);
+    next=layout_down(set,0,HTBOTTOM,false,require_existing_foreground);actual[0].b+=24;
+    layout_phase(set,0,next,0,24,actual,"I08_recovery_actual_Resize_exact",require_existing_foreground);layout_up(set,next,actual,require_existing_foreground);
     // Remove the legitimate edge-hover stretch preview with a real released
     // cursor movement, rather than calling a product UI cleanup handler.
     const HWND h=set.frames[0].hwnd;RECT client{};POINT point{};
+    if(require_existing_foreground&&(!desktop()||!set.owns(0)||GetForegroundWindow()!=h))
+        throw std::runtime_error("I08_nonactivating_recovery_client_foreground_not_current");
     if(!GetClientRect(h,&client))throw std::runtime_error("I08_recovery_client_unknown");
     point={(client.left+client.right)/2,(client.top+client.bottom)/2};
     if(!ClientToScreen(h,&point))throw std::runtime_error("I08_recovery_client_screen_unknown");cursor(s,point);

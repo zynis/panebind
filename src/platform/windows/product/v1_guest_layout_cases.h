@@ -339,10 +339,14 @@ void layout_failed_start_release(State& s,std::uint64_t generation,bool down_sen
         ",\"test_Control_UP_sent\":"+(control_sent?"true":"false")+",\"released_state_observed\":"+(released?"true":"false")+
         ",\"error\":"+quote(error)+",\"queued_NC_input_dispatched_before_release\":false,\"product_NormalUp_or_fallback_PASS_inferred\":false");
 }
-Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl){
+Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl,bool require_existing_foreground=false){
     auto& s=set.state;if(source>=set.active||!set.owns(source)||s.left||s.control)throw std::runtime_error("layout_source_not_exact_or_input_busy");
     const HWND h=set.frames[source].hwnd;
-    s.log.check("layout_exact_source_foreground",SetForegroundWindow(h)&&wait([&]{return GetForegroundWindow()==h;}));
+    const bool foreground_return=!require_existing_foreground&&SetForegroundWindow(h)!=FALSE;
+    s.log.check("layout_exact_source_foreground",require_existing_foreground?desktop()&&GetForegroundWindow()==h:
+        foreground_return&&wait([&]{return GetForegroundWindow()==h;}),
+        "\"require_existing_foreground\":"+std::string(require_existing_foreground?"true":"false")+
+        ",\"SetForegroundWindow_called\":"+(require_existing_foreground?"false":"true"));
     const auto point=layout_hit(set,source,region);if(!point)throw std::runtime_error("layout_real_requested_HT_region_unavailable");
     const auto original_visible=visible(h);RECT original_positioning{};
     if(!original_visible||!GetWindowRect(h,&original_positioning))throw std::runtime_error("layout_pre_DOWN_geometry_unknown");
@@ -352,6 +356,8 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
         // the product's synchronous queries. No Sleep/key/launch gap after it.
         if(ctrl)key(s,VK_CONTROL,true);g.offset=read_product(s).size();
         for(unsigned preparation=0;preparation<2;++preparation){
+            if(require_existing_foreground&&(!desktop()||!set.owns(source)||GetForegroundWindow()!=h))
+                throw std::runtime_error("layout_nonactivating_source_not_current_foreground");
             cursor(s,*point);const auto hover=GetTickCount64();
             (void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
             const bool exact=set.owns(source);const auto actual_visible=visible(h);RECT actual_positioning{};
@@ -390,7 +396,7 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
             // One bounded repair of exact TEST-owned foreground/hover setup,
             // never a retry after input. Identity/geometry/native-context
             // failures cannot be accepted as a new preparation baseline.
-            if(preparation||!exact||!geometry_unchanged||!native_idle||!set.owns(source))
+            if(require_existing_foreground||preparation||!exact||!geometry_unchanged||!native_idle||!set.owns(source))
                 throw std::runtime_error("layout_source_or_hover_hit_changed_before_DOWN");
             const bool foreground_return=SetForegroundWindow(h)!=FALSE;
             const bool foreground_observed=layout_wait_sent([&]{return GetForegroundWindow()==h;},1000);
@@ -407,7 +413,7 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
                     if(observed.owner_succeeded)observed.mode=product::GuiContextMode::OwnerThread;return observed;});
             return false;},3500);
         start=record(s,g.offset,"gesture_start",g.generation);
-    }catch(...){layout_failed_start_release(s,g.generation,down_sent);throw;}
+    }catch(...){if(!require_existing_foreground)layout_failed_start_release(s,g.generation,down_sent);throw;}
     GUITHREADINFO native{sizeof(native)};const bool native_read=GetGUIThreadInfo(set.thread,&native)!=FALSE;
     POINT actual_cursor{};const bool cursor_known=GetCursorPos(&actual_cursor)!=FALSE;
     const HWND hit=cursor_known?WindowFromPoint(actual_cursor):nullptr,hit_root=hit?GetAncestor(hit,GA_ROOT):nullptr;
@@ -453,12 +459,13 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
             }
             cached_snapshot_parsed=cached_snapshot_available;
         }catch(...){/* Evidence read failure must not bypass the one real cleanup UP. */}
-        layout_failed_start_release(s,g.generation,down_sent);
+        if(!require_existing_foreground)layout_failed_start_release(s,g.generation,down_sent);
         if(facts.empty())facts="\"receipt_fields_unavailable\":true";
         s.log.emit("layout_start_failure_actual_native_receipts",facts+
             ",\"cached_snapshot_available\":"+(cached_snapshot_available?"true":"false")+
             ",\"cached_snapshot_parse_complete\":"+(cached_snapshot_parsed?"true":"false")+
-            ",\"pre_UP_physical_log_read\":false,\"emit_after_cleanup_attempt\":true,\"missing_later_receipts_remain_unknown\":true");
+            ",\"pre_UP_physical_log_read\":false,\"emit_after_cleanup_attempt\":"+(require_existing_foreground?"false":"true")+
+            ",\"nonactivating_UP_fallback_refused\":"+(require_existing_foreground?"true":"false")+",\"missing_later_receipts_remain_unknown\":true");
     }
     s.log.check("layout_real_DOWN_production_start",accepted,
         "\"source\":"+std::to_string(source)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
@@ -475,11 +482,13 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
         ",\"actual_hit_root\":"+std::to_string(capture.hit_root)+",\"ready_not_retired\":"+(capture.not_retired?"true":"false")+
         ",\"actual_native_modal_starts\":"+std::to_string(set.frames[source].starts.load())+",\"production_start\":"+quote(start));return g;
 }
-void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG dx,LONG dy,const std::vector<Rect>& expected,std::string name){
+void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG dx,LONG dy,const std::vector<Rect>& expected,std::string name,bool require_existing_foreground=false){
     auto& s=set.state;if(expected.size()!=set.active)throw std::runtime_error("layout_expected_member_count");
     std::vector<Rect> before;for(std::size_t n=0;n<set.active;++n){const auto actual=visible(set.frames[n].hwnd);
         if(!set.owns(n)||!actual)throw std::runtime_error("layout_member_identity_or_frame_lost");before.push_back(*actual);}
     Sleep(60);refuse_observed_terminal_motion(s,g);
+    if(require_existing_foreground&&(!desktop()||!set.owns(source)||GetForegroundWindow()!=set.frames[source].hwnd))
+        throw std::runtime_error("layout_nonactivating_motion_foreground_not_current");
     const auto mark=read_product(s).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});
     const bool exact=wait([&]{
         for(std::size_t n=0;n<set.active;++n){
@@ -493,7 +502,7 @@ void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG d
         ",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(set.frames[n].hwnd))+",\"expected\":"+rect(expected[n])+
         ",\"actual\":"+rect(*visible(set.frames[n].hwnd)));
 }
-void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& expected){
+void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& expected,bool require_existing_foreground=false){
     auto& s=set.state;
     // Do not perform physical evidence reads or log writes while preparing
     // this unique UP. The already-validated cache identifies THIS layout's
@@ -503,6 +512,7 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         s.product_evidence.birth()==process_birth(s.process);
     const auto mark=cache_bound?s.product_evidence.text().size():std::size_t{};
     GuestUpHookObservation head;const bool head_ready=head.start();
+    HWND strict_source{},strict_overlay{};DWORD strict_overlay_tid{};bool strict_ready=false;
     std::string snapshot="{\"status\":\"UNKNOWN\",\"reason\":\"pre_UP_snapshot_not_completed\"}";
     try{
         std::string ready;bool retired=false;
@@ -541,6 +551,8 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
             ready.find("\"capture_attempted\":true")!=ready.npos&&ready.find("\"capture_failure\":0,")!=ready.npos&&
             ready.find("\"attach_succeeded\":true")!=ready.npos&&source_gui_known&&owner_gui_known&&
             source_gui.hwndCapture==overlay&&owner_gui.hwndCapture==overlay;
+        strict_source=source;strict_overlay=overlay;strict_overlay_tid=overlay_tid;
+        strict_ready=cache_bound&&g.generation&&member==0&&shield_actual&&foreground==source&&foreground_gui_known;
         snapshot="{\"cache_bound\":"+std::string(cache_bound?"true":"false")+",\"exact_layout_source\":"+(exact_source?"true":"false")+
             ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source))+",\"source_PID\":"+std::to_string(source_pid)+",\"source_TID\":"+std::to_string(source_tid)+
             ",\"actual_cursor\":"+(cursor_known?"["+std::to_string(point.x)+","+std::to_string(point.y)+"]":"null")+
@@ -555,7 +567,7 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
             ",\"overlay\":"+std::to_string(reinterpret_cast<std::uintptr_t>(overlay))+",\"overlay_PID\":"+std::to_string(overlay_pid)+",\"overlay_TID\":"+std::to_string(overlay_tid)+
             ",\"overlay_owner_GUI_known\":"+(owner_gui_known?"true":"false")+",\"overlay_owner_capture\":"+(owner_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(owner_gui.hwndCapture)):"null")+
             ",\"exact_current_shield_capture_observed\":"+(shield_actual?"true":"false")+",\"cached_ready_not_retired\":"+(!ready.empty()&&!retired?"true":"false")+"}";
-    }catch(...){/* UNKNOWN snapshot never prevents the original unique UP. */}
+    }catch(...){strict_ready=false;/* The old mode keeps its original unique UP; the new mode rejects UNKNOWN. */}
     bool observation_logged=false,up_returned=false;
     const auto emit_observation=[&](bool stopped,bool exceptional){
         s.log.emit("layout_single_UP_route_observation","\"generation\":"+std::to_string(g.generation)+
@@ -566,6 +578,23 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
             ",\"pre_UP_physical_log_IO\":false,\"extra_input_sent\":false,\"product_NormalUp_or_delivery_PASS_inferred\":false");observation_logged=true;
     };
     try{
+        if(require_existing_foreground){
+            POINT point{};DWORD source_pid{},overlay_pid{};GUITHREADINFO source_gui{sizeof(source_gui)},overlay_gui{sizeof(overlay_gui)};
+            const bool cursor_known=GetCursorPos(&point)!=FALSE;
+            const HWND hit_root=cursor_known?GetAncestor(WindowFromPoint(point),GA_ROOT):nullptr;
+            const auto idle=[](const GUITHREADINFO& gui){return !gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+                !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));};
+            if(!strict_ready||!desktop()||!s.left||s.left_up_attempted||!set.owns(0)||set.frames[0].hwnd!=strict_source||
+               GetForegroundWindow()!=strict_source||!s.process||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT||
+               GetProcessId(s.process)!=s.product_pid||process_birth(s.process)!=s.product_evidence.birth()||
+               GetWindowThreadProcessId(strict_source,&source_pid)!=set.thread||source_pid!=GetCurrentProcessId()||
+               GetWindowThreadProcessId(strict_overlay,&overlay_pid)!=strict_overlay_tid||!strict_overlay_tid||overlay_pid!=s.product_pid||
+               !IsWindow(strict_overlay)||GetAncestor(strict_overlay,GA_ROOT)!=strict_overlay||
+               (hit_root!=strict_source&&hit_root!=strict_overlay)||!GetGUIThreadInfo(set.thread,&source_gui)||
+               !GetGUIThreadInfo(strict_overlay_tid,&overlay_gui)||source_gui.hwndCapture!=strict_overlay||
+               overlay_gui.hwndCapture!=strict_overlay||!idle(source_gui)||!idle(overlay_gui))
+                throw std::runtime_error("layout_nonactivating_unique_UP_destination_unknown_pending_retained");
+        }
         button(s,false);up_returned=true;if(s.control)key(s,VK_CONTROL,false);
         const bool matching=wait([&]{return !actual_up(s,mark,g.generation).empty()&&record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;});
         const bool stopped=head.stop();emit_observation(stopped,false);
