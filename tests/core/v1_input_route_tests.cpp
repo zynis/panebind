@@ -45,6 +45,7 @@ int main() {
     native_down.source.visible={100,100,360,460};native_down.source.positioning={93,100,367,467};
     native_down.source.work={0,0,1920,1080};native_down.region=0;
     product::prepare_mappings(native_down,v1::default_settings());
+    {
     // Actual UP -> same-point second DOWN while the GUI refresh is delayed.
     // The production hook publishes this same preallocated/CAS path; no test
     // adapter can simply declare a stale cache to be ordinary preparation.
@@ -145,6 +146,7 @@ int main() {
     request_generation=81;
     check(!product::capture_request_generation_current(80,request_generation),
           "nested UP then DOWN during the read-only query prevents old failure cleanup from revoking the new generation");
+    }
     // Same pure match that InputService::push uses after the real GUI-only
     // guest proof. This does not assert that a native guest ran or a queue filled.
     product::GuestQueueFailurePermit fault_permit{true,61,native_down.source,"0123456789abcdef0123456789abcdef","hash"};
