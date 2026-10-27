@@ -76,7 +76,7 @@ void owned_driver_disconnect_case(State& s){
     owned_input_actor_exit_transport(s,set,pid,birth,true);
     chain_check_product(s,pid,birth);chain_gui_save(s,original);
     s.log.check("I08_disconnect_exact_fixture_resources_closed",set.close());chain_check_product(s,pid,birth);
-    s.log.emit("I08_disconnect_scope_complete","\"result\":\"REAL_INPUT_CHILD_PIPE_DISCONNECT_AND_SUPERVISOR_RECOVERY_OBSERVED\","
+    s.log.emit("I08_disconnect_scope_complete","\"result\":\"REAL_INPUT_CHILD_EXIT_PACKET_IMMUTABLE_AND_SUPERVISOR_RECOVERY_OBSERVED\","
         "\"same_product_PID\":"+std::to_string(pid)+",\"same_product_birth\":"+std::to_string(birth)+
         ",\"source_and_product_kept_alive_during_disconnect\":true,\"supervisor_new_Move_Resize\":true,"
         "\"new_input_actor_Move_Resize\":\"NOT_RUN\",\"product_DriverDisconnected_event\":\"NOT_IMPLEMENTED_NOT_INFERRED\","

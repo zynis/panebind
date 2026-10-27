@@ -3702,3 +3702,23 @@ boundary, not an invented writer.stop timestamp. Final summaries must preserve
 missing origins and unfinished calls. Configuration-chain tests reuse the
 existing visible settings UI and exact test-owned files. All new runtime
 claims require separately identified guest evidence; build success is not PASS.
+
+The first isolated pipe case was not executed past transport creation. Run
+`653b47c7ba21469eb44a6007612e8653` subsequently recorded CreatePipe FALSE and
+immediate error 5 with default security, before any child creation or actor
+DOWN/MOVE. This proves that attempt was denied, not a unique Sandbox/kernel
+root cause or a product failure. Its earlier incomplete failure is retained.
+The next TEST revision replaces that newly added transport, rather than trying
+new security settings: one exact fresh 96-byte Run completion file plus the
+already used named ready/ack events and held child-process identity. Actual
+write/flush/close, unchanged bytes/hash and real child exit are separate facts;
+the product has no driver-disconnection protocol. No token/DACL/account or
+product input/writer change is introduced, and no UP is invented.
+The official [CreateFileW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew),
+[FlushFileBuffers](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers)
+and [GetFileInformationByHandle](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle)
+contracts were actually read for this replacement. CREATE_NEW does not overwrite
+an existing Run file; flush success does not imply close or reader delivery.
+The held read-only handle denies write/delete sharing, and actual file identity,
+bytes/hash and child process exit are independently checked. The original pinned
+prior-art reviews remain reference-only. No external implementation was reused.

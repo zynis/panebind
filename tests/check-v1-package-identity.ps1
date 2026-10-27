@@ -1098,7 +1098,7 @@ function Assert-V1MappingRemainderWiring([string]$Fixture,[string]$Mapping,[stri
        -not $hotkeyScope.Value.Contains('cleanup(s);') -or -not $hotkeyScope.Value.Contains('hotkey_remainder_only_summary') -or
        $hotkeyScope.Value.Contains('owned_mapping_regions_case') -or $hotkeyScope.Value.Contains('owned_mapping_modifier_double_case') -or
        -not $drive.Contains('s.suite=="HotkeyRemainderOnly"') -or -not $gate.Contains('s.suite!="HotkeyRemainderOnly"') -or
-       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
+       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly"||s.suite=="NativeConstraintOnly"||s.suite=="VisualLifecycleChainOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
        -not $Mapping.Contains('s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"')){
         throw 'Hotkey-only continuation must reach only its actual remaining phase with the same released-input guest gate and cleanup.'
     }
@@ -1152,7 +1152,7 @@ function Assert-V1TargetedAccountingRecoveryWiring([string]$Fixture,[string]$Tim
     foreach($case in @(
         @('TimingBoundaryOnly','real_mapped_origin_and_final_stop_accounting','owned_timing_boundary_case','timing_boundary'),
         @('ConfigurationChainOnly','same_product_configuration_exclusion_import_and_corrupt_recovery_chain','owned_configuration_chain_case','configuration_chain'),
-        @('DriverDisconnectOnly','actual_input_actor_pipe_disconnect_and_supervisor_successor','owned_driver_disconnect_case','driver_disconnect'))){
+        @('DriverDisconnectOnly','actual_input_actor_exit_packet_immutability_and_supervisor_successor','owned_driver_disconnect_case','driver_disconnect'))){
         $suite=$case[0];$name=$case[2]
         $scope=[regex]::Match($entry,('(?s)if\(s\.suite=="'+[regex]::Escape($suite)+'"\)\{(?<body>.*?)return;\s*\}'))
         if(-not $scope.Success -or [regex]::Matches($scope.Groups['body'].Value,'\bphase\s*\(').Count -ne 1 -or
@@ -1183,10 +1183,25 @@ function Assert-V1TargetedAccountingRecoveryWiring([string]$Fixture,[string]$Tim
     if(-not $Settings.Contains('void settings_guest_exclusion(State& s){settings_guest_exclusion(s,nullptr);}') -or
        -not $Settings.Contains('if(while_excluded)while_excluded(s);') -or
        -not $Disconnect.Contains('owned_input_actor_exit_transport(s,set,pid,birth,true);') -or
-       -not $Actor.Contains('error==ERROR_BROKEN_PIPE&&bytes==0') -or
        -not $Actor.Contains('input_actor_disconnect_cleanup_up(s,set,offset,g.generation,test_up)') -or
        -not $Actor.Contains('interruption_recovery(s,set,g.generation);')){
-        throw 'Targeted recovery must retain old settings entry, real pipe EOF, actual abort UP and same-process successor.'
+        throw 'Targeted recovery must retain old settings entry, actual abort UP and same-process successor.'
+    }
+    foreach($value in @('static_assert(sizeof(InputActorDisconnectPacket)==96);',
+        'GENERIC_WRITE,0,nullptr,CREATE_NEW,','disconnect_flushed=disconnect_flush_return!=FALSE;',
+        'disconnect_closed=CloseHandle(completion.value)!=FALSE;',
+        'disconnect_created&&disconnect_written&&disconnect_flushed&&disconnect_closed&&disconnect_hash.size()==64',
+        'disconnect_signaled=SetEvent(disconnect_ready.value)!=FALSE;',
+        'process_birth(child_process.value)==child_birth&&immutable',
+        'std::string(after_bytes.data(),after_bytes.size())==packet_before_bytes&&after_hash==packet_before_hash;',
+        'CreateProcessW(self.data(),command.data(),nullptr,nullptr,FALSE,flags',
+        'packet.generation==g.generation&&packet.down_qpc',
+        'number(actor,"\"before_qpc\":")==packet_before_down_qpc',
+        'I08_disconnect_actual_child_packet_completion_receipt')){
+        if(-not $Actor.Contains($value)){throw ('Targeted disconnect lost actual fresh-file completion, exact child exit or immutable identity evidence: '+$value)}
+    }
+    if($Actor -match '\b(CreatePipe|UpdateProcThreadAttribute)\s*\(' -or $Actor.Contains('ERROR_BROKEN_PIPE')){
+        throw 'Targeted disconnect must replace the new pipe dependency, not add a runtime fallback or claim an unobserved EOF.'
     }
 }
 $targetedTiming=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_timing_boundary_case.h'),[Text.Encoding]::UTF8)
@@ -1198,7 +1213,11 @@ Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $target
 Check $true 'static three targeted suites retain finite actual phases, original hotkey release coverage and exact guest/manifest/package gates'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource ($targetedTiming.Replace('e::number(mapped,"\"hook_observed_qpc\":")==e::number(observed_down,"\"hook_observed_qpc\":")','true')) $targetedConfiguration $targetedSettings $targetedActor $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static timing boundary rejects dropping the actual mapped hook origin comparison'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming ($targetedConfiguration.Replace('settings_guest_file_path(s,gui,false,exported);','')) $targetedSettings $targetedActor $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static configuration chain rejects disconnecting the actual saved export import'
-Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('error==ERROR_BROKEN_PIPE&&bytes==0','true')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects replacing actual pipe EOF with a claimed boolean'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('GENERIC_WRITE,0,nullptr,CREATE_NEW,','GENERIC_WRITE,0,nullptr,OPEN_ALWAYS,')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects reusing or overwriting an existing completion packet'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('disconnect_flushed=disconnect_flush_return!=FALSE;','disconnect_flushed=true;')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects a fabricated packet flush'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('disconnect_closed=CloseHandle(completion.value)!=FALSE;','disconnect_closed=true;')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects a fabricated packet close'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('process_birth(child_process.value)==child_birth&&immutable','true')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects dropping held child identity and actual packet immutability'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('std::string(after_bytes.data(),after_bytes.size())==packet_before_bytes&&after_hash==packet_before_hash;','true;')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects replacing actual before/after bytes and hash with a claimed boolean'
 function Assert-V1StandardLogonIdentityWiring([string]$Probe,[string]$Guest){
     $start=$Guest.IndexOf('    if($standardLogonIdentity){',[StringComparison]::Ordinal)
     $end=$Guest.IndexOf('    if($probeDesktop -and -not $standardNativeClients -and -not $standardLogonIdentity){',$start,[StringComparison]::Ordinal)
@@ -2207,4 +2226,89 @@ Reject {
 Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('const bool issued_completion_unknown=writer.has_unconfirmed_native_call();','const bool issued_completion_unknown=writer.has_unconfirmed_native_call();delayed_input_qpc.clear();')) $trayCallbackSource} 'static unfinished native calls cannot be cleared to manufacture a complete timing population'
 Reject {Assert-V1FinalTimingAndTrayRoute $liveResizeApplication ($trayCallbackSource.Replace('event==NIN_SELECT||event==NIN_KEYSELECT||','event==NIN_SELECT||'))} 'static old tray predicate cannot ignore actual v4 keyboard activation'
 Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('const auto route=tray_callback_route(LOWORD(lp));','const auto route=TrayCallbackRoute::Ignored;')) $trayCallbackSource} 'static real tray dispatch cannot diverge from the logged shared predicate'
+function Assert-V1NativeConstraintOnlyWiring([string]$Fixture,[string]$Resize,[string]$Narrow,[string]$Grid,[string]$Prepare,[string]$Guest){
+    $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
+    $branch=[regex]::Match($entry,'(?s)if\(s\.suite=="NativeConstraintOnly"\)\{(?<body>.*?)return;\s*\}')
+    if(-not $branch.Success -or [regex]::Matches($branch.Groups['body'].Value,'\bphase\s*\(').Count -ne 2 -or
+       -not $branch.Value.Contains('phase("actual_maximum_priority_original_DOWN_pullback_and_successor",owned_native_maximum_constraint_case);') -or
+       -not $branch.Value.Contains('phase("actual_native_grid_nonexact_abort_and_successor",owned_native_grid_constraint_only_case);') -or
+       -not $branch.Value.Contains('cleanup(s);') -or $branch.Value.Contains('owned_resize_magnet_case') -or
+       $branch.Value.Contains('owned_fixed_size_resize_case') -or $branch.Value.Contains('owned_active_terminal_burst_case')){
+        throw 'NativeConstraintOnly must execute just shared maximum and actual grid phases, not closed directions/fixed/terminal batches.'
+    }
+    $old=Get-V1FixtureFunctionText $Resize 'owned_resize_magnet_case'
+    $maximum=Get-V1FixtureFunctionText $Narrow 'owned_native_maximum_constraint_case'
+    $shared=Get-V1FixtureFunctionText $Resize 'resize_magnet_maximum_pullback_and_move'
+    $gridPhase=Get-V1FixtureFunctionText $Narrow 'owned_native_grid_constraint_only_case'
+    if(-not $old.Contains('resize_magnet_maximum_pullback_and_move(set,source,work,limit,previous);') -or
+       -not $maximum.Contains('resize_magnet_maximum_pullback_and_move(set,source,work,limit,0);') -or
+       -not $gridPhase.Contains('owned_native_grid_constraint_case(s);') -or
+       -not $Narrow.Contains('s.suite!="NativeConstraintOnly"') -or
+       -not $Fixture.Contains('else if(value==L"NativeConstraintOnly")s.suite="NativeConstraintOnly";') -or
+       [regex]::Matches($Fixture,'s\.suite!="NativeConstraintOnly"').Count -ne 2 -or
+       -not $Prepare.Contains("'NativeConstraintOnly'") -or -not $Guest.Contains("'NativeConstraintOnly'") -or
+       -not $Guest.Contains("elseif(`$Suite -ceq 'NativeConstraintOnly' -or `$Suite -ceq 'VisualLifecycleChainOnly'){[Math]::Min(`$StageTimeoutSeconds,120)}")){
+        throw 'Narrow constraints must share the actual old geometry helpers and exact guest parser/package/finite timeout gates.'
+    }
+    foreach($value in @('const LayoutLimit bounded{120,100,450,work.height()}',
+        'source.l+450','source.l+430','resize_magnet_quantum(set,g,HTRIGHT,70,0,initial,native,{clamped,neighbour}',
+        'resize_magnet_quantum(set,g,HTRIGHT,30,0,initial,native,{pulled,neighbour}',
+        'layout_up(set,g,{pulled,neighbour});','constraint_calls==2&&set.owns(0)&&set.owns(1)',
+        'move.generation>g.generation','layout_up(set,move,{moved,neighbour});')){
+        if(-not $shared.Contains($value)){throw ('Shared maximum lost original native geometry, exact two quanta or real UP/successor: '+$value)}
+    }
+    foreach($value in @('if(pre_native_focus_lost){s.log.failed=true;',
+        'grid_native_status','native_geometry_not_exact_constraints_unattributed',
+        'I10_retired_generation_no_new_placement_actual_state','I10_post_grid_actual_ordinary_Move',
+        'I10_post_grid_actual_Ctrl_source_and_follower','new_fixed_case_executed')){
+        if(-not $Grid.Contains($value)){throw ('Existing native grid failure/retirement/recovery semantics were lost: '+$value)}
+    }
+}
+$nativeConstraintOnly=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_native_constraint_case.h'),[Text.Encoding]::UTF8)
+$nativeGridCases=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_constraint_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1NativeConstraintOnlyWiring $fixtureSource $resizeMagnet $nativeConstraintOnly $nativeGridCases $lifecyclePrepare $lifecycleGuest
+Check $true 'static narrow native constraints share actual maximum/pullback and grid code without direction/fixed replay'
+Reject {Assert-V1NativeConstraintOnlyWiring $fixtureSource ($resizeMagnet.Replace('resize_magnet_maximum_pullback_and_move(set,source,work,limit,previous);','shared_maximum_DISABLED(set,source,work,limit,previous);')) $nativeConstraintOnly $nativeGridCases $lifecyclePrepare $lifecycleGuest} 'static old ResizeMagnetOnly cannot disconnect from the extracted actual maximum path'
+Reject {Assert-V1NativeConstraintOnlyWiring $fixtureSource $resizeMagnet ($nativeConstraintOnly.Replace('resize_magnet_maximum_pullback_and_move(set,source,work,limit,0);','shared_maximum_DISABLED(set,source,work,limit,0);')) $nativeGridCases $lifecyclePrepare $lifecycleGuest} 'static new maximum phase cannot bypass the same actual shared geometry helper'
+Reject {Assert-V1NativeConstraintOnlyWiring $fixtureSource $resizeMagnet $nativeConstraintOnly ($nativeGridCases.Replace('if(pre_native_focus_lost){s.log.failed=true;','if(pre_native_focus_lost){')) $lifecyclePrepare $lifecycleGuest} 'static pre-native focus loss cannot become a grid PASS'
+function Assert-V1VisualLifecycleOnlyWiring([string]$Fixture,[string]$Visual,[string]$Chains,[string]$Prepare,[string]$Guest){
+    $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
+    $branch=[regex]::Match($entry,'(?s)if\(s\.suite=="VisualLifecycleChainOnly"\)\{(?<body>.*?)return;\s*\}')
+    if(-not $branch.Success -or [regex]::Matches($branch.Groups['body'].Value,'\bphase\s*\(').Count -ne 1 -or
+       -not $branch.Value.Contains('phase("same_product_visual_lifecycle_and_final_exit",owned_visual_lifecycle_chain_case,true);') -or
+       $branch.Value.Contains('cleanup(s);') -or
+       -not $entry.Contains('bool final_lifecycle=false') -or
+       -not $entry.Contains('const bool exact_terminal_scope=s.suite=="VisualLifecycleChainOnly"&&') -or
+       -not $entry.Contains('std::string_view(name)=="same_product_visual_lifecycle_and_final_exit";') -or
+       -not $entry.Contains('exact_terminal_scope&&!failed&&!blocked&&!not_run&&') -or
+       -not $entry.Contains('!s.process&&!s.left&&!s.control&&visual_lifecycle_chain_terminal_observed(s,mark);') -or
+       -not $entry.Contains('actual_terminal_exit&&current_desktop') -or
+       -not $entry.Contains('}else independent_entry_ready(s,std::string(name)+".after",true);')){
+        throw 'Only the deliberate visual terminal phase may replace its live after gate with actual same-phase final Exit evidence.'
+    }
+    $body=Get-V1FixtureFunctionText $Visual 'owned_visual_lifecycle_chain_case'
+    $terminal=Get-V1FixtureFunctionText $Visual 'visual_lifecycle_chain_terminal_observed'
+    if([regex]::Matches($body,'\bchain_i06_owned_core\s*\(').Count -ne 1 -or
+       -not $body.Contains('cleanup(s);') -or -not $body.Contains('WaitForSingleObject(held.value,0)==WAIT_OBJECT_0') -or
+       -not $body.Contains('I06_same_product_normal_Exit_actual_resources_and_tuple') -or
+       -not $body.Contains('!IsWindow(preview)&&source_idle&&!s.left&&!s.control&&native_visual_is(source,173,false)') -or
+       -not $terminal.Contains('if(s.process||s.left||s.control)return false;') -or
+       -not $terminal.Contains('e::number(row,"\"same_product_PID\":")==s.product_pid') -or
+       -not $terminal.Contains('exit_birth&&exit_sequence&&callback_sequence>exit_sequence&&complete_sequence>callback_sequence') -or
+       -not $Chains.Contains('if(final_lifecycle){final_lifecycle(h,original,*old);return;}') -or
+       -not $Fixture.Contains('#include "platform/windows/product/v1_guest_visual_lifecycle_chain_case.h"') -or
+       -not $Fixture.Contains('else if(value==L"VisualLifecycleChainOnly")s.suite="VisualLifecycleChainOnly";') -or
+       [regex]::Matches($Fixture,'s\.suite!="VisualLifecycleChainOnly"').Count -ne 2 -or
+       -not $Prepare.Contains("'VisualLifecycleChainOnly'") -or -not $Guest.Contains("'VisualLifecycleChainOnly'") -or
+       -not $Guest.Contains("elseif(`$Suite -ceq 'NativeConstraintOnly' -or `$Suite -ceq 'VisualLifecycleChainOnly'){[Math]::Min(`$StageTimeoutSeconds,120)}")){
+        throw 'Visual lifecycle must run the existing real core once, observe its same-process final resources/tuple and preserve all other phase/default callers.'
+    }
+}
+$visualLifecycleOnly=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_visual_lifecycle_chain_case.h'),[Text.Encoding]::UTF8)
+$visualLifecycleChains=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_product_chains.h'),[Text.Encoding]::UTF8)
+Assert-V1VisualLifecycleOnlyWiring $fixtureSource $visualLifecycleOnly $visualLifecycleChains $lifecyclePrepare $lifecycleGuest
+Check $true 'static one visual lifecycle phase ends its actual original product without a live-GUI restart or duplicate quit'
+Reject {Assert-V1VisualLifecycleOnlyWiring ($fixtureSource.Replace('owned_visual_lifecycle_chain_case,true);','owned_visual_lifecycle_chain_case);')) $visualLifecycleOnly $visualLifecycleChains $lifecyclePrepare $lifecycleGuest} 'static final Exit cannot fall through the default live-product after gate'
+Reject {Assert-V1VisualLifecycleOnlyWiring ($fixtureSource.Replace('visual_lifecycle_chain_terminal_observed(s,mark);','true;')) $visualLifecycleOnly $visualLifecycleChains $lifecyclePrepare $lifecycleGuest} 'static a terminal flag cannot replace actual current-phase Exit observations'
+Reject {Assert-V1VisualLifecycleOnlyWiring $fixtureSource ($visualLifecycleOnly.Replace('callback_sequence>exit_sequence&&complete_sequence>callback_sequence','callback_sequence&&complete_sequence')) $visualLifecycleChains $lifecyclePrepare $lifecycleGuest} 'static visual final Exit must precede its callback-complete and final completion records'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

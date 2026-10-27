@@ -1097,7 +1097,8 @@ panebind::core::v1::Settings chain_gui_save_mouse(State& s,const std::vector<pan
         throw;
     }
 }
-void chain_i06_owned_core(State& s){
+void chain_i06_owned_core(State& s,
+    const std::function<void(HWND,const panebind::core::v1::Settings&,const NativeVisual&)>& final_lifecycle={}){
     const auto original=chain_settings(s);const HWND h=s.frames[0].hwnd;const auto old=native_visual(h);
     if(!own(s,h)||!old||!old->known)throw std::runtime_error("I11_I06_exact_original_visual_unknown");
     auto config=original;config.attraction_dip=0;config.drag_transparency=true;config.drag_alpha=190;config.shake=false;
@@ -1115,6 +1116,10 @@ void chain_i06_owned_core(State& s){
     s.log.check("I11_I06_actual_pause",launch(s,L"--pause",true));visual_exact(s,h,173,false,"I11_I06_pause_restores_actual_tuple");
     const auto mark=read_product(s).size();s.log.check("I11_I06_actual_resume",launch(s,L"--command Pause",true)&&
         wait([&]{return record(s,mark,"status").find("\"enabled\":true")!=std::string::npos;}));
+    // The targeted I06 chain can finish this SAME process before the test
+    // application manually restores its setup tuple. Historical core callers
+    // retain their original restoration and continue their existing rounds.
+    if(final_lifecycle){final_lifecycle(h,original,*old);return;}
     chain_gui_save(s,original);chain_restore_app_visual(s,h,*old);
     s.log.emit("I11_I06_core","\"actual_drag_UP_shake_on_off_pause_resume\":true,\"product_exit_tested_only_by_final_cleanup\":true");
 }

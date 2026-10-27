@@ -1,6 +1,21 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-27",
+  "current_round_targeted_followup": {
+    "path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
+    "sha256": "E538565D0925CDC92D0E8DA9FC84634CBEE2F381007D78D203A608380F98A5DC",
+    "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+    "literal_excerpt_sha256": "5AEA5AA3C78D6FA5EF883EA90B596007BA0623E635580461CDAC841F007776EC",
+    "product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+    "current_scoped_results": "12cc D32/D33 accounting revalidated; f20a I07 DEV chain PASS. Initial failures and CreatePipe error5 retained. No whole NF02, tray, other chain or version PASS.",
+    "whole_version": "PARTIAL"
+  },
+  "current_round_restored_connection_environment": {
+    "path": "docs/reports/v1-evidence/20261027-restored-ssh-environment.json",
+    "sha256": "E05B2169DB95E9F78D3EDF5B9BD5737BDD25FC2BAA32813CED68314E8B8EE7FF",
+    "result": "TRUSTED_SSH_RESTORED_EXISTING_AUTHORIZED_SANDBOX_AVAILABLE_NO_COMPLETE_VM_CONFIRMED",
+    "functional_PASS_awarded": false
+  },
   "current_round_local_fix_validation": {
     "id": "EV-936A-LOCAL-TRAY-TIMING-FIXES",
     "kind": "LOCAL_BUILD_AND_OFFLINE_NOT_FIELD_ACCEPTANCE",
@@ -10,7 +25,7 @@
     "result": "DEBUG_RELEASE_AFFECTED_OFFLINE_AND_HOST_REFUSAL_PASS_FIELD_NOT_RUN",
     "scope": "Shared actual v4 tray keyboard dispatch, mapped-command hook origin propagation and final timing summary ordering fixed; no old runtime rebinding, new guest, field or benchmark PASS."
   },
-  "current_round_readonly_environment": {
+  "historical_readonly_environment_before_connection_restore": {
     "id": "EV-20261026-READONLY-ENVIRONMENT",
     "kind": "READ_ONLY_RECEIPT_NOT_FUNCTIONAL_ACCEPTANCE",
     "path": "docs/reports/v1-evidence/20261026-environment-readonly-review.json",

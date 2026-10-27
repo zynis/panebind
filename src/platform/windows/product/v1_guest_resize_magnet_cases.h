@@ -153,6 +153,25 @@ void owned_fixed_size_resize_case(State& s){
     }catch(...){pause_routing_failed_case_input(s);try{if(!set.closed)set.close();}catch(...){}
         try{if(s.process&&chain_settings(s)==applied&&!s.left&&!s.control)chain_gui_save(s,original);}catch(...){}throw;}
 }
+void resize_magnet_maximum_pullback_and_move(LayoutFixtures& set,Rect source,Rect work,const LayoutLimit& limit,std::uint64_t previous){
+    auto& s=set.state;
+    const Rect neighbour{source.l+456,source.t+40,source.l+676,source.b-40};const LayoutLimit bounded{120,100,450,work.height()};
+    const std::vector<Rect> initial{source,neighbour};set.setup(initial,{bounded,limit});const auto native=resize_magnet_native_baseline(set,initial);
+    const auto g=layout_down(set,0,HTRIGHT,false);s.log.check("resize_magnet_limit_case_new_generation",g.generation>previous);
+    const Rect clamped{source.l,source.t,source.l+450,source.b},pulled{source.l,source.t,source.l+430,source.b};
+    s.log.emit("resize_magnet_independent_conflict_oracle","\"source_max_visible_width\":450,\"actual_neighbour_left\":"+std::to_string(neighbour.l)+
+        ",\"candidate_width_if_adopted\":456,\"expected_legal_width\":450,\"source_original_width\":400,\"internal_rejected_proposal_not_directly_observed\":true");
+    resize_magnet_quantum(set,g,HTRIGHT,70,0,initial,native,{clamped,neighbour},"resize_magnet_max_constraint_precedes_candidate");
+    resize_magnet_quantum(set,g,HTRIGHT,30,0,initial,native,{pulled,neighbour},"resize_magnet_pullback_uses_original_DOWN_not_clamped_anchor");
+    layout_up(set,g,{pulled,neighbour});unsigned constraint_calls{};std::istringstream audit(product_log_since(s,g.offset));std::string row;
+    while(std::getline(audit,row))if(row.find("\"type\":\"placement\"")!=row.npos&&number(row,"\"generation\":")==g.generation&&row.find("\"native_callsite_claimed\":true")!=row.npos)++constraint_calls;
+    s.log.check("resize_magnet_constraint_two_quanta_no_recursive_or_late_native_call",constraint_calls==2&&set.owns(0)&&set.owns(1)&&
+        geometry_history_positioning(set.frames[0].hwnd)==Rect{native[0].l,native[0].t,native[0].r+30,native[0].b}&&
+        geometry_history_positioning(set.frames[1].hwnd)==native[1],"\"actual_generation_native_calls\":"+std::to_string(constraint_calls)+",\"expected_two_requested_quanta\":2");
+    const auto move=layout_down(set,0,HTCAPTION,false);
+    s.log.check("resize_magnet_after_limit_normal_UP_new_Move_generation",move.generation>g.generation);
+    const auto moved=translated(pulled,25,15);layout_phase(set,0,move,25,15,{moved,neighbour},"resize_magnet_after_limit_actual_plain_Move");layout_up(set,move,{moved,neighbour});
+}
 void owned_resize_magnet_case(State& s){
     settings_guest_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
     if(s.suite!="ResizeMagnetOnly"||!original.enabled||!original.rules.empty()||s.left||s.control)throw std::runtime_error("resize_magnet_exact_released_guest_with_unexcluded_fixtures_required");
@@ -181,22 +200,7 @@ void owned_resize_magnet_case(State& s){
             resize_magnet_quantum(set,g,region,left?-56:right?56:0,top?-56:bottom?56:0,initial,native,expected,"resize_magnet_actual_unique_direction_snap");
             layout_up(set,g,expected);chain_check_product(s,pid,birth);
         }
-        const Rect neighbour{source.l+456,source.t+40,source.l+676,source.b-40};const LayoutLimit bounded{120,100,450,work.height()};
-        const std::vector<Rect> initial{source,neighbour};set.setup(initial,{bounded,limit});const auto native=resize_magnet_native_baseline(set,initial);
-        const auto g=layout_down(set,0,HTRIGHT,false);s.log.check("resize_magnet_limit_case_new_generation",g.generation>previous);
-        const Rect clamped{source.l,source.t,source.l+450,source.b},pulled{source.l,source.t,source.l+430,source.b};
-        s.log.emit("resize_magnet_independent_conflict_oracle","\"source_max_visible_width\":450,\"actual_neighbour_left\":"+std::to_string(neighbour.l)+
-            ",\"candidate_width_if_adopted\":456,\"expected_legal_width\":450,\"source_original_width\":400,\"internal_rejected_proposal_not_directly_observed\":true");
-        resize_magnet_quantum(set,g,HTRIGHT,70,0,initial,native,{clamped,neighbour},"resize_magnet_max_constraint_precedes_candidate");
-        resize_magnet_quantum(set,g,HTRIGHT,30,0,initial,native,{pulled,neighbour},"resize_magnet_pullback_uses_original_DOWN_not_clamped_anchor");
-        layout_up(set,g,{pulled,neighbour});unsigned constraint_calls{};std::istringstream audit(product_log_since(s,g.offset));std::string row;
-        while(std::getline(audit,row))if(row.find("\"type\":\"placement\"")!=row.npos&&number(row,"\"generation\":")==g.generation&&row.find("\"native_callsite_claimed\":true")!=row.npos)++constraint_calls;
-        s.log.check("resize_magnet_constraint_two_quanta_no_recursive_or_late_native_call",constraint_calls==2&&set.owns(0)&&set.owns(1)&&
-            geometry_history_positioning(set.frames[0].hwnd)==Rect{native[0].l,native[0].t,native[0].r+30,native[0].b}&&
-            geometry_history_positioning(set.frames[1].hwnd)==native[1],"\"actual_generation_native_calls\":"+std::to_string(constraint_calls)+",\"expected_two_requested_quanta\":2");
-        const auto move=layout_down(set,0,HTCAPTION,false);
-        s.log.check("resize_magnet_after_limit_normal_UP_new_Move_generation",move.generation>g.generation);
-        const auto moved=translated(pulled,25,15);layout_phase(set,0,move,25,15,{moved,neighbour},"resize_magnet_after_limit_actual_plain_Move");layout_up(set,move,{moved,neighbour});
+        resize_magnet_maximum_pullback_and_move(set,source,work,limit,previous);
         chain_check_product(s,pid,birth);const auto restored=chain_gui_save(s,original);auto expected_config=original;expected_config.generation=restored.generation;
         s.log.check("resize_magnet_original_configuration_restored",restored==expected_config);s.log.check("resize_magnet_exact_test_roots_closed",set.close());
         s.log.emit("resize_magnet_component","\"result\":\"PASS\",\"unique_plain_resize_directions\":8,\"fixed_edges_and_real_neighbours\":true,\"size_priority_and_original_DOWN_pullback\":true,"+

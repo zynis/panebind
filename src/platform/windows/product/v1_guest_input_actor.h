@@ -54,69 +54,15 @@ struct InputActorDisconnectPacket {
     std::uint64_t down_qpc{},down_inserted{},move_inserted{},total_inserted{};
 };
 static_assert(sizeof(InputActorDisconnectPacket)==96);
-struct InputActorDisconnectPipe {
-    Handle reader,writer,ready,close_ack;
-    std::vector<unsigned char> attributes;LPPROC_THREAD_ATTRIBUTE_LIST list{};HANDLE inherited{};
-    ~InputActorDisconnectPipe(){if(list)DeleteProcThreadAttributeList(list);}
-    void create(State& s){
-        SECURITY_ATTRIBUTES security{sizeof(security),nullptr,TRUE};HANDLE r{},w{};
-        LARGE_INTEGER before{},after{};const bool before_known=QueryPerformanceCounter(&before)!=FALSE;
-        const auto before_tick=GetTickCount64();SetLastError(ERROR_SUCCESS);
-        const BOOL created=CreatePipe(&r,&w,&security,4096);
-        const DWORD create_error=created?ERROR_SUCCESS:GetLastError();
-        const auto after_tick=GetTickCount64();const bool after_known=QueryPerformanceCounter(&after)!=FALSE;
-        // CreatePipe's outputs are indeterminate on failure. Only adopt/query
-        // them after actual API success; never close a guessed output handle.
-        if(created){reader.value=r;writer.value=w;}
-        DWORD read_flags{},write_flags{};BOOL read_known=FALSE,write_known=FALSE;DWORD read_error{},write_error{};
-        if(created){
-            SetLastError(ERROR_SUCCESS);read_known=GetHandleInformation(reader.value,&read_flags);read_error=read_known?ERROR_SUCCESS:GetLastError();
-            SetLastError(ERROR_SUCCESS);write_known=GetHandleInformation(writer.value,&write_flags);write_error=write_known?ERROR_SUCCESS:GetLastError();
-        }
-        s.log.emit("I08_disconnect_CreatePipe_actual",
-            "\"actual_caller_PID\":"+std::to_string(GetCurrentProcessId())+",\"actual_caller_TID\":"+std::to_string(GetCurrentThreadId())+
-            ",\"CreatePipe_attempted\":true,\"CreatePipe_native_BOOL\":"+std::to_string(created)+
-            ",\"CreatePipe_return\":"+(created?"true":"false")+",\"CreatePipe_error_on_failure\":"+
-            (created?"null":std::to_string(create_error))+",\"requested_buffer_bytes\":4096,\"security_attributes_bytes\":"+
-            std::to_string(security.nLength)+",\"security_descriptor_is_null\":true,\"default_token_DACL_requested\":true,"+
-            "\"bInheritHandle_requested\":true,\"security_or_token_modified\":false,\"fallback_attempted\":false,"+
-            "\"output_handles_adopted\":"+(created?"true":"false")+
-            ",\"GetHandleInformation_attempted\":"+(created?"true":"false")+
-            ",\"reader_flags_known\":"+(read_known?"true":"false")+",\"reader_flags\":"+(read_known?std::to_string(read_flags):"null")+
-            ",\"reader_flags_error\":"+(created?std::to_string(read_error):"null")+
-            ",\"writer_flags_known\":"+(write_known?"true":"false")+",\"writer_flags\":"+(write_known?std::to_string(write_flags):"null")+
-            ",\"writer_flags_error\":"+(created?std::to_string(write_error):"null")+
-            ",\"before_tick\":"+std::to_string(before_tick)+",\"after_tick\":"+std::to_string(after_tick)+
-            ",\"before_qpc\":"+(before_known?std::to_string(before.QuadPart):"null")+
-            ",\"after_qpc\":"+(after_known?std::to_string(after.QuadPart):"null")+
-            ",\"child_creation_attempted\":false,\"actor_input_sent\":false,\"error_is_not_root_cause_proof\":true");
-        if(!created)throw std::runtime_error("I08_disconnect_CreatePipe_failed");
-        SetLastError(ERROR_SUCCESS);const BOOL set_read=SetHandleInformation(reader.value,HANDLE_FLAG_INHERIT,0);
-        const DWORD set_error=set_read?ERROR_SUCCESS:GetLastError();DWORD read_after{};
-        SetLastError(ERROR_SUCCESS);const BOOL read_after_known=GetHandleInformation(reader.value,&read_after);
-        const DWORD read_after_error=read_after_known?ERROR_SUCCESS:GetLastError();
-        s.log.emit("I08_disconnect_pipe_inheritance_actual",
-            "\"SetHandleInformation_attempted\":true,\"mask\":"+std::to_string(HANDLE_FLAG_INHERIT)+",\"requested_flags\":0,"+
-            "\"SetHandleInformation_native_BOOL\":"+std::to_string(set_read)+",\"SetHandleInformation_return\":"+(set_read?"true":"false")+
-            ",\"SetHandleInformation_error_on_failure\":"+(set_read?"null":std::to_string(set_error))+
-            ",\"reader_flags_after_known\":"+(read_after_known?"true":"false")+
-            ",\"reader_flags_after\":"+(read_after_known?std::to_string(read_after):"null")+
-            ",\"reader_flags_after_error\":"+std::to_string(read_after_error)+
-            ",\"child_creation_attempted\":false,\"inherited_HANDLE_LIST_count_requested\":1");
-        if(!set_read||!read_after_known||(read_after&HANDLE_FLAG_INHERIT)||!write_known||!(write_flags&HANDLE_FLAG_INHERIT))
-            throw std::runtime_error("I08_disconnect_read_handle_inheritance_failed");
-        SIZE_T size{};(void)InitializeProcThreadAttributeList(nullptr,1,0,&size);
-        if(!size||size>65536)throw std::runtime_error("I08_disconnect_attribute_size_invalid");
-        attributes.resize(size);auto* proposed=reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attributes.data());
-        if(!InitializeProcThreadAttributeList(proposed,1,0,&size))throw std::runtime_error("I08_disconnect_attribute_init_failed");
-        list=proposed;inherited=writer.value;
-        if(!UpdateProcThreadAttribute(list,0,PROC_THREAD_ATTRIBUTE_HANDLE_LIST,&inherited,sizeof(inherited),nullptr,nullptr))
-            throw std::runtime_error("I08_disconnect_exact_handle_list_failed");
-    }
+fs::path input_actor_disconnect_packet_path(const fs::path& output,const std::wstring& run,bool debug){
+    return output/(run+(debug?L"-debug-input-actor-completion.packet":L"-release-input-actor-completion.packet"));
+}
+struct InputActorDisconnectFile {
+    Handle reader,ready,close_ack;fs::path path;
 };
 bool input_actor_disconnect_cleanup_up(State&,LayoutFixtures&,std::size_t,std::uint64_t,bool&);
 int input_actor_child(int count,LPWSTR* args,bool disconnect=false){
-    if(count!=(disconnect?12:11)||std::wstring_view(args[1])!=(disconnect?L"--input-actor-disconnect-once":L"--input-actor-once"))return 78;
+    if(count!=11||std::wstring_view(args[1])!=(disconnect?L"--input-actor-disconnect-once":L"--input-actor-once"))return 78;
     const std::wstring run=args[2];
     if(run.size()!=32||!std::all_of(run.begin(),run.end(),[](wchar_t c){return(c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');}))return 78;
     std::array<wchar_t,128> username{};DWORD length=static_cast<DWORD>(username.size());
@@ -140,18 +86,15 @@ int input_actor_child(int count,LPWSTR* args,bool disconnect=false){
     if(!debug&&!equal(executable.wstring(),(input/L"panebind-v1-guest-fixture.exe").wstring()))return 78;
     if(debug&&!plain_directory(input/L"Debug"))return 78;const auto image_hash=hash(executable);
     if(image_hash.empty()||image_hash!=hash(parent_name.data()))return 78;
-    Handle disconnect_pipe,disconnect_ready,disconnect_ack;
+    Handle disconnect_ready,disconnect_ack;fs::path disconnect_packet;
     if(disconnect){
-        const auto pipe_value=input_actor_unsigned(args[11]);if(!pipe_value||pipe_value>UINTPTR_MAX)return 78;
         const auto package=read(input/L"manifest.json",256*1024);const auto files=package.find("\"files\"");
         if(files==package.npos)return 78;const std::string_view identity(package.data(),files);
         if(portable_field(identity,"run_id")!=utf8(run)||portable_field(identity,"guest_suite")!="DriverDisconnectOnly"||
             portable_field(identity,"driver_source_commit")!=PANEBIND_BUILD_SHA||
             portable_field(identity,debug?"driver_debug_sha256":"driver_release_sha256")!=image_hash)return 78;
-        disconnect_pipe.value=reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(pipe_value));
-        DWORD handle_flags{};
-        if(GetFileType(disconnect_pipe.value)!=FILE_TYPE_PIPE||!GetHandleInformation(disconnect_pipe.value,&handle_flags)||
-            !(handle_flags&HANDLE_FLAG_INHERIT))return 78;
+        disconnect_packet=input_actor_disconnect_packet_path(output,run,debug);SetLastError(ERROR_SUCCESS);
+        if(GetFileAttributesW(disconnect_packet.c_str())!=INVALID_FILE_ATTRIBUTES||GetLastError()!=ERROR_FILE_NOT_FOUND)return 78;
     }
     const POINT from{input_actor_coordinate(args[7]),input_actor_coordinate(args[8])},target{input_actor_coordinate(args[9]),input_actor_coordinate(args[10])};
     if(static_cast<long long>(target.x)-from.x!=-40||static_cast<long long>(target.y)-from.y!=35)return 78;
@@ -323,25 +266,37 @@ int input_actor_child(int count,LPWSTR* args,bool disconnect=false){
         }
     }
     const UINT inserted=down_inserted+threshold_inserted+move_inserted;const DWORD error=down_error?down_error:threshold_error?threshold_error:move_error;
-    bool disconnect_written=false,disconnect_signaled=false,disconnect_closed=false;
-    DWORD disconnect_error{},disconnect_wait=WAIT_FAILED,disconnect_ready_error{},disconnect_close_error{};
+    bool disconnect_created=false,disconnect_written=false,disconnect_flushed=false,disconnect_publishable=false,disconnect_signaled=false,disconnect_closed=false;
+    BOOL disconnect_write_return=FALSE,disconnect_flush_return=FALSE;DWORD disconnect_bytes{};
+    DWORD disconnect_create_error{},disconnect_error{},disconnect_flush_error{},disconnect_wait=WAIT_FAILED,disconnect_ready_error{},disconnect_close_error{};
+    std::string disconnect_hash;
     if(disconnect){
         const InputActorDisconnectPacket packet{1,parent_pid,born,GetCurrentProcessId(),process_birth(GetCurrentProcess()),hwnd_value,source_tid,
             capture_receipt.capture.generation,static_cast<std::uint64_t>(before.QuadPart),down_inserted,move_inserted,inserted};
-        DWORD transferred{};SetLastError(ERROR_SUCCESS);
-        disconnect_written=WriteFile(disconnect_pipe.value,&packet,sizeof(packet),&transferred,nullptr)&&transferred==sizeof(packet);
-        disconnect_error=disconnect_written?ERROR_SUCCESS:GetLastError();
-        disconnect_signaled=disconnect_written&&SetEvent(disconnect_ready.value)!=FALSE;
-        disconnect_ready_error=disconnect_written&&!disconnect_signaled?GetLastError():ERROR_SUCCESS;
+        // This exact child is the sole creator/writer. A pre-existing packet
+        // is never opened for writing, replaced, repaired or deleted.
+        SetLastError(ERROR_SUCCESS);Handle completion(CreateFileW(disconnect_packet.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,
+            FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+        disconnect_created=completion.value!=INVALID_HANDLE_VALUE;disconnect_create_error=disconnect_created?ERROR_SUCCESS:GetLastError();
+        if(disconnect_created){
+            SetLastError(ERROR_SUCCESS);disconnect_write_return=WriteFile(completion.value,&packet,sizeof(packet),&disconnect_bytes,nullptr);
+            disconnect_error=disconnect_write_return?ERROR_SUCCESS:GetLastError();
+            disconnect_written=disconnect_write_return&&disconnect_bytes==sizeof(packet);
+            if(disconnect_written){SetLastError(ERROR_SUCCESS);disconnect_flush_return=FlushFileBuffers(completion.value);
+                disconnect_flush_error=disconnect_flush_return?ERROR_SUCCESS:GetLastError();disconnect_flushed=disconnect_flush_return!=FALSE;}
+            SetLastError(ERROR_SUCCESS);disconnect_closed=CloseHandle(completion.value)!=FALSE;
+            disconnect_close_error=disconnect_closed?ERROR_SUCCESS:GetLastError();if(disconnect_closed)completion.value=nullptr;
+        }
+        if(disconnect_written&&disconnect_flushed&&disconnect_closed)disconnect_hash=hash(disconnect_packet);
+        disconnect_publishable=disconnect_created&&disconnect_written&&disconnect_flushed&&disconnect_closed&&disconnect_hash.size()==64;
+        if(disconnect_publishable){SetLastError(ERROR_SUCCESS);disconnect_signaled=SetEvent(disconnect_ready.value)!=FALSE;
+            disconnect_ready_error=disconnect_signaled?ERROR_SUCCESS:GetLastError();}
         if(disconnect_signaled){
             // Parent first observes the real exact placement. Its signal is
             // permission to end THIS test child, never product authority.
             const std::array<HANDLE,2> peers{disconnect_ack.value,parent.value};
             disconnect_wait=WaitForMultipleObjects(static_cast<DWORD>(peers.size()),peers.data(),FALSE,5000);
         }
-        disconnect_closed=CloseHandle(disconnect_pipe.value)!=FALSE;
-        disconnect_close_error=disconnect_closed?ERROR_SUCCESS:GetLastError();
-        if(disconnect_closed)disconnect_pipe.value=nullptr;
     }
     const auto after_tick=GetTickCount64();
     const std::string text="{\"schema\":\"panebind-v1-test-input-actor/1\",\"source_sha\":\"" PANEBIND_BUILD_SHA "\",\"run_id\":"+quote(utf8(run))+
@@ -390,15 +345,28 @@ int input_actor_child(int count,LPWSTR* args,bool disconnect=false){
         ",\"actual_cursor_exact\":"+(cursor_exact?"true":"false")+",\"native_MOVE_delivery_not_inferred_from_SendInput\":true"+
         ",\"before_tick\":"+std::to_string(before_tick)+",\"after_tick\":"+std::to_string(after_tick)+",\"before_qpc\":"+std::to_string(before.QuadPart)+
         ",\"after_qpc\":"+std::to_string(after.QuadPart)+",\"UP_sent\":false,\"product_driver_channel\":false,\"automated_guest_driver\":true"+
-        (disconnect?",\"disconnect_transport_used\":true,\"pipe_packet_write_completed\":"+std::string(disconnect_written?"true":"false")+
-            ",\"pipe_packet_write_error\":"+std::to_string(disconnect_error)+",\"pipe_ready_signaled\":"+(disconnect_signaled?"true":"false")+
-            ",\"pipe_ready_signal_error\":"+std::to_string(disconnect_ready_error)+
-            ",\"parent_observed_placement_ack_wait\":"+std::to_string(disconnect_wait)+",\"pipe_CloseHandle_return\":"+(disconnect_closed?"true":"false")+
-            ",\"pipe_CloseHandle_error\":"+std::to_string(disconnect_close_error):
+        (disconnect?",\"disconnect_transport_used\":true,\"completion_transport\":\"fixed96_CREATE_NEW_file_and_existing_events\",\"packet_path\":"+quote(utf8(disconnect_packet.wstring()))+
+            ",\"packet_CreateFile_attempted\":true,\"packet_CREATE_NEW_return\":"+(disconnect_created?"true":"false")+
+            ",\"packet_CREATE_NEW_error\":"+(disconnect_created?"null":std::to_string(disconnect_create_error))+
+            ",\"packet_WriteFile_attempted\":"+(disconnect_created?"true":"false")+
+            ",\"packet_WriteFile_return\":"+(disconnect_created?(disconnect_write_return?"true":"false"):"null")+
+            ",\"packet_bytes_written\":"+std::to_string(disconnect_bytes)+",\"packet_write_completed\":"+(disconnect_written?"true":"false")+
+            ",\"packet_WriteFile_error\":"+(disconnect_created&&!disconnect_write_return?std::to_string(disconnect_error):"null")+
+            ",\"packet_FlushFileBuffers_attempted\":"+(disconnect_written?"true":"false")+
+            ",\"packet_FlushFileBuffers_return\":"+(disconnect_written?(disconnect_flush_return?"true":"false"):"null")+
+            ",\"packet_FlushFileBuffers_error\":"+(disconnect_written&&!disconnect_flush_return?std::to_string(disconnect_flush_error):"null")+
+            ",\"packet_CloseHandle_attempted\":"+(disconnect_created?"true":"false")+
+            ",\"packet_CloseHandle_return\":"+(disconnect_created?(disconnect_closed?"true":"false"):"null")+
+            ",\"packet_CloseHandle_error\":"+(disconnect_created&&!disconnect_closed?std::to_string(disconnect_close_error):"null")+
+            ",\"packet_sha256_after_close\":"+(disconnect_hash.empty()?"null":quote(disconnect_hash))+
+            ",\"packet_ready_signal_attempted\":"+(disconnect_publishable?"true":"false")+",\"packet_ready_signaled\":"+(disconnect_signaled?"true":"false")+
+            ",\"packet_ready_signal_error\":"+(disconnect_publishable&&!disconnect_signaled?std::to_string(disconnect_ready_error):"null")+
+            ",\"parent_observed_placement_ack_wait\":"+std::to_string(disconnect_wait)+
+            ",\"anonymous_pipe_used\":false,\"handles_inherited\":false,\"packet_retained_as_evidence\":true":
             std::string{})+"}\n";
     DWORD written{};const bool saved=WriteFile(file.value,text.data(),static_cast<DWORD>(text.size()),&written,nullptr)&&written==text.size()&&FlushFileBuffers(file.value);
     return saved&&down_inserted==1&&ack_result==WAIT_OBJECT_0&&pre_move_context&&move_inserted==1&&cursor_exact&&
-        (!disconnect||(disconnect_written&&disconnect_signaled&&disconnect_wait==WAIT_OBJECT_0&&disconnect_closed))?0:1;
+        (!disconnect||(disconnect_created&&disconnect_written&&disconnect_flushed&&disconnect_closed&&disconnect_hash.size()==64&&disconnect_signaled&&disconnect_wait==WAIT_OBJECT_0))?0:1;
 }
 void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product_pid,std::uint64_t product_birth,bool disconnect){
     namespace v=panebind::core::v1;const HWND source=set.frames[0].hwnd;const auto initial=visible(source);
@@ -414,7 +382,13 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
     const auto point=layout_hit(set,0,HTCAPTION);if(!point)throw std::runtime_error("I08_actor_real_caption_hit_unavailable");
     cursor(s,*point);const auto hover=GetTickCount64();(void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
     std::array<wchar_t,32768> self{};if(!GetModuleFileNameW(nullptr,self.data(),static_cast<DWORD>(self.size())))throw std::runtime_error("I08_actor_fixture_image_unavailable");
-    InputActorDisconnectPipe transport;if(disconnect)transport.create(s);
+    InputActorDisconnectFile transport;
+    if(disconnect){transport.path=input_actor_disconnect_packet_path(s.output,s.run,s.configuration=="Debug");SetLastError(ERROR_SUCCESS);
+        const DWORD attributes=GetFileAttributesW(transport.path.c_str());const DWORD error=attributes==INVALID_FILE_ATTRIBUTES?GetLastError():ERROR_SUCCESS;
+        s.log.check("I08_disconnect_fresh_completion_packet_path",attributes==INVALID_FILE_ATTRIBUTES&&error==ERROR_FILE_NOT_FOUND,
+            "\"packet_path\":"+quote(utf8(transport.path.wstring()))+",\"GetFileAttributes_return\":"+std::to_string(attributes)+
+            ",\"GetFileAttributes_error\":"+std::to_string(error)+",\"existing_file_not_overwritten\":true,\"parent_packet_write_calls\":0,"+
+            "\"transport_route\":\"fixed96_child_CREATE_NEW_file\",\"runtime_fallback\":false,\"handles_inherited\":false");}
     std::wstring command=L"\""+std::wstring(self.data())+(disconnect?L"\" --input-actor-disconnect-once ":L"\" --input-actor-once ")+s.run+L" "+std::to_wstring(GetCurrentProcessId())+L" "+
         std::to_wstring(process_birth(GetCurrentProcess()))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(source))+L" "+std::to_wstring(set.thread)+L" "+
         std::to_wstring(point->x)+L" "+std::to_wstring(point->y)+L" "+std::to_wstring(point->x-40)+L" "+std::to_wstring(point->y+35);
@@ -424,11 +398,9 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
             number(line,"\"root\":")==reinterpret_cast<std::uintptr_t>(source)&&line.find("\"region\":0")!=line.npos){
             expected_key=number(line,"\"key\":");prepared=line;}}
     if(!expected_key)throw std::runtime_error("I08_actor_product_source_key_not_observed");
-    if(disconnect)command+=L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(transport.writer.value));
-    const auto offset=read_product(s).size();STARTUPINFOEXW startup{};startup.StartupInfo.cb=disconnect?sizeof(startup):sizeof(STARTUPINFOW);
-    startup.lpAttributeList=disconnect?transport.list:nullptr;PROCESS_INFORMATION child{};
-    const DWORD flags=CREATE_NO_WINDOW|CREATE_SUSPENDED|(disconnect?EXTENDED_STARTUPINFO_PRESENT:0);
-    if(!CreateProcessW(self.data(),command.data(),nullptr,nullptr,disconnect?TRUE:FALSE,flags,nullptr,s.output.c_str(),&startup.StartupInfo,&child))throw std::runtime_error("I08_actor_create_failed");
+    const auto offset=read_product(s).size();STARTUPINFOW startup{};startup.cb=sizeof(startup);PROCESS_INFORMATION child{};
+    const DWORD flags=CREATE_NO_WINDOW|CREATE_SUSPENDED;
+    if(!CreateProcessW(self.data(),command.data(),nullptr,nullptr,FALSE,flags,nullptr,s.output.c_str(),&startup,&child))throw std::runtime_error("I08_actor_create_failed");
     Handle child_process(child.hProcess),child_thread(child.hThread);bool test_up=false,actor_stop_attempted=false,actor_send_count_known=false,actor_resumed=false;
     std::uint64_t actor_inserted{};
     const auto child_birth=process_birth(child_process.value);
@@ -447,14 +419,14 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
     std::optional<Rect> actual_ready_geometry;
     product::guest::ActorStartCaptureReceipt capture_receipt{};
     product::guest::ActorNativeThresholdCommand threshold_command{};bool threshold_published=false;
+    std::string packet_before_bytes,packet_before_hash;BY_HANDLE_FILE_INFORMATION packet_before_info{};bool packet_before_known=false;
+    std::uint64_t packet_before_down_qpc{};
     try{
         if(disconnect){
-            const bool closed=CloseHandle(transport.writer.value)!=FALSE;
-            if(closed)transport.writer.value=nullptr;
-            s.log.check("I08_disconnect_parent_write_copy_closed_before_child_resume",closed,
+            s.log.emit("I08_disconnect_no_inherited_completion_handles",
                 "\"actor_PID\":"+std::to_string(child.dwProcessId)+",\"actor_birth\":"+std::to_string(child_birth)+
-                ",\"inherited_handle_count\":1,\"actual_input_sender_PID\":"+std::to_string(child.dwProcessId)+
-                ",\"source_owner_PID\":"+std::to_string(GetCurrentProcessId())+",\"product_driver_channel\":false");
+                ",\"inherited_handle_count\":0,\"actual_input_sender_PID\":"+std::to_string(child.dwProcessId)+
+                ",\"source_owner_PID\":"+std::to_string(GetCurrentProcessId())+",\"product_driver_channel\":false,\"anonymous_pipe_used\":false");
         }
         const auto event_name=input_actor_start_event(s.run,GetCurrentProcessId(),process_birth(GetCurrentProcess()),child.dwProcessId);
         SetLastError(0);start_ack.value=CreateEventW(nullptr,FALSE,FALSE,event_name.c_str());const auto event_error=GetLastError();
@@ -607,11 +579,22 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
             const bool announced=wait([&]{return WaitForSingleObject(transport.ready.value,0)==WAIT_OBJECT_0||
                 WaitForSingleObject(child_process.value,0)==WAIT_OBJECT_0;},3500)&&WaitForSingleObject(transport.ready.value,0)==WAIT_OBJECT_0;
             InputActorDisconnectPacket packet{};DWORD bytes{};BOOL read_ok=FALSE;DWORD read_error{};
-            // SetEvent follows the completed fixed 96-byte write; no other
-            // reader can consume it. Never read an unannounced open pipe.
-            if(announced){SetLastError(ERROR_SUCCESS);read_ok=ReadFile(transport.reader.value,&packet,sizeof(packet),&bytes,nullptr);
-                read_error=read_ok?ERROR_SUCCESS:GetLastError();}
-            const bool bound=announced&&read_ok&&bytes==sizeof(packet)&&packet.version==1&&
+            bool opened=false,metadata_known=false;DWORD open_error{};LARGE_INTEGER size{};
+            // Ready follows the child's real Write/Flush/Close. Retain one
+            // read-only handle denying write/delete through the exit check.
+            if(announced){SetLastError(ERROR_SUCCESS);transport.reader.value=CreateFileW(transport.path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,
+                    OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
+                opened=transport.reader.value!=INVALID_HANDLE_VALUE;open_error=opened?ERROR_SUCCESS:GetLastError();
+                metadata_known=opened&&GetFileType(transport.reader.value)==FILE_TYPE_DISK&&GetFileInformationByHandle(transport.reader.value,&packet_before_info)&&
+                    !(packet_before_info.dwFileAttributes&(FILE_ATTRIBUTE_REPARSE_POINT|FILE_ATTRIBUTE_DIRECTORY))&&
+                    GetFileSizeEx(transport.reader.value,&size)&&size.QuadPart==sizeof(packet);
+                if(metadata_known){SetLastError(ERROR_SUCCESS);read_ok=ReadFile(transport.reader.value,&packet,sizeof(packet),&bytes,nullptr);
+                    read_error=read_ok?ERROR_SUCCESS:GetLastError();}
+                if(read_ok&&bytes==sizeof(packet)){packet_before_bytes.assign(reinterpret_cast<const char*>(&packet),sizeof(packet));packet_before_hash=hash(transport.path);
+                    packet_before_down_qpc=packet.down_qpc;}
+            }
+            packet_before_known=metadata_known&&read_ok&&bytes==sizeof(packet)&&packet_before_hash.size()==64;
+            const bool bound=announced&&packet_before_known&&packet.version==1&&
                 packet.parent_pid==GetCurrentProcessId()&&packet.parent_birth==process_birth(GetCurrentProcess())&&
                 packet.child_pid==child.dwProcessId&&packet.child_birth==child_birth&&packet.source==reinterpret_cast<std::uintptr_t>(source)&&
                 packet.source_tid==set.thread&&packet.generation==g.generation&&packet.down_qpc&&resume_before.QuadPart>0&&
@@ -625,8 +608,13 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
             const auto actual=visible(source);
             s.log.check("I08_disconnect_real_input_child_active_exact_before_transport_close",active_exact,
                 "\"actor_PID\":"+std::to_string(child.dwProcessId)+",\"actor_birth\":"+std::to_string(child_birth)+
-                ",\"pipe_ReadFile_attempted\":"+(announced?"true":"false")+",\"pipe_ReadFile_return\":"+(read_ok?"true":"false")+
-                ",\"pipe_bytes\":"+std::to_string(bytes)+",\"pipe_read_error\":"+std::to_string(read_error)+
+                ",\"packet_ready_observed\":"+(announced?"true":"false")+",\"packet_CreateFile_attempted\":"+(announced?"true":"false")+
+                ",\"packet_CreateFile_return\":"+(announced?(opened?"true":"false"):"null")+
+                ",\"packet_CreateFile_error\":"+(announced&&!opened?std::to_string(open_error):"null")+
+                ",\"packet_regular_nonreparse_exact96\":"+(metadata_known?"true":"false")+
+                ",\"packet_ReadFile_attempted\":"+(metadata_known?"true":"false")+",\"packet_ReadFile_return\":"+(metadata_known?(read_ok?"true":"false"):"null")+
+                ",\"packet_bytes\":"+std::to_string(bytes)+",\"packet_read_error\":"+(metadata_known&&!read_ok?std::to_string(read_error):"null")+
+                ",\"packet_sha256_before_actor_exit\":"+(packet_before_hash.empty()?"null":quote(packet_before_hash))+
                 ",\"packet_identity_matches\":"+(bound?"true":"false")+",\"actual_sender_PID\":"+std::to_string(packet.child_pid)+
                 ",\"actual_generation\":"+std::to_string(g.generation)+",\"independent_actual_geometry\":"+
                 (actual?rect(*actual):"null")+",\"actual_native_receipt\":"+quote(exact)+
@@ -638,37 +626,56 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
         if(!exited)(void)stop_test_actor();
         if(exited)GetExitCodeProcess(child_process.value,&code);const auto child_exit_tick=GetTickCount64();
         if(disconnect){
-            BYTE unused{};DWORD bytes{};BOOL read_ok=FALSE;DWORD error{};
-            // The parent's writer was closed before ResumeThread; after this
-            // held child actually exits there can be no live writer copy.
-            if(exited){SetLastError(ERROR_SUCCESS);read_ok=ReadFile(transport.reader.value,&unused,1,&bytes,nullptr);
-                error=read_ok?ERROR_SUCCESS:GetLastError();}
-            s.log.check("I08_disconnect_actual_pipe_EOF_and_exact_input_actor_exit",exited&&code==0&&!read_ok&&error==ERROR_BROKEN_PIPE&&bytes==0,
+            std::array<char,sizeof(InputActorDisconnectPacket)> after_bytes{};DWORD bytes{};BOOL read_ok=FALSE;DWORD error{};
+            LARGE_INTEGER zero{},size{};BY_HANDLE_FILE_INFORMATION after_info{};bool after_metadata_known=false,rewound=false;
+            if(exited&&packet_before_known){after_metadata_known=GetFileInformationByHandle(transport.reader.value,&after_info)&&
+                    !(after_info.dwFileAttributes&(FILE_ATTRIBUTE_REPARSE_POINT|FILE_ATTRIBUTE_DIRECTORY))&&GetFileSizeEx(transport.reader.value,&size)&&
+                    size.QuadPart==sizeof(InputActorDisconnectPacket);
+                rewound=SetFilePointerEx(transport.reader.value,zero,nullptr,FILE_BEGIN)!=FALSE;
+                if(rewound){SetLastError(ERROR_SUCCESS);read_ok=ReadFile(transport.reader.value,after_bytes.data(),static_cast<DWORD>(after_bytes.size()),&bytes,nullptr);
+                    error=read_ok?ERROR_SUCCESS:GetLastError();}}
+            const auto after_hash=exited&&after_metadata_known&&read_ok&&bytes==after_bytes.size()?hash(transport.path):std::string{};
+            const bool same_file=after_metadata_known&&after_info.dwVolumeSerialNumber==packet_before_info.dwVolumeSerialNumber&&
+                after_info.nFileIndexHigh==packet_before_info.nFileIndexHigh&&after_info.nFileIndexLow==packet_before_info.nFileIndexLow;
+            const bool immutable=packet_before_known&&same_file&&read_ok&&bytes==after_bytes.size()&&
+                std::string(after_bytes.data(),after_bytes.size())==packet_before_bytes&&after_hash==packet_before_hash;
+            s.log.check("I08_disconnect_exact_input_actor_exit_and_packet_immutable",exited&&code==0&&child_birth&&
+                process_birth(child_process.value)==child_birth&&immutable,
                 "\"actor_PID\":"+std::to_string(child.dwProcessId)+",\"actor_birth\":"+std::to_string(child_birth)+
                 ",\"held_process_exit_observed\":"+(exited?"true":"false")+",\"exit_code\":"+std::to_string(code)+
-                ",\"EOF_ReadFile_attempted\":"+(exited?"true":"false")+",\"EOF_ReadFile_return\":"+(read_ok?"true":"false")+
-                ",\"EOF_bytes\":"+std::to_string(bytes)+",\"EOF_last_error\":"+std::to_string(error)+
-                ",\"hard_TerminateProcess_scope\":\"NOT_RUN\",\"actor_exited_with_no_UP\":true,\"normal_orderly_UP_disconnect_scope\":\"NOT_RUN\"");
+                ",\"same_held_packet_file\":"+(same_file?"true":"false")+",\"packet_rewind_return\":"+(rewound?"true":"false")+
+                ",\"after_ReadFile_attempted\":"+(rewound?"true":"false")+",\"after_ReadFile_return\":"+(rewound?(read_ok?"true":"false"):"null")+
+                ",\"after_bytes\":"+std::to_string(bytes)+",\"after_ReadFile_error\":"+(rewound&&!read_ok?std::to_string(error):"null")+
+                ",\"packet_sha256_before_exit\":"+quote(packet_before_hash)+",\"packet_sha256_after_exit\":"+(after_hash.empty()?"null":quote(after_hash))+
+                ",\"packet_bytes_and_hash_unchanged\":"+(immutable?"true":"false")+
+                ",\"hard_TerminateProcess_scope\":\"NOT_RUN\",\"actor_no_UP_checked_in_following_receipt\":true,\"normal_orderly_UP_disconnect_scope\":\"NOT_RUN\"");
         }
         if(disconnect){
-            const bool pipe_closed=CloseHandle(transport.reader.value)!=FALSE;
-            if(pipe_closed)transport.reader.value=nullptr;
+            const bool packet_closed=CloseHandle(transport.reader.value)!=FALSE;
+            if(packet_closed)transport.reader.value=nullptr;
             const bool ready_closed=CloseHandle(transport.ready.value)!=FALSE;
             if(ready_closed)transport.ready.value=nullptr;
             const bool close_ack_closed=CloseHandle(transport.close_ack.value)!=FALSE;
             if(close_ack_closed)transport.close_ack.value=nullptr;
-            s.log.check("I08_disconnect_parent_transport_handles_closed",pipe_closed&&ready_closed&&close_ack_closed,
-                "\"pipe_reader_CloseHandle_return\":"+std::string(pipe_closed?"true":"false")+
+            s.log.check("I08_disconnect_parent_transport_handles_closed",packet_closed&&ready_closed&&close_ack_closed,
+                "\"packet_reader_CloseHandle_return\":"+std::string(packet_closed?"true":"false")+
                 ",\"ready_event_CloseHandle_return\":"+(ready_closed?"true":"false")+
-                ",\"close_event_CloseHandle_return\":"+(close_ack_closed?"true":"false")+",\"product_resources_not_inferred\":true");
+                ",\"close_event_CloseHandle_return\":"+(close_ack_closed?"true":"false")+",\"packet_retained_as_evidence\":true,\"product_resources_not_inferred\":true");
         }
-        const auto actor=read(receipt,8192);
+        const auto actor=read(receipt,disconnect?16384:8192);
         const bool actor_identity=actor.ends_with("}\n")&&actor.find("\"UP_sent\":false")!=std::string::npos&&
             actor.find("\"source_sha\":\"" PANEBIND_BUILD_SHA "\"")!=std::string::npos&&actor.find("\"SendInput_return\":")!=std::string::npos&&
             number(actor,"\"parent_pid\":")==GetCurrentProcessId()&&number(actor,"\"pid\":")==child.dwProcessId&&
             number(actor,"\"source_hwnd\":")==reinterpret_cast<std::uintptr_t>(source)&&number(actor,"\"before_qpc\":");
         actor_send_count_known=actor_identity;actor_inserted=actor_identity?number(actor,"\"SendInput_return\":"):0;
         const bool actor_down_inserted=actor_identity&&number(actor,"\"DOWN_SendInput_return\":")==1;
+        if(disconnect)s.log.check("I08_disconnect_actual_child_packet_completion_receipt",actor_identity&&
+            actor.find("\"packet_CREATE_NEW_return\":true")!=actor.npos&&actor.find("\"packet_WriteFile_return\":true")!=actor.npos&&
+            number(actor,"\"packet_bytes_written\":")==sizeof(InputActorDisconnectPacket)&&
+            actor.find("\"packet_FlushFileBuffers_return\":true")!=actor.npos&&actor.find("\"packet_CloseHandle_return\":true")!=actor.npos&&
+            actor.find("\"packet_ready_signaled\":true")!=actor.npos&&actor.find("\"packet_sha256_after_close\":"+quote(packet_before_hash))!=actor.npos&&
+            number(actor,"\"before_qpc\":")==packet_before_down_qpc&&number(actor,"\"own_UP_calls\":")==0,
+            "\"actual_child_receipt\":"+quote(actor)+",\"completion_file_and_input_sender_same_child\":true,\"product_driver_notification\":false");
         // Import the CHILD's successful-send ledger, not async physical state.
         // START/native receipts below independently prove product observation.
         const auto actor_down_qpc=number(actor,"\"before_qpc\":");
@@ -734,7 +741,7 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
         chain_check_product(s,product_pid,product_birth);
         s.log.emit("I08_input_actor_exit_scope","\"status\":\"INPUT_ACTOR_EXIT_DEADLINE_AND_RECOVERY_OBSERVED\",\"source_destroyed\":false,\"product_driver_channel\":false,"
             "\"actual_main_fixture_test_UP\":true,\"same_product_new_Move_Resize\":true,\"whole_I08_PASS\":false,\"human_uat\":\"NOT_RUN\""+
-            std::string(disconnect?",\"actual_input_child_pipe_disconnect_observed\":true,\"recovery_input_sender\":\"original_supervisor\",\"new_input_actor_Move_Resize\":\"NOT_RUN\"":""));
+            std::string(disconnect?",\"actual_input_child_exit_and_packet_immutability_observed\":true,\"recovery_input_sender\":\"original_supervisor\",\"new_input_actor_Move_Resize\":\"NOT_RUN\"":""));
     }catch(...){
         // The child has only the bounded START acknowledgement/readback waits.
         // Keep desktop exposure bounded
@@ -743,7 +750,7 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
         try{const bool actor_gone=stop_test_actor();
             // A new verified single DOWN can survive an ack/MOVE failure or
             // a failed final receipt write. Never infer it from async state.
-            const auto failed_actor=read(receipt,8192);
+            const auto failed_actor=read(receipt,disconnect?16384:8192);
             if(!actor_send_count_known&&failed_actor.ends_with("}\n")&&
                 number(failed_actor,"\"parent_pid\":")==GetCurrentProcessId()&&number(failed_actor,"\"pid\":")==child.dwProcessId&&
                 number(failed_actor,"\"parent_birth\":")==process_birth(GetCurrentProcess())&&

@@ -1,6 +1,18 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：缺口分流、有限生产修复及最小环境方案（2026-10-26—27）
+## 当前接续：936计量边界实测、I07整链及剩余恢复验证（2026-10-27）
+
+**V1仍为PARTIAL：60/60已接通、44/60 DEV PASS、22/40＝55%、1/12整链（I07），真人UAT PENDING；不进入REA、不开放宿主试用。** 产品继续使用936原EXE，Release SHA-256 `8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`；c452／49b3原实测与旧失败身份不变。
+
+- 原可信SSH已实际恢复，ZS-WORKSTATION／Professional／26200、Sandbox Enabled；本次只读空闲19.45GiB、C空闲35.31GiB、I空闲约647GiB。未确认具名可丢弃的完整Windows guest；没有启动或新建普通VM、修改宿主设置或触碰其它项目。[本次只读回执](v1-evidence/20261027-restored-ssh-environment.json)覆盖旧超时之后的实际状态，不改写旧回执。
+- `12cc7efb738d4c328649d6e9575da479`／a2驱动：真实mapped hook进入exact命令，公共命令hook=0保留missing；stop末完成纳入最终summary，另一故意未完成调用仍unknown／unfinished=1。D32／D33仅定向计量缺口关闭。停止中的post-context拒绝、非NormalUp和未知native清理照实保留；约297ms故意阻塞不是正常NF02预算通过，完整NF02仍缺正常整版分母。
+- `f20a47b5797646a8a98ed0750b5c9bd6`／同936、a2驱动：I07真实排除普通／Ctrl零writer、解除后新三成员恢复、导出8→实际改0／free→导入8／snap、损坏字节留档→默认启动→保留有效export并通过GUI恢复8，支持本链DEV PASS。不是自动恢复旧设置，不授五应用、托盘或整版通过。
+- `5075`、`c97`原失败保留；分别修正TEST离散命令post-context“不适用”判据、两独立native拖动的空间锚点。`87cb`与`653b`的CreatePipe失败保留；后者实际错误5，发生在child创建／actor DOWN前，但并非全Run零输入，原因仍UNKNOWN。不改DACL／token，而以现有事件和本Run一次性完成回执替换新增TEST传输；新通路尚待构建及现场验证。
+- 另核实max／grid约束与I06同生命周期最终Exit为现有条件可补的具体缺口：只接已有函数的窄入口，不重跑八向、固定尺寸、旧视觉所有权、Full或900秒。当前新增入口现场NOT_RUN，不据源码接通授PASS。
+
+[本轮原始摘录与身份索引](v1-evidence/20261027-targeted-followup-review.json)保留每Run产品／驱动／封包身份、原件位置、哈希和精确guest清理。真实托盘前置未成立，D31继续待现场；客户初始化、完整non-elevated桌面、200%／独立多屏／混合DPI分别保留缺项。Sandbox可用不等于这些条件已满足，不以VM建设阻断上述可做工作。
+
+## 历史接续：缺口分流、有限生产修复及最小环境方案（2026-10-26—27）
 
 **V1 继续为 PARTIAL；60/60 已接通、44/60 DEV PASS、22/40＝55%、0/12 整链，真人 UAT PENDING，不进入 REA。** 当前有实际运行证据的基线仍是 c452／49b3；本轮新增源码修复的候选不能继承成“已经现场通过”。以下旧段落中的“当前／本轮”均按各自日期、RunId、源码及哈希解释，不作为最新版本导航。
 
