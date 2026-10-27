@@ -7628,6 +7628,207 @@
       }
     }
   ],
+  "independent_nf02_origin_trace_review": {
+    "kind": "READ_ONLY_ANALYSIS_OF_EXISTING_RUNS_NOT_A_NEW_FIELD_RUN",
+    "basis_run_id": "21328cc2190b4e3aa02079921b88bf9b",
+    "basis_product_driver_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+    "raw_and_identity_ref": "runs[run_id=21328cc2190b4e3aa02079921b88bf9b]",
+    "recorded_valid_population_budget": {
+      "result": "PASS_FOR_RECORDED_VALID_POPULATION_ONLY",
+      "summary_product_sequence": 2000,
+      "native_valid_samples": 122,
+      "native_missing_clock": 34,
+      "native_p95_bucket_upper_us": 49999,
+      "native_maximum_us": 120405,
+      "callback_samples": 453,
+      "callback_p99_bucket_upper_us": 999,
+      "callback_maximum_us": 1045,
+      "unfinished_calls": 0,
+      "issued_native_completion_unknown": false,
+      "whole_NF02": "NOT_AWARDED",
+      "boundary": "122个真实有效hook起点样本的p95预算保持通过；34个缺钟、全部极值、代表场景与总体分母未知分别保留，不能把两个legacy起点另域补入后改算原122分位或宣称整NF02通过。"
+    },
+    "legacy_dispatch_clock_semantics": {
+      "origin": "shield_WM_LBUTTONUP_WndProc_dispatch",
+      "not_WH_MOUSE_LL_or_hardware_time": true,
+      "producer": "src/platform/windows/operations/gesture_input_shield.cpp: WM_LBUTTONUP分支进入时native_qpc，保存legacy_up_dispatch_qpc",
+      "normalized_input": "src/platform/windows/product/input_service.cpp: 真legacy UP、release/detach/Gone确认后的ShieldLegacy UP保hook_observed_qpc=0，resource_observed_qpc=实际legacy_up_dispatch_qpc",
+      "historical_accounting_gap": "7a product_app的UP只将hook_observed_qpc传finish，再到normal_up_dock apply及计量；legacy resource起点未贯通，因此这两条真实native进入原hook missing_clock，不是零延迟样本。",
+      "new_domain_boundary": "后继独立legacy_up_dispatch_to_postverify域仅用于该真实分发起点；hook域照旧，public无hook不能借用legacy时钟，计量不授写入或NormalUp权限。"
+    },
+    "two_historical_legacy_dock_receipts": [
+      {
+        "fixture_sequence": 512,
+        "embedded_original_product_sequence": 583,
+        "generation": 15,
+        "native_call_id": 44,
+        "hook_observed_qpc": 0,
+        "legacy_up_dispatch_qpc": null,
+        "dispatch_clock_retained": false,
+        "native_before_qpc_decimal": "463396462",
+        "native_after_qpc_decimal": "463437995",
+        "geometry_observed_qpc_decimal": "463447718",
+        "post_observed_qpc_decimal": "463447725",
+        "bare_matching_UP_fixture_sequence": 508,
+        "dispatch_to_postverify_us": null
+      },
+      {
+        "fixture_sequence": 1532,
+        "embedded_original_product_sequence": 1570,
+        "generation": 41,
+        "native_call_id": 128,
+        "hook_observed_qpc": 0,
+        "legacy_up_dispatch_qpc": null,
+        "dispatch_clock_retained": false,
+        "native_before_qpc_decimal": "772021773",
+        "native_after_qpc_decimal": "772070508",
+        "geometry_observed_qpc_decimal": "772081215",
+        "post_observed_qpc_decimal": "772081226",
+        "bare_matching_UP_fixture_sequence": 1528,
+        "dispatch_to_postverify_us": null
+      }
+    ],
+    "legacy_original_retention_limit": "完整D1..2197及其嵌入原产品回执、实际保留P1589..2001中均未找到g15/g41的legacy_up_dispatch_qpc或normalized-UP resource起点；D508/D1528仅是当时matching_UP PASS，不含该钟。D506/D1526 SendInput区间、D507/D1527被动guest队首LL钟各有事实，但均不是shield WndProc起点，不能代入或以0回填。这不是宣称当时没有真实UP。",
+    "corner_tail_stage_analysis": {
+      "qpc_frequency": 10000000,
+      "placement_clock_order": ["hook_H", "preflight_S", "native_before_B", "native_after_A", "geometry_G", "post_context_complete_P"],
+      "corners": [
+        {"fixture_sequence":730,"original_product_sequence":760,"generation":22,"call_id":58,"qpc_decimal":["531892747","532933959","532946203","533031838","533046529","533046709"],"H_to_S_ms":104.1212,"S_to_B_ms":1.2244,"native_B_to_A_ms":8.5635,"A_to_G_ms":1.4691,"G_to_P_ms":0.0180,"H_to_P_ms":115.3962},
+        {"fixture_sequence":740,"original_product_sequence":790,"generation":23,"call_id":60,"qpc_decimal":["536263614","537234570","537241022","537343064","537362540","537362727"],"H_to_S_ms":97.0956,"S_to_B_ms":0.6452,"native_B_to_A_ms":10.2042,"A_to_G_ms":1.9476,"G_to_P_ms":0.0187,"H_to_P_ms":109.9113},
+        {"fixture_sequence":1748,"original_product_sequence":1746,"generation":48,"call_id":142,"qpc_decimal":["839077120","840054680","840065830","840188329","840203539","840203701"],"H_to_S_ms":97.7560,"S_to_B_ms":1.1150,"native_B_to_A_ms":12.2499,"A_to_G_ms":1.5210,"G_to_P_ms":0.0162,"H_to_P_ms":112.6581},
+        {"fixture_sequence":1758,"original_product_sequence":1776,"generation":49,"call_id":144,"qpc_decimal":["843454807","844528997","844537013","844641068","844658682","844658854"],"H_to_S_ms":107.4190,"S_to_B_ms":0.8016,"native_B_to_A_ms":10.4055,"A_to_G_ms":1.7614,"G_to_P_ms":0.0172,"H_to_P_ms":120.4047}
+      ],
+      "retained_contextual_stage_clock_order": ["hook_H", "GUI_dequeued", "begin_entered", "first_source_fresh_returned", "first_topology_all_returned", "selected_members_fresh_passed", "final_other_all_returned", "apply_before", "apply_returned", "handler_returned"],
+      "retained_contextual_stages": [
+        {"product_sequence":1748,"generation":48,"qpc_decimal":["839077120","839603724","839617489","839624404","839860227","839866332","840047466","840047508","840219040","840232845"],"H_to_GUI_ms":52.6604,"first_all_interval_ms":23.5823,"selected_member_interval_ms":0.6105,"final_other_interval_ms":18.1134,"apply_interval_ms":17.1532},
+        {"product_sequence":1778,"generation":49,"qpc_decimal":["843454807","844055435","844067031","844079897","844294652","844301902","844523113","844523137","844674963","844692609"],"H_to_GUI_ms":60.0628,"first_all_interval_ms":21.4755,"selected_member_interval_ms":0.7250,"final_other_interval_ms":22.1211,"apply_interval_ms":15.1826}
+      ],
+      "interpretation": "四角完整端点109.9113..120.4047ms为真实慢尾。后两角可分到H→GUI、首拓扑资格枚举、所选成员fresh、末独立邻居候选及apply；前两角细分记录已轮转，仅嵌入placement粗分保留。H→GUI包含入队前后工作与调度，不等于已证明纯队列等待；all区间不是逐API计量，不能唯一归因COM/日志IO或系统。apply总区间也不是单native API耗时。首all有拓扑/资格意义，末all是独立新鲜候选门，不因看似重复而删除。",
+      "unique_confirmed_performance_root_cause": "UNKNOWN",
+      "authority_or_eligibility_relaxation_recommended": false,
+      "physical_display_latency_measured": false
+    },
+    "source_impact_and_pending_scope": {
+      "historical_identity_refs": ["latest_product_candidate", "limited_profile_followup_build", "full_profile_followup_build", "prepared_continuation_followup_build"],
+      "summary": "936的映射hook起点/最终drain修复、AACD仅省略contextual双击未使用的连续targets、0ad分段记录与0c/7a后续日志和Prepared路线变化各保原构建/Run身份。7a实际两轮/控件/caed入口子范围不改绑后继计量源码；较早936/AACD慢值与失败不因7a有效分位通过而抹除。精确生产差异与当前候选导航由既有canonical记录，不另立功能分母。",
+      "new_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "new_build_state": "SEALED_DEBUG_RELEASE_BUILD_AND_9_OFFLINE_EACH_PASS",
+      "new_field_validation": "NOT_RUN",
+      "new_accounting_change": "实际legacy dispatch独立贯通finish→dock apply→call/delayed completion→最终drain；另修真实未attempt delayed receipt误增missing分母：native_attempted=false时保留原typed origins/unknown，不计样本也不删除pending。该源码修正不回算7a原122/34或授新现场PASS。",
+      "historical_build_only": "ed10产品D/R构建及9offline、64fc独立driver guest-path构建为既有封存支撑，均未现场/未部署；不是最终待部署candidate的binary pin。",
+      "sealed_candidate_build": {
+        "source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+        "receipt": {"path":"uat/v1-control/build-sizing-465cbf3-2baff3ae06e8495a95ab53438e52b799/receipt.json","bytes":3607,"sha256":"429FCEDB033DEFE9569154E9D14C340B8F332691990EA1190E199DBB7DC1CA52"},
+        "frozen_build_directory": "out/v1-app-sizing-465cbf3",
+        "compiler_flags": "/DWIN32 /D_WINDOWS /EHsc /bigobj",
+        "verified_exception_handling": "Sync",
+        "configurations": [
+          {
+            "configuration": "Debug",
+            "product": {"path":"out/v1-app-sizing-465cbf3/src/platform/windows/Debug/panebind.exe","bytes":4373504,"sha256":"7391CEC2969A4C3A11288AD6C95ED7057FDBB001E3C6859FD4EA65F9448DCA9D"},
+            "driver": {"path":"out/v1-app-sizing-465cbf3/src/platform/windows/Debug/panebind-v1-guest-fixture.exe","bytes":11339264,"sha256":"B53F72E849C90448C8B649FB19D51BF18D1DE1ABB4195292C7B35B85C5584E71"},
+            "build_log": {"path":"uat/v1-control/build-sizing-465cbf3-2baff3ae06e8495a95ab53438e52b799/Debug-build.txt","bytes":24364,"sha256":"BF0D5E06B54E3C3B3D2B1786ED57EABE31433D616D2B5BE4A4BCF244C465B77D"},
+            "ctest_original_log": {"path":"uat/v1-control/build-sizing-465cbf3-2baff3ae06e8495a95ab53438e52b799/Debug-offline-ctest.txt","bytes":1114,"sha256":"CC8FF99135FD5DC69D7B7E7020A2211552D2DEC4D89752E8BE16E3FDACC2B561"},
+            "offline_passed": 9,
+            "offline_total": 9,
+            "includes_v1_timing": true,
+            "offline_proc_seconds": 5.45,
+            "offline_wall_seconds": 5.54
+          },
+          {
+            "configuration": "Release",
+            "product": {"path":"out/v1-app-sizing-465cbf3/src/platform/windows/Release/panebind.exe","bytes":1258496,"sha256":"89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB"},
+            "driver": {"path":"out/v1-app-sizing-465cbf3/src/platform/windows/Release/panebind-v1-guest-fixture.exe","bytes":4779008,"sha256":"91CD69602B7D860FC4C15DA2E072E9083752712B5ADECDA4D9C9197F64E6F9AA"},
+            "build_log": {"path":"uat/v1-control/build-sizing-465cbf3-2baff3ae06e8495a95ab53438e52b799/Release-build.txt","bytes":24898,"sha256":"282E0A562161F619052BBFE9D9C19703CD0453561658F4703F48565A601B8187"},
+            "ctest_original_log": {"path":"uat/v1-control/build-sizing-465cbf3-2baff3ae06e8495a95ab53438e52b799/Release-offline-ctest.txt","bytes":1114,"sha256":"3C1AE1C60767DD7EDE97E6B1E23721E57B96C44374DEB6239CC33CA695B68682"},
+            "offline_passed": 9,
+            "offline_total": 9,
+            "includes_v1_timing": true,
+            "offline_proc_seconds": 1.98,
+            "offline_wall_seconds": 3.33
+          }
+        ],
+        "host_guard": {
+          "receipt": {"path":"uat/v1-host-guard/b38c3b42c24940108519daf49ddfde24/receipt.json","bytes":15141,"sha256":"81C84587A27C5659814520FA35697434AF5CE34BDE18C27564B773BDEE2DF1D7"},
+          "actual_full_argv_exit78_count": 4,
+          "configurations": ["Debug", "Release"],
+          "suites": ["InputFollowupOnly", "DriverDisconnectOnly"],
+          "four_actual_build_identities_source_match": true,
+          "synthetic_input_by_admitted_route": 0,
+          "ordinary_product_launches": 0,
+          "feature_field_validation": "NOT_RUN"
+        },
+        "static_source_checks": {
+          "original_log": {"path":"uat/v1-control/placement-timing-final-static.txt","bytes":68684,"sha256":"792E7D2C2736A53358DB3C198B7AF971587EEC7EB53C8803F69649A308E0E5F9"},
+          "actual_passed": 351,
+          "package_UI_or_synthetic_input_run_by_static_checks": false
+        },
+        "independent_readonly_pin_audit": "四EXE与两原生CTest日志的size/hash均逐项匹配receipt；host四完整argv实际Exit78及四build-identity原回执均绑定465cbf3，不执行新EXE/测试来重造原结果。",
+        "field_validation": "NOT_RUN",
+        "package_deployment_receipts": "TWO_ACTUAL_PREPARED_AND_DEPLOYED_PACKAGES_GUEST_NOT_LAUNCHED",
+        "prepared_packages_not_runtime_Run_records": [
+          {
+            "reserved_run_id": "c4f226a180dc4c87acb9a5c03c5421f1",
+            "suite": "InputFollowupOnly",
+            "configuration_to_launch": "Release",
+            "source_product_driver_packaging_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+            "package_receipt": {"path":"uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/package-receipt.json","bytes":13536,"sha256":"79325438859AE623520ABCED14F78B125383F01C19F0C71453D1FC9B29F4C3AA"},
+            "zip": {"path":"uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/c4f226a180dc4c87acb9a5c03c5421f1.zip","bytes":6384038,"sha256":"7DBA2A3378E8FEE59E5E9FD943A28E329A11892076A6222538C24D0130E4954D"},
+            "manifest": {"path":"uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/input/manifest.json","bytes":17165,"sha256":"C4AD70CB751BB0B4496411B0213735A15942AD3700930742CFE95D4E0AD7C343"},
+            "wsb": {"path":"uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/PaneBindV1.wsb","bytes":974,"sha256":"D17ED698E913868CA91CB49723F2BBC9709ADBA064EB6FBEF9AAF88D2E83F472"},
+            "deploy_receipt": {"path":"uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/deploy-receipt.json","bytes":2664,"sha256":"1167F4368B2E7BC69D8EA6B57C5D69F09272ACC1F161BF83C5D10BF52689C9BB"},
+            "remote_root": "I:\\PaneBindMVP1Runs\\c4f226a180dc4c87acb9a5c03c5421f1",
+            "deploy_utc": "2026-10-27T14:28:43.7940594Z",
+            "local_files_matching_deploy_inventory": 9,
+            "readonly_input_only_writable_output": true,
+            "actual_deploy_receipt_guest_started": false,
+            "feature_field_validation": "NOT_RUN"
+          },
+          {
+            "reserved_run_id": "1dfbcd8ce1284c4487bc65f37fbd31e2",
+            "suite": "DriverDisconnectOnly",
+            "configuration_to_launch": "Release",
+            "source_product_driver_packaging_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+            "package_receipt": {"path":"uat/v1-sandbox/1dfbcd8ce1284c4487bc65f37fbd31e2/package-receipt.json","bytes":13539,"sha256":"755E41B0A360B5BD988215B19B9880C83DCAAA572CF8CC82EB81CEFE65C80A5D"},
+            "zip": {"path":"uat/v1-sandbox/1dfbcd8ce1284c4487bc65f37fbd31e2/1dfbcd8ce1284c4487bc65f37fbd31e2.zip","bytes":6384049,"sha256":"37D04B5F78D2057ABA269C25E1C9F353B33C39C2532547549FE757D306E700C4"},
+            "manifest": {"path":"uat/v1-sandbox/1dfbcd8ce1284c4487bc65f37fbd31e2/input/manifest.json","bytes":17168,"sha256":"6DC2D8C3BA283F2477C414469B50D5A3FDC30C72611F61120D44D79F8439598B"},
+            "wsb": {"path":"uat/v1-sandbox/1dfbcd8ce1284c4487bc65f37fbd31e2/PaneBindV1.wsb","bytes":977,"sha256":"61502399B3EB2D1F7E84F7CBB93DDC093EB38E6610B9D3D6967FAA964EDB3C07"},
+            "deploy_receipt": {"path":"uat/v1-control/1dfbcd8ce1284c4487bc65f37fbd31e2/deploy-receipt.json","bytes":2664,"sha256":"72B220173EE5D9ECBDD274B79A837F5864F417F4312268C3BC87CE07A05344CE"},
+            "remote_root": "I:\\PaneBindMVP1Runs\\1dfbcd8ce1284c4487bc65f37fbd31e2",
+            "deploy_utc": "2026-10-27T14:29:01.3486066Z",
+            "local_files_matching_deploy_inventory": 9,
+            "readonly_input_only_writable_output": true,
+            "actual_deploy_receipt_guest_started": false,
+            "feature_field_validation": "NOT_RUN"
+          }
+        ],
+        "package_snapshot_boundary": "package-receipt内deployed=false为准备时原快照，不回写；后续实际deploy由各自独立receipt证明。只核本地容器/九文件pins与既有远端部署回执，不把打包/部署PASS当运行或功能PASS。",
+        "launch_hold_snapshot": {
+          "source": "root已提供的单次只读观察；本复核不远端再查",
+          "observed_utc": "2026-10-27T13:16:53Z",
+          "observed_project": "XiangFlow",
+          "observed_Sandbox_pid": 75948,
+          "fresh_state": "NOT_RECHECKED",
+          "user_release_notification_received": false,
+          "action": "不Launch、不轮询、不关闭未知Sandbox、不新建任务或清理其他项目；待用户通知轮到后由root串行继续。",
+          "transport_boundary": "本轮两次可信SSH部署实际成功；另一项目占用不是SSH认证/连接阻断或全部环境能力判定。"
+        },
+        "old_26_runtime_identities_rebound": false
+      }
+    },
+    "I08_scope_boundary": {
+      "existing_run_ref": "runs[run_id=a451193b2a0e4d44a1e018c08a23257e]",
+      "already_observed": "真实child exit0/96B同一packet及exact Move后，g1在18718ms因winevent_foreground/FocusLost退出；D147实际唯一abort-UP，D181同一产品supervisor后继Move/Resize及两代NormalUp限定恢复成立，原FAIL/非零退出保留。",
+      "still_missing": "driver退出后无额外不明前台打断时产品自主终止/清理及后继的完整I08合同未闭；旧g1 ReleaseCapture各false与真实detach/Gone分别保留，不由guest销毁补齐。新passive前置只读记录且不控制未知前台；若实际仍有额外loss或自主终止未观察，不能登记I08 PASS。",
+      "deadline_boundary": "30000ms是现配置默认Deadline，不新增精确等满30秒才可接受所有abort/恢复的硬门；但18718ms实际FocusLost绝不能改成Deadline/NormalUp。",
+      "unknown_foreground_origin": "UNKNOWN",
+      "new_field_validation": "NOT_RUN",
+      "whole_I08_awarded": false
+    },
+    "no_new_Run_or_literal": true,
+    "new_feature_or_benchmark_PASS": 0,
+    "whole_version": "PARTIAL"
+  },
   "latest_followup_next_action": "7a/1a40两轮owned Core、标准控件与caed普通ZIP入口各自原件已完成/精确清理，旧0c Prepared空FAIL和旧包保原身份。P2000原122valid+34missing/p95桶49999/max120405及callback453/max1045不删尾；已测范围百分位与整体NF合同分开，由独立复核裁定，不自行授wholeNF02/整版。下方next_driver_note仅保早期AACD快照语义。",
   "historical_initial_next_driver_note": "后继驱动与新Run由root单独构建/运行/追加。本快照仅封存以上3Run，不预判后继结果。",
   "next_driver_note": "12cc/f20a/2bb与234bd保原范围；94a提前FocusLost且旧pre-UP目的判据使清理UP未发送，00c新判据已真实发送并核实一次abort清理UP，但仍提前FocusLost/非Deadline，未完成supervisor后继，整I08不授PASS；同类未知FG反复打断后停止本路线。12c7普通47ff入口、b4b两轮owned core分别有实际证据；b4b最终p95桶99999及missing34仍不授NF02，不授整版。 最新AACD/9e：6271两轮owned核心scopePASS但NF02最终FAIL，63a4部分native失败/实际abort-UP/同实例survivor恢复scopePASS，91bc真正6af普通ZIP入口/设置effect/两NormalUp/exit scopePASS；suite原wholeI10false/I12字段按原范围保留，组合裁定另在canonical。后继新源码/计时诊断未运行不能换绑这些原件。",

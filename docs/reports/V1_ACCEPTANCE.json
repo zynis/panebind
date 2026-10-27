@@ -8,6 +8,49 @@
   "dev_complete": false,
   "human_uat": "PENDING",
   "source_identity": {
+    "pending_input_followup_candidate": {
+      "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "driver_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "packaging_head": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "debug_product_sha256": "7391CEC2969A4C3A11288AD6C95ED7057FDBB001E3C6859FD4EA65F9448DCA9D",
+      "release_product_sha256": "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB",
+      "debug_driver_sha256": "B53F72E849C90448C8B649FB19D51BF18D1DE1ABB4195292C7B35B85C5584E71",
+      "release_driver_sha256": "91CD69602B7D860FC4C15DA2E072E9083752712B5ADECDA4D9C9197F64E6F9AA",
+      "status": "BUILD_AND_DEPLOY_COMPLETE_GUEST_NOT_RUN",
+      "build_receipt": "uat/v1-control/build-sizing-465cbf3-2baff3ae06e8495a95ab53438e52b799/receipt.json",
+      "build_receipt_sha256": "429FCEDB033DEFE9569154E9D14C340B8F332691990EA1190E199DBB7DC1CA52",
+      "offline_validation": "DEBUG_9_OF_9_RELEASE_9_OF_9_STATIC_351_PASS_FOUR_FULL_ARGUMENT_HOST_EXIT78_NO_UI_OR_INPUT",
+      "production_change": "PlacementTiming分开真实hook与适用legacy-UP dispatch起点，即时/延迟完成和最终drain保留missing与unfinished；late completion的native_attempted=false不添样本也不删除pending。无输入、权限或writer行为变更；ed10/64fc中间构建保历史身份。",
+      "packages": [
+        {
+          "suite": "InputFollowupOnly",
+          "run_id": "c4f226a180dc4c87acb9a5c03c5421f1",
+          "zip_sha256": "7DBA2A3378E8FEE59E5E9FD943A28E329A11892076A6222538C24D0130E4954D",
+          "manifest_sha256": "C4AD70CB751BB0B4496411B0213735A15942AD3700930742CFE95D4E0AD7C343",
+          "wsb_sha256": "D17ED698E913868CA91CB49723F2BBC9709ADBA064EB6FBEF9AAF88D2E83F472",
+          "remote_root": "I:\\PaneBindMVP1Runs\\c4f226a180dc4c87acb9a5c03c5421f1",
+          "package_receipt": "uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/package-receipt.json",
+          "deploy_receipt": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/deploy-receipt.json",
+          "scope": "两次实际legacy-UP dock计时、共享I07规则输入片段、一次既有I10第二成员失败恢复；不重跑Full/max/grid/fixed/900。",
+          "field_status": "NOT_RUN"
+        },
+        {
+          "suite": "DriverDisconnectOnly",
+          "run_id": "1dfbcd8ce1284c4487bc65f37fbd31e2",
+          "zip_sha256": "37D04B5F78D2057ABA269C25E1C9F353B33C39C2532547549FE757D306E700C4",
+          "manifest_sha256": "6DC2D8C3BA283F2477C414469B50D5A3FDC30C72611F61120D44D79F8439598B",
+          "wsb_sha256": "61502399B3EB2D1F7E84F7CBB93DDC093EB38E6610B9D3D6967FAA964EDB3C07",
+          "remote_root": "I:\\PaneBindMVP1Runs\\1dfbcd8ce1284c4487bc65f37fbd31e2",
+          "package_receipt": "uat/v1-sandbox/1dfbcd8ce1284c4487bc65f37fbd31e2/package-receipt.json",
+          "deploy_receipt": "uat/v1-control/1dfbcd8ce1284c4487bc65f37fbd31e2/deploy-receipt.json",
+          "scope": "60秒有界被动启动前置后，真实actor退出、无外来FocusLost/Pause的自主撤销与自有capture释放、严格唯一abort-UP和同实例非激活Move/Resize；不新增精确30秒门或产品driver通知。",
+          "field_status": "NOT_RUN"
+        }
+      ],
+      "deployment_scope": "两批新Run仅Deploy；输入只读、独立output可写，未调用Launch、未建立本批任务或guest。封包receipt的deployed=false是封包时点，后继deploy-receipt证明传输核合，不回写原receipt。",
+      "field_condition": "SSH已恢复；先前只读观察XiangFlow Sandbox PID75948占用，等待用户通知释放，保留该实例、不启动第二实例、不轮询。完整Medium桌面/真实应用/显示条件仍分别独立。",
+      "acceptance_boundary": "7a/2132的122有效hook样本DEV预算PASS及7a/caed/17b6普通入口保原身份；新候选没有现场样本，不混算、不替代已测导航，不增46/60、22/40、4链或模块数。"
+    },
     "latest_verified_targeted_runtime": {
       "product_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
       "release_binary_sha256": "F1B49FACA9F1D32AB8F88910DBF1A67A18164F942A7038C2207504F0EDB2BA61",
@@ -13775,7 +13818,7 @@
       "candidate_identity_ref": "integration_chains.I05.ordered_runtime_observation",
       "observed": "936/6c/b4b同PID6544两轮不重启完成不等宽停靠窗→smartDock开/关实际剩余区/普通半屏→边/角/Shift真实拉伸→Undo→微移/调高→GUI改热键及实际几何。两类入口与smart开关有真实结果；运行中普通unmapped客户透传仅按dfdd原实证和未改路由作影响继承，不冒称b4b新客户测试。contextual角分支不伪称第二NormalUp；仅授guide I05独立DEV，不附加五应用/托盘/双屏门，不授模块/整版或NF02。",
       "remaining_conditions": [],
-      "next_action": "I05规定独立DEV链已闭合，不重跑已过命令/拉伸或900秒。NF02当前b4b慢值/缺时钟仍独立FAIL，真实应用和显示矩阵另判；后继生产变化仅按影响复验。",
+      "next_action": "保留936/b4b原I05 DEV链身份；936→aacd仅裁剪离散分支不使用的targets，0ad计时/0c日志不改变权限，7a共享输入变更已由2132两轮smart开关、边/Shift边/角/Shift角、恢复和改热键直接复验。b4b慢值是历史FAIL，7a/2132正常代表组合NF02预算另已PASS；不重跑I05或900，不由mapped几何正例外推所有自定义visual/lower映射已当前实测。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -13911,7 +13954,7 @@
       "candidate_identity_ref": "integration_chains.I06.ordered_runtime_observation",
       "observed": "936/23e9/2bb0同PID4008依guide I06完成原半透明/置顶→DragGlass真实Move及UP恢复→app自改baseline后两次Shake开关及各自真实UP→实际Pause/Resume→同实例public Exit。最终173/非置顶、preview销毁、capture/关联/hooks/writer退出先有实际后验，之后才TEST恢复原fixture属性；不是拼多个PID或由guest销毁推断清理。历史90b8失败与625、11ae/dfdd有限子范围保原身份。",
       "remaining_conditions": [],
-      "next_action": "I06规定DEV链已闭合，不重复旧视觉所有权、D25或I06专项。系统Shake共存、五类应用、托盘与整版环境硬门分别仍未齐，真人UAT NOT_RUN；后续生产变化仅按影响复验。",
+      "next_action": "936/2bb完整视觉tuple→同PID Exit链保原身份；视觉恢复/退出实现未改，7a/2132两轮已直接复验DragGlass/真实UP、Shake两次、Pause/Resume，17b6另证当前普通入口正常退出。2132在最终Exit前有TEST属性恢复，不能称重放2bb的特殊tuple直到Exit；据未变实现作明确继承，不重复整I06、旧所有权或D25。系统Shake、五应用、托盘及整版门独立。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -14023,7 +14066,7 @@
       "candidate_identity_ref": "integration_chains.I07.ordered_runtime_observation",
       "observed": "936/a2ce/f20a同候选按guide I07完整顺序实测：先三成员Ctrl建立组；GUI排除后源普通Move与Ctrl均实际原生START/END、零产品writer/无陈旧follower；解除后新代三成员恢复；导出有效8→真实GUI保存0及free Move→导入恢复8及snap；坏原文备份/notice→正常默认重启→原有效export保持→真实GUI恢复8及snap，最后原options/二进制/自窗与产品正常退出有原件。只授I07 DEV链，非五应用/托盘/完整Medium或整版。历史c01、11ae/dfdd等分段观察保原身份。",
       "remaining_conditions": [],
-      "next_action": "本I07规定配置链DEV已闭合，不无变量重跑或额外附加托盘/五应用门。M02-F03真实编辑器、其它链、完整Medium及真人UAT仍独立未齐；后续产品变更按影响决定复验。",
+      "next_action": "936/f20a完整I07 DEV链保原身份；配置解析/持久化/规则实现未改，导出/导入/损坏恢复不重复。共享InputService的7a变更后，仅规则输入片段尚无当前现场事实：465cbf/c4f2的InputFollowupOnly已部署NOT_RUN，共用原group→真实GUI排除→普通/Ctrl原生零writer→撤除新代三成员group，并恢复原设置/布局；不把旧f20a重绑新EXE或授新整链通过。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
@@ -14097,10 +14140,10 @@
       "observed": "a451/0ad/3beb实际input child5892退出且96B packet前后同hash、源/产品持续存活；18.718秒真实FocusLost撤权，严格唯一supervisor abort-UP由同代LL确认，无旧代新native；同产品PID6668以现有前台、未调用SetForegroundWindow的两次后继Move/Resize均exact并实际Raw/legacy NormalUp/资源退出。原自然30秒门FAIL、整Run非零保留，未知前台切入发起者/根因仍UNKNOWN；仅闭合该限定恢复范围，不授完整I08或DriverDisconnected产品通知。",
       "historical_observed": "936/6c的94a与936/950的00c均真实actor DOWN/native START-END/capture/一次exact Move/96B packet及同file/hash保持、actor held exit0；之后两次实际winevent_foreground/FocusLost（00c为18.656s），未达到默认30s Deadline或supervisor后继。00c唯一TEST cleanupUP有同代LL QPC与nonNormal END/Gone/实际no-own capture观察匹配，非NormalUp/客户UP投递；94a旧判据未发送的原FAIL不改。未知Console/rgnupdt前台的激活原因UNKNOWN，同类再中断后停止此路线、不操作未知窗。 【历史原身份观察保留】当前212/e7原Hotkey即时receipt679 FAIL保留；e21仅配置准备失败、I08未跑；048/d2已实际WM_HOTKEY whilepressed通过，actor g13在8890ms因未知起因FG131910实际FocusLost撤权，资源正常退出但非30秒Deadline/NormalUp。 【历史观察保留】c01真实actor默认Deadline30031ms、撤权、后继Move/Resize及UP通过；sourceclose原代UP1217仍缺失，phase1327 FAIL。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R7/4e9 actor653真实默认30031ms Deadline及684同进程Move/Resize恢复通过，source-close616实际本代UP仍FAIL，wholeI08未过。；34bf actor默认Deadline30047ms与资源idle/overlayhidden成立，紧随g24实际nativepending但未见START、1702FAIL；sourceclose1648真实UP仍失败，不授中断恢复完整PASS。 当前证据：11ae/3f8及dfdd四实际中断原因、真实WM_HOTKEY、每次新Move/Resize恢复已执行；dfdd默认30000ms Deadline实测30015ms，并非NormalUp。历史actor FocusLost保留但不作为当前timer未跑。【已有a575/11ae直接证据】D24 exact no-own capture-loss本分支及同实例后继Move/Resize已定向闭合（RecoveryContractsOnly，非当前ccde新运行）；不能继续写该分支从未触发。",
       "remaining_conditions": [
-        "a451/0ad/3beb已完成实际child退出/96B packet不变、真实FocusLost撤权/资源退出、唯一严格abort-UP及同实例supervisor非激活新Move/Resize/正常Raw与legacy UP；限定恢复范围已观察，不再写后继从未执行。原默认30秒Deadline在18.718秒FocusLost处未达，原FAIL/最终非零保留；新actor后继未运行、产品driver通知未实现也不推断。未知前台发起者/根因UNKNOWN，不进行无变量重复或操作未知Console。",
+        "a451/0ad/3beb实际child退出/96B packet不变、FocusLost撤权、唯一严格abort-UP及同实例supervisor非激活Move/Resize恢复均已观察。该Run旧默认30秒断言FAIL/最终非零保留，不将精确30秒追加为原I08硬门；产品没有driver协议，不能补造DriverDisconnected通知。未知前台发起者/根因UNKNOWN，不无变量重跑或操作未知Console。465cbf/1dfb新子合同尚NOT_RUN：有界被动启动前置后观察真实actor退出，无外来FocusLost/Pause的自主终止、自有capture真实释放/退关联/撤罩及同实例恢复；前置缺失不创建actor或发送DOWN。",
         "936/a2ce/12cc已实测writer最后drain汇总：PID4988 call1 P86实际完成先于P87汇总；PID6948 P79仍samples0/unfinished1、writer_exited=false/completion_unknown=true。仅关闭D33，不把故意停止当NormalUp或未知收尾PASS。会话/锁屏由M02-F05/I09、hook/queue分支由M04共同合同另判。"
       ],
-      "next_action": "保留a451已实测的限定断连/安全失焦/严格abort-UP/同实例非激活后继恢复，不重复该缺口。默认30秒自然结束与完整I08仍未通过，只在有具体新事实时推进真正缺项；不操纵未知前台、不补造NormalUp或DriverDisconnected通知。",
+      "next_action": "等待用户通知Sandbox释放后运行已部署465cbf/1dfb的唯一新变量：60秒有界被动自然前台返回前置、真实actor退出、pre-ACK写入基线与前台观察不变、实际非Normal终止及Deadline资源Gone/自有capture释放，再严格唯一abort-UP与同实例非激活Move/Resize。任一次FocusLost/Pause均不通过自主子合同；未知/前置失败保持NOT_RUN或FAIL，不抢前台、不加精确30秒门、不制造产品driver通知。a451原限定恢复与失败不改绑，整I08仍未通过。",
       "latest_disconnect_runtime_observation": {
         "source_sha": "0adfd0d9aa95ab77d4d8f9d3d25e33800a4ae57c",
         "binary_sha256": "8D3C15631AF9872FC11FB0475BC3E123FD923B2672C67060150872545C2B8155",
@@ -14265,7 +14308,7 @@
       "historical_defect_scope_note": "原D01/D08及旧Run FAIL保留，不因本I10组合DEV裁定关闭其余应用/输入/整版范围；本链当前无剩余判据。",
       "observed": "63a4/aacd Release Medium，同PID6724连续完成有真实min/max配置的三成员Ctrl Resize→首exact/次实际API TRUE后身份失效/第三0→实际部分态回读→真实g1 LL abort-UP/资源退出→新g2普通Move→g3实际接触→g4双幸存Ctrl及三代NormalUp→配置恢复/正常Exit。234bd/936 max/grid与b4b组min、750 fixed按原身份和未变依赖继承，组合闭合本I10 DEV，不假同PID或重测。",
       "remaining_conditions": [],
-      "next_action": "本I10独立DEV组合已闭合，不再重复max/grid/fixed或第二成员故障。只在实际相关生产变更后按影响复验；继续其余整链/应用/显示/NF02及整版硬门，Human仍NOT_RUN，不授M03/M07模块或整版PASS。",
+      "next_action": "AACD/63a4原部分失败→严格abort-UP→同实例三代恢复链及936/234bd、b4b、750约束继承保各自身份；writer/core/约束实现936→7a未改。7a共享Input/capture请求变更后，仅这段异常恢复需当前候选影响复验：已部署465cbf/c4f2的InputFollowupOnly复用原BatchFailureOnly一次，NOT_RUN；不重跑max/grid/fixed，不强求API BOOL FALSE，不把未执行的新链写PASS。",
       "historical_observed": "c01实际grid单次拒绝但原g6UP缺失；第二成员API TRUE+身份失效/无第三调用/幸存新Move/Ctrl子链PASS，未观察API FALSE。；R7/4e9 grid1576缺实际本代LL清理UP；batch1636 normalizedUP为空但417真实同代LL观察，实际two native/third0保留，driver解析修订待实测。 当前证据：11ae/3f8与dfdd实际在途旧call完成后不恢复权限、grid API TRUE非exact拒绝、第二成员API TRUE身份丢失/第三0及存活成员后继Move/Ctrl已运行。原g5/grid abort不写NormalUp。",
       "historical_remaining_conditions": [
         "已有原生min/max/grid拒绝、第二成员API TRUE后身份失效/第三0、在途完成不复权及后继Move/Ctrl实证；当前Terminal实际C采用/两成员接受与拒绝也只是对应子范围。",
@@ -15632,7 +15675,7 @@
     "936/a2ce/12cc已定向实测D32/D33：实际mapped hook336573711到exact command placement同值；公开无hook对照保留missing1/discarded1。PID4988 P86最后完成先于P87 summary；PID6948 P79 samples0/unfinished1、writer_exited=false/unknown=true如实保留。故意阻塞完成样本296915us不是正常性能，也没有post-context/NormalUp或全清理PASS。完整NF02仍要求同候选Release代表范围/分类分母、同机QPC与完整适用后验，正常callback p99<1000us、输入到完整后验p95<50000us；持续>100ms异常如实记录，软件时间不是物理显示延迟。",
         "NF02当前可比正常代表组合DEV预算通过，不授五应用、全部显示、完整用户链或整版PASS；这些按原各自合同继续，不重复硬塞为本功能性能门。慢尾体验调查OPEN，不以历史失败永久否定后继候选，也不从未知补造任何预算样本。"
       ],
-      "next_action": "7a当前正常两轮预算范围通过，保留34缺起点和四个>100ms角双击体验调查，不继续无证据删检查、重跑900或建立矩阵。后续仅按具体新缺陷和实际可运行的原合同推进；D32/D33已闭，真实应用/显示缺口各自处理，不用未知填PASS或以旧FAIL改绑新EXE。",
+      "next_action": "7a/2132完整122有效hook样本与34缺起点的正常两轮预算PASS保原身份；旧2条legacy dock无可恢复dispatch起点，不能补算或把hook=0当真钟。465cbf已实现typed hook/适用legacy-UP dispatch独立域及late native_attempted=false不计样本/不删pending，D/R离线通过但现场NOT_RUN；已部署c4f2仅两次真实legacy-UP dock，核实际dispatch→完整后验与分域missing/unfinished，不混入旧122或重算旧分位。四个>100ms角双击尾调查继续，不扩矩阵或无证据删资格门。",
       "current_serial_timing_review": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
       "current_contract_review": "docs/reports/v1-evidence/830a-focus-successor-review.json",
       "source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",

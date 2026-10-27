@@ -1,12 +1,29 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：7a双击续接、原生客户控件与四条DEV链（2026-10-27）
+## 本轮待现场候选：465cbf计量分域与窄输入影响复验（2026-10-27）
+
+新产品／driver／包装源码均为`465cbf321d37b9f8dcdf30420aa648494a94cbf3`，D/R构建及各9项受影响offline、351项既有静态检查与4次完整有效argv宿主Exit78拒绝已通过；这些不计现场PASS。Release产品SHA-256 `89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB`，driver `91CD69602B7D860FC4C15DA2E072E9083752712B5ADECDA4D9C9197F64E6F9AA`；[构建回执](../../uat/v1-control/build-sizing-465cbf3-2baff3ae06e8495a95ab53438e52b799/receipt.json) SHA-256 `429FCEDB033DEFE9569154E9D14C340B8F332691990EA1190E199DBB7DC1CA52`。ed10／64fc中间构建保留原二进制及回执，不改绑为最终465cbf。
+
+- 生产只补计量：typed `PlacementTiming`独立保留hook与适用的legacy-UP dispatch域，即时／延迟完成及最终drain都保留missing／unfinished；晚到`native_attempted=false`不添缺钟样本，也不删除pending。没有借此更改Input/capture、权限或writer。7a／2132的122有效hook样本、34缺起点及DEV百分位PASS保原身份；原2条legacy dock没有可恢复dispatch起点，不能补算、合并分母或以0冒充真钟。新域尚无现场样本。[现有独立复核](v1-evidence/20261027-targeted-followup-review.json)的`independent_nf02_origin_trace_review`已将四角总109.9113–120.4047ms分出H→S 97.0956–107.4190ms；后两角H→GUI 52.6604/60.0628ms、首拓扑all 23.5823/21.4755ms、末独立all 18.1134/22.1211ms。不是纯native API或唯一系统原因，首拓扑和末fresh不能因看似重复删除；体验尾问题仍OPEN，不盲目优化或新增max硬门。
+- `InputFollowupOnly` Run `c4f226a180dc4c87acb9a5c03c5421f1`：仅2次真实legacy-UP dock、共享原I07规则输入片段、1次原I10 BatchFailure。`DriverDisconnectOnly` Run `1dfbcd8ce1284c4487bc65f37fbd31e2`：60秒有界被动启动前置→真实actor退出→无外来FocusLost/Pause的自主终止、自有capture真实释放／退关联／撤罩→严格唯一abort-UP与同实例非激活Move/Resize；不追加精确30秒时长门、不制造产品driver通知。
+- 两包已核ZIP／manifest／EXE／脚本／WSB映射并分别Deploy到`I:\PaneBindMVP1Runs\<RunId>`新目录，输入只读且仅独立output可写；未调用Launch、未建立本批task或guest，全部现场`NOT_RUN`。完整pins与两类原回执路径见验收表`source_identity.pending_input_followup_candidate`；封包时`deployed=false`与后继部署成功分开保存。SSH已恢复，但先前只读观察XiangFlow Sandbox PID75948占用，等待用户通知释放，不抢占、不启动第二实例、不轮询。这只阻断本批现场，不抹去其它已完成工作或证明完整Medium／应用／显示条件满足。
+
+936／AACD→7a的有限影响范围如下；旧DEV证据保原源码、EXE及Run，不改绑新候选，也不清空既有46/60 DEV、22/40对标、4链、0模块的PARTIAL状态。
+
+| 已闭链 | 可继承与已直接复验范围 | 本批必要动作 |
+| --- | --- | --- |
+| I05 | 936/b4b原链保留；AACD仅省离散双击不用的targets，0ad计时／0c日志不改权限。7a/2132两轮真实smart开关、边/Shift边/角/Shift角、恢复和改热键已覆盖新hint／GUI批准分支 | 不重复I05、八区或900秒；mapped几何成功不外推全部visual/lower映射已当前实测 |
+| I06 | 936/2bb的特殊tuple保持到同PID Exit保原身份；视觉恢复／退出实现未改。2132直接复验DragGlass/UP、Shake两次、Pause/Resume，17b6另证当前普通入口退出 | 2132最终Exit前有TEST属性复原，不能说完整重放2bb；明确继承未变终段，不重跑整个视觉专项 |
+| I07 | 936/f20a原导出／导入／损坏恢复及持久化实现不变 | c4f2仅共用group→GUI排除→普通/Ctrl原生零writer→撤除新代三成员group并恢复设置/布局，`NOT_RUN` |
+| I10 | AACD/63a4原部分失败恢复及936/234bd、b4b、750约束证据保各自身份；writer/core/约束未随7a变更 | c4f2复用一次BatchFailure：首exact、次实际失败、第三零→严格abort-UP→同实例恢复，`NOT_RUN`；不重跑max/grid/fixed、不要求API BOOL FALSE |
+
+## 当前已测基线：7a双击续接、原生客户控件与四条DEV链（2026-10-27）
 
 **V1仍为PARTIAL：60/60已接通、46/60 DEV PASS、22/40＝55%、4/12整链（I05、I06、I07、I10），模块0，真人UAT PENDING；不进入REA、不开放宿主试用。** 当前产品`7a4760e099367ed28731df9eef2975f8a8442179`／Release SHA-256 `F1B49FACA9F1D32AB8F88910DBF1A67A18164F942A7038C2207504F0EDB2BA61`，普通ZIP caed／17b6已实际验证限定入口；aacd／6af5／91bc及更早包保原字节和原Run身份，不重指历史flat `current_package`。
 
 - **M04-F01独立DEV组合通过**：0c0b／2353真实控件成功后，0c0b／91b5核心仍实际暴露同点第二DOWN的Prepared为空，原FAIL保留。7a只增加版本CAS的continuation-only分类提示，mapped／corner均须GUI精确点／身份／几何／HT新鲜批准，早UP／新代／撤权拒绝迟到资源与写入；旧capture请求前后两次代际检查阻止误撤新代。`21328cc2190b4e3aa02079921b88bf9b`同PID6572两轮核心PASS，g45 mapped、g48 corner有真实hint／GUI批准／exact；`627a00ce603b4525be04b688331d3fba`实际Tab通知、按钮、鼠选[0,3]和非注入菜单WM_COMMAND21004通过，各段零新增增强写入，配置／产品／资源正常恢复。组合f06a八向及a575已闭透传原证据，仅关闭独立F01，不授浏览器／Electron／Terminal客户矩阵。D93／D102 UP0早求值字段保留，不改原文。
 - **NF02当前正常代表组合DEV预算通过**：21328的P2000为writer停止及最后drain后的同机QPC原汇总，callback453／p99桶999µs／max1045µs；native完整geometry＋post-context端点122有效、34缺起点（32public命令＋2legacy dock），p95桶49999µs／max120405µs，unknown／unfinished均0。满足guide7.7两个百分位预算；六个>50ms尾值中四个角双击109.9–120.405ms保留体验调查OPEN，不额外发明max硬门、不把missing当0、不用轮转晚段／driver嵌入子集重算分位数、不承诺物理显示延迟。旧936／b4b、aacd／6271等FAIL保原身份；不授五应用／全矩阵／整版，不追加无关900秒或无限性能优化。
-- **I08限定后继恢复已实测**：`a451193b2a0e4d44a1e018c08a23257e`／0ad产品／3beb驱动实际child5892持有句柄exit0、96B packet前后不变／child UP0；18.718秒发生真实FocusLost而非默认30秒Deadline。产品撤权／退关联／撤罩后，supervisor唯一严格abort-UP有同代LL回执，无旧代新call，随后同产品PID6668完成非激活新Move／Resize及真实Raw／legacy NormalUp。产品自身exit0／资源退出独立成立；Run按设计FAIL／fixture exit1。仅闭合该限定恢复缺口，整I08／自然Deadline／新actor后继仍不预填通过；前台切入发起者和根因UNKNOWN，不争抢或重复无变量路线。
+- **I08限定后继恢复已实测**：`a451193b2a0e4d44a1e018c08a23257e`／0ad产品／3beb驱动实际child5892持有句柄exit0、96B packet前后不变／child UP0；18.718秒发生真实FocusLost而非默认30秒Deadline。产品撤权／退关联／撤罩后，supervisor唯一严格abort-UP有同代LL回执，无旧代新call，随后同产品PID6668完成非激活新Move／Resize及真实Raw／legacy NormalUp。产品自身exit0／资源退出独立成立；该Run旧30秒断言FAIL／fixture exit1保留，不将精确时长追加为I08硬门。限定恢复已观察，前台切入发起者和根因UNKNOWN；无外来失焦／暂停的自主断连收尾及完整I08尚未通过，下一步仅为上述新前置对照，不争抢或重复无变量路线。
 - 本批产品／driver源码均7a，测试编译及包装HEAD`1a40bdb4c73c1ee9a724fd88eef294ad39d50f94`（仅既有tests作用域编译修正），D／R各8项受影响offline通过；受测driver Release `041B690AD2B337AAA0AD6D5D728ABBB8000DF26E8060C8A4BE3DF56D240FFA42`。构建或宿主拒绝不当功能PASS，普通入口另有下项真实ZIP验证。
 - **当前普通便携入口**：`17b634cf38514271a89d52627df0b8c2`实际从caed七载荷ZIP／中文空格目录空参数启动，setup PID6728／P24与真正ZIP PID6132／birth`134375666291479754`／P1–62分开；实际可见中文GUI、二启同实例、Save改变Move、g1/g2真实Raw／legacy NormalUp、P62自身资源退出与正常Exit、客户pair恢复成立，D188限定PASS。包`caed6f4502e74ed79251c9dc4f1829f3`，ZIP `16A6325E5B727E20B9927DA7D88B5349F740FF6BB5BA66D0DD8D9A8D2B014D7B`／manifest `558E948EDCB1B45969BF4404923D02A9720D4DCA3E9F376720782F48E6839DB2`。专属guest／task于09:32:38.8450419Z清理且证据未变；不是以销毁guest证明产品清理。包文档是封包时点快照不回写，当前操作导航以仓库[快速入门](../V1_QUICK_START.md)为准；不授托盘／完整I12／真人。
 
