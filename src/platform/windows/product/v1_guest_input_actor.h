@@ -606,7 +606,7 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
                 ",\"held_process_exit_observed\":"+(exited?"true":"false")+",\"exit_code\":"+std::to_string(code)+
                 ",\"EOF_ReadFile_attempted\":"+(exited?"true":"false")+",\"EOF_ReadFile_return\":"+(read_ok?"true":"false")+
                 ",\"EOF_bytes\":"+std::to_string(bytes)+",\"EOF_last_error\":"+std::to_string(error)+
-                ",\"hard_TerminateProcess_scope\":\"NOT_RUN\",\"actor_exited_with_no_UP\":true,\"normal_orderly_UP_disconnect_scope\":\"NOT_RUN\");
+                ",\"hard_TerminateProcess_scope\":\"NOT_RUN\",\"actor_exited_with_no_UP\":true,\"normal_orderly_UP_disconnect_scope\":\"NOT_RUN\"");
         }
         if(disconnect){
             const bool pipe_closed=CloseHandle(transport.reader.value)!=FALSE;
