@@ -1,0 +1,57 @@
+{
+  "schema": "panebind-v1-readonly-environment-review/1",
+  "kind": "REVIEW_OF_ACTUAL_COMMAND_OUTPUT_NOT_FUNCTIONAL_ACCEPTANCE",
+  "observed_utc": ["2026-10-27T03:09:51.7760849Z", "2026-10-27T03:12:50.6902845Z"],
+  "source_head_at_check": "dc672392c045d12c75f823d2bae0414f313f64dc",
+  "transport": {
+    "program": "C:\\Windows\\System32\\OpenSSH\\ssh.exe",
+    "configuration": "existing trusted crossrec-desktop configuration",
+    "endpoint": "192.168.1.6:22",
+    "batch_mode": true,
+    "strict_host_key_checking": true,
+    "connect_timeout_seconds": 8,
+    "connection_attempts_per_command": 1,
+    "actual_result": "AUTHENTICATED_READONLY_COMMANDS_SUCCEEDED"
+  },
+  "remote": {
+    "hostname": "ZS-WORKSTATION",
+    "windows_edition": "Professional",
+    "windows_version": "10.0.26200",
+    "physical_memory_bytes": 34290831360,
+    "free_physical_memory_bytes": 20888289280,
+    "committed_bytes": 19606441984,
+    "commit_limit_bytes": 36728561664,
+    "logical_processors": 8,
+    "hypervisor_present": true,
+    "sandbox_feature": "Enabled",
+    "sandbox_process_names_checked": ["WindowsSandbox.exe", "WindowsSandboxRemoteSession.exe", "WindowsSandboxClient.exe", "wsb.exe"],
+    "sandbox_processes_at_second_check": [],
+    "sandbox_executable": "C:\\Windows\\system32\\WindowsSandbox.exe",
+    "wsb_executable": "C:\\Users\\zs\\AppData\\Local\\Microsoft\\WindowsApps\\wsb.exe",
+    "C_free_bytes": 37909581824,
+    "I_free_bytes": 694883483648,
+    "console_user": "zs",
+    "console_session": 1,
+    "guest_desktop_ready_from_console_or_SSH": "NOT_INFERRED",
+    "ordinary_vm_tools": {"Get-VM": "NOT_AVAILABLE", "VBoxManage": "NOT_AVAILABLE", "vmrun": "NOT_AVAILABLE"},
+    "known_inventory_paths": [
+      {"path": "C:\\Users\\zs\\.VirtualBox\\VirtualBox.xml", "result": "ABSENT"},
+      {"path": "C:\\Users\\zs\\AppData\\Roaming\\VMware\\inventory.vmls", "result": "ABSENT"}
+    ],
+    "named_disposable_complete_Windows_guest": "NOT_CONFIRMED_NOT_PROVEN_ABSENT",
+    "display_observation": ["RTX 2070 Super 3840x2160", "OrayIddDriver resolution UNKNOWN"],
+    "independent_guest_dual_display_and_mixed_DPI": "NOT_CONFIRMED"
+  },
+  "limits": {
+    "no_VM_or_Sandbox_started_by_these_checks": true,
+    "no_system_settings_or_features_changed": true,
+    "no_reboot": true,
+    "no_CrossRec_or_other_project_changes": true,
+    "no_host_synthetic_input": true,
+    "no_ordinary_VM_start_or_creation": true,
+    "no_scheduled_monitoring": true,
+    "functional_PASS_awarded": false,
+    "historical_timeout_receipt_preserved": true
+  },
+  "next_action": "Use only the already authorized Sandbox facility for fresh exact PaneBind runs, with a fresh occupancy check at launch. No complete VM construction is authorized. Complete desktop and independent displays remain separate capability gaps."
+}

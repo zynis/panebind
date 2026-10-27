@@ -76,9 +76,25 @@ void mapped_origin(State& s){
     config.drag_transparency=false;config.docking=false;config.shake=false;chain_gui_save(s,config);
     chain_gui_save_mouse(s,{{2,3,1,0,v::Action::MoveRight}});
     bool pending{},up_attempted{};std::uint64_t generation{},down_qpc{},up_qpc{};std::string observed_down,observed_up,command,mapped;
+    const HWND mapped_source=set.frames[0].hwnd;POINT sent_point{};bool sent_point_known=false;
+    const auto release_target=[&]{
+        POINT actual{};DWORD source_pid{};GUITHREADINFO source_gui{sizeof(source_gui)},foreground_gui{sizeof(foreground_gui)};
+        const auto idle_for_pair=[&](const GUITHREADINFO& gui){return
+            (!gui.hwndCapture||gui.hwndCapture==mapped_source)&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+            !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));};
+        // A successful MoveRight changes the source rectangle/hit region.
+        // Recheck the REAL current destination, not the old HTRIGHT/rect.
+        return sent_point_known&&desktop()&&set.owns(0)&&set.frames[0].hwnd==mapped_source&&
+            GetWindowThreadProcessId(mapped_source,&source_pid)==set.thread&&source_pid==GetCurrentProcessId()&&
+            GetForegroundWindow()==mapped_source&&GetCursorPos(&actual)&&actual.x==sent_point.x&&actual.y==sent_point.y&&
+            GetAncestor(WindowFromPoint(actual),GA_ROOT)==mapped_source&&mapping_remaining_modifiers(0)&&
+            GetGUIThreadInfo(set.thread,&source_gui)&&GetGUIThreadInfo(0,&foreground_gui)&&
+            idle_for_pair(source_gui)&&idle_for_pair(foreground_gui);
+    };
     try{
         chain_front(set,0);const auto h=set.frames[0].hwnd;const auto point=layout_hit(set,0,HTRIGHT);
         if(!point)throw std::runtime_error("timing_mapping_actual_HTRIGHT_missing");
+        sent_point=*point;sent_point_known=true;
         const auto preparation_mark=read_product(s).size();cursor(s,*point);std::string preparation;
         s.log.check("timing_mapping_fresh_actual_preparation",chain_stretch_preparation(set,*point,HTRIGHT,initial,preparation_mark,3500,preparation)&&
             mapping_remaining_hit(set,*point,HTRIGHT,initial,0),"\"actual_preparation\":"+quote(preparation));
@@ -88,10 +104,11 @@ void mapped_origin(State& s){
         const auto expected=translated(initial,step,0);
         const auto send=[&](bool pressed){
             if(!desktop()||!set.owns(0)||GetForegroundWindow()!=h||!mapping_remaining_modifiers(0)||
-                (pressed?pending||!mapping_remaining_hit(set,*point,HTRIGHT,initial,0):!pending||up_attempted))
+                (pressed?pending||!mapping_remaining_hit(set,*point,HTRIGHT,initial,0):!pending||up_attempted||!release_target()))
                 throw std::runtime_error("timing_mapping_exact_context_or_middle_ledger_rejected");
             INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=pressed?MOUSEEVENTF_MIDDLEDOWN:MOUSEEVENTF_MIDDLEUP;
             LARGE_INTEGER q{};if(!QueryPerformanceCounter(&q)||q.QuadPart<=0)throw std::runtime_error("timing_mapping_send_QPC_unknown");
+            if(!pressed&&!release_target())throw std::runtime_error("timing_mapping_exact_UP_destination_changed");
             if(pressed)down_qpc=static_cast<std::uint64_t>(q.QuadPart);else{up_qpc=static_cast<std::uint64_t>(q.QuadPart);up_attempted=true;}
             UINT inserted=UINT_MAX;DWORD error{};try{inject(packet,&inserted,&error);}catch(...){
                 s.log.emit("timing_mapping_input_error","\"DOWN\":"+std::string(pressed?"true":"false")+
@@ -132,11 +149,12 @@ void mapped_origin(State& s){
             field(summary,"issued_native_completion_unknown",false),"\"actual_summary\":"+quote(summary));
         s.log.check("timing_mapping_known_owned_windows_closed",set.close());close_instance_and_restart(s,pid,birth,binary);
         chain_gui_save_mouse(s,original.mouse_bindings);chain_gui_save(s,original);
-    }catch(...){if(pending&&!up_attempted)try{if(desktop()&&set.owns(0)&&GetForegroundWindow()==set.frames[0].hwnd){
+    }catch(...){if(pending&&!up_attempted)try{if(release_target()){
             up_attempted=true;INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=MOUSEEVENTF_MIDDLEUP;UINT inserted{};DWORD error{};
             inject(packet,&inserted,&error);pending=false;}}catch(...){}
         s.log.emit("timing_mapping_failure_cleanup","\"own_middle_DOWN_pending\":"+std::string(pending?"true":"false")+
-            ",\"single_UP_attempted\":"+(up_attempted?"true":"false")+",\"NormalUp_or_delivery_PASS_inferred\":false");
+            ",\"single_UP_attempted\":"+(up_attempted?"true":"false")+
+            ",\"cleanup_status\":\"UNKNOWN\",\"NormalUp_or_delivery_PASS_inferred\":false");
         try{if(!set.closed)set.close();}catch(...){}throw;}
 }
 

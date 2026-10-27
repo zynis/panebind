@@ -1098,7 +1098,7 @@ function Assert-V1MappingRemainderWiring([string]$Fixture,[string]$Mapping,[stri
        -not $hotkeyScope.Value.Contains('cleanup(s);') -or -not $hotkeyScope.Value.Contains('hotkey_remainder_only_summary') -or
        $hotkeyScope.Value.Contains('owned_mapping_regions_case') -or $hotkeyScope.Value.Contains('owned_mapping_modifier_double_case') -or
        -not $drive.Contains('s.suite=="HotkeyRemainderOnly"') -or -not $gate.Contains('s.suite!="HotkeyRemainderOnly"') -or
-       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
+       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
        -not $Mapping.Contains('s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"')){
         throw 'Hotkey-only continuation must reach only its actual remaining phase with the same released-input guest gate and cleanup.'
     }
@@ -1142,6 +1142,63 @@ Assert-V1MappingRemainderWiring $fixtureSource $mappingRemaining $chainSource
 Check $true 'static mapping remainder and narrow hotkey continuation retain actual GUI/input gates and bounded invalid public drafts'
 Reject {Assert-V1MappingRemainderWiring ($fixtureSource.Replace('if(s.suite=="HotkeyRemainderOnly"){','if(s.suite=="HotkeyRemainderOnly_DISABLED"){')) $mappingRemaining $chainSource} 'static hotkey-only continuation rejects an unreachable remaining phase'
 Reject {Assert-V1MappingRemainderWiring $fixtureSource ($mappingRemaining.Replace('const auto fragment=[](const v::Settings& value,bool mouse){','const auto fragment=[](const v::Settings& value,bool mouse){const auto invalid=v::serialize(value);')) $chainSource} 'static duplicate-draft guard rejects serializing an invalid Settings snapshot instead of its bounded public fragment'
+function Assert-V1TargetedAccountingRecoveryWiring([string]$Fixture,[string]$Timing,[string]$Configuration,[string]$Settings,[string]$Actor,[string]$Disconnect,[string]$Prepare,[string]$Guest){
+    $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
+    $drive=Get-V1FixtureFunctionText $Fixture 'drive'
+    $gateAt=$Fixture.IndexOf('void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){',[StringComparison]::Ordinal)
+    if($gateAt -lt 0){throw 'Targeted accounting/recovery requires the actual independent gate.'}
+    $gate=Get-V1FixtureFunctionText $Fixture.Substring($gateAt) 'independent_entry_ready'
+    $released=[regex]::Match($gate,'if\((?<suites>s\.suite=="MappingRemainderOnly"[^\r\n]*?)\)for\(const int code:std::array\{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN\}\)')
+    foreach($case in @(
+        @('TimingBoundaryOnly','real_mapped_origin_and_final_stop_accounting','owned_timing_boundary_case','timing_boundary'),
+        @('ConfigurationChainOnly','same_product_configuration_exclusion_import_and_corrupt_recovery_chain','owned_configuration_chain_case','configuration_chain'),
+        @('DriverDisconnectOnly','actual_input_actor_pipe_disconnect_and_supervisor_successor','owned_driver_disconnect_case','driver_disconnect'))){
+        $suite=$case[0];$name=$case[2]
+        $scope=[regex]::Match($entry,('(?s)if\(s\.suite=="'+[regex]::Escape($suite)+'"\)\{(?<body>.*?)return;\s*\}'))
+        if(-not $scope.Success -or [regex]::Matches($scope.Groups['body'].Value,'\bphase\s*\(').Count -ne 1 -or
+           -not $scope.Value.Contains(('phase("'+$case[1]+'",'+$name+');')) -or
+           -not $scope.Value.Contains('cleanup(s);') -or -not $scope.Value.Contains(($case[3]+'_only_summary')) -or
+           -not $Fixture.Contains(('#include "platform/windows/product/v1_guest_'+$case[3]+'_case.h"')) -or
+           -not $Fixture.Contains(('else if(value==L"'+$suite+'")s.suite="'+$suite+'";')) -or
+           -not $drive.Contains(('s.suite=="'+$suite+'"')) -or
+           [regex]::Matches($Fixture,('s\.suite!="'+[regex]::Escape($suite)+'"')).Count -ne 2 -or
+           -not $released.Success -or -not $released.Groups['suites'].Value.Contains(('s.suite=="'+$suite+'"')) -or
+           -not $Prepare.Contains(("'"+$suite+"'")) -or -not $Guest.Contains(("'"+$suite+"'"))){
+            throw ('Targeted suite lost its single actual phase, cleanup, parser, manifest, released-input or package gate: '+$suite)
+        }
+    }
+    foreach($value in @('timing_boundary_detail::mapped_origin(s);','timing_boundary_detail::stop_boundary(s,true);',
+        'timing_boundary_detail::stop_boundary(s,false);','field(summary,"after_native_writer_stop_and_final_drain",true)',
+        'e::number(mapped,"\"hook_observed_qpc\":")==e::number(observed_down,"\"hook_observed_qpc\":")',
+        'field(summary,"issued_native_completion_unknown",true)','e::number(population,"\"unfinished_calls\":")==1')){
+        if(-not $Timing.Contains($value)){throw ('Timing boundary lost its actual origin/drain/unknown predicate: '+$value)}
+    }
+    foreach($value in @('settings_guest_exclusion(s,configuration_chain_excluded_Ctrl_attempt);',
+        'before_calls&&after_calls&&*before_calls==*after_calls','keys.size()==3',
+        'settings_guest_file_path(s,gui,true,exported);','settings_guest_attraction(s,0);',
+        'settings_guest_file_path(s,gui,false,exported);','settings_guest_corrupt_restart(s);',
+        'read(exported)==export_bytes&&hash(exported)==export_hash')){
+        if(-not $Configuration.Contains($value)){throw ('Configuration chain lost actual ordered GUI/rule/configuration evidence: '+$value)}
+    }
+    if(-not $Settings.Contains('void settings_guest_exclusion(State& s){settings_guest_exclusion(s,nullptr);}') -or
+       -not $Settings.Contains('if(while_excluded)while_excluded(s);') -or
+       -not $Disconnect.Contains('owned_input_actor_exit_transport(s,set,pid,birth,true);') -or
+       -not $Actor.Contains('error==ERROR_BROKEN_PIPE&&bytes==0') -or
+       -not $Actor.Contains('input_actor_disconnect_cleanup_up(s,set,offset,g.generation,test_up)') -or
+       -not $Actor.Contains('interruption_recovery(s,set,g.generation);')){
+        throw 'Targeted recovery must retain old settings entry, real pipe EOF, actual abort UP and same-process successor.'
+    }
+}
+$targetedTiming=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_timing_boundary_case.h'),[Text.Encoding]::UTF8)
+$targetedConfiguration=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_configuration_chain_case.h'),[Text.Encoding]::UTF8)
+$targetedSettings=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_settings_cases.h'),[Text.Encoding]::UTF8)
+$targetedActor=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_input_actor.h'),[Text.Encoding]::UTF8)
+$targetedDisconnect=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_driver_disconnect_case.h'),[Text.Encoding]::UTF8)
+Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor $targetedDisconnect $lifecyclePrepare $lifecycleGuest
+Check $true 'static three targeted suites retain finite actual phases, original hotkey release coverage and exact guest/manifest/package gates'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource ($targetedTiming.Replace('e::number(mapped,"\"hook_observed_qpc\":")==e::number(observed_down,"\"hook_observed_qpc\":")','true')) $targetedConfiguration $targetedSettings $targetedActor $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static timing boundary rejects dropping the actual mapped hook origin comparison'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming ($targetedConfiguration.Replace('settings_guest_file_path(s,gui,false,exported);','')) $targetedSettings $targetedActor $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static configuration chain rejects disconnecting the actual saved export import'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('error==ERROR_BROKEN_PIPE&&bytes==0','true')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects replacing actual pipe EOF with a claimed boolean'
 function Assert-V1StandardLogonIdentityWiring([string]$Probe,[string]$Guest){
     $start=$Guest.IndexOf('    if($standardLogonIdentity){',[StringComparison]::Ordinal)
     $end=$Guest.IndexOf('    if($probeDesktop -and -not $standardNativeClients -and -not $standardLogonIdentity){',$start,[StringComparison]::Ordinal)
