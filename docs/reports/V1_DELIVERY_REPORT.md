@@ -1,6 +1,66 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：c452 Release几何与普通便携实测，NF02仅本Run达预算（2026-10-24）
+## 当前接续：缺口分流、有限生产修复及最小环境方案（2026-10-26—27）
+
+**V1 继续为 PARTIAL；60/60 已接通、44/60 DEV PASS、22/40＝55%、0/12 整链，真人 UAT PENDING，不进入 REA。** 当前有实际运行证据的基线仍是 c452／49b3；本轮新增源码修复的候选不能继承成“已经现场通过”。以下旧段落中的“当前／本轮”均按各自日期、RunId、源码及哈希解释，不作为最新版本导航。
+
+### 这次实际修什么，不把尚未查明的问题混为一个环境故障
+
+| 对象及合同 | 已有直接事实／原因确定度 | 本轮动作与仍缺证明 |
+| --- | --- | --- |
+| 托盘 M01-F02／B01／I01 | c452／6e3 的 UIA provider PID=0，守卫没有发送 click；不能写成实际菜单已执行失败。另有独立、确定的生产遗漏：v4 托盘未处理 `NIN_KEYSELECT`。 | 键盘激活接回既有设置路由，生产共享判定及实际 ingress／dispatch 接线离线复验；真实托盘鼠标／键盘／菜单操作仍待验证。修此遗漏不关闭 UIA0 的未知原因。 |
+| NF02 输入起点 | 鼠标映射已有真实 hook QPC，却在 `consume → command → apply` 中丢失；GUI／菜单本来没有该 hook 起点，不能混写 QPC 硬件失败。 | 保留鼠标映射真实起点；未观察到 hook 的入口仍缺失，不造时间。双击有意等待与连续 Move 分开解释，既有样本不重算或跨构建合并。 |
+| NF02 结束汇总 | 唯一 `timing_summary` 早于 `writer.stop()` 和最后完成回执 drain，可能遗漏停止期间实际完成的调用。 | 汇总移到完成屏障／最后 drain 之后；仍未知的调用保留 unknown／unfinished，不清零、不声称取消在途调用。现场末端覆盖仍待运行。 |
+| Terminal／Edge 客户初始化及透传 | 真正无产品对照已有 cmd `0xC0000142`、Terminal `0xD0000022`／无 ready／无客户 nonce；Edge 离线文档未就绪、`WM_NULL` 1460。较深原因 UNKNOWN。 | 无新变量不重复启动。先在完整、可见 Medium 隔离桌面确认各客户原生可用，再比较产品 ABSENT／运行；暂停而 hooks 尚在不算 ABSENT。几何 PASS 不替代客户输入。 |
+| Explorer／Notepad／Code | Explorer 69f4 RID8192 但 elevated=true、精确 Shell 路径未确认；Notepad 完整官方资产已备但注册失败；Code restricted-token 链失败49。 | 各自保留资格／注册／初始化反例，不再无变量改参数、下载或套 High 例外；不把三者统一写成一个系统根因。 |
+| 高对比恢复 M10／E02 | 108 的 TEST 恢复 flags126 和六颜色，但原空 scheme 回读为“高对比黑色”；生产代码只读取设置，未找到其主动 SET 的证据。 | TEST 恢复仍 FAIL、成因未明；不删 scheme 断言，不以 guest 销毁冒充恢复。需要能保持原设置的隔离桌面对照，不能归为已确认的产品修复。 |
+| 完整进程树／NF03 | 6e3 精确 held Terminal 已 exit0／rootGone，产品自身 resources 已退出；环境 helper 自建 Shell 仍 live，job 实际 ActiveProcesses=1。 | 分别记录目标退出、产品退出和整树 UNKNOWN；后续对可归属的自建 Shell 做正常退出／全后代核验，不关未知窗口，不用窗口消失或销毁 guest 代替。 |
+| E01–E05 显示／桌面 | 完整 non-elevated Shell、五应用可交互、200% UI、真实负坐标双屏和100%／150%混合 DPI、桌面／会话变化未具备完整证明。 | 各列能力缺口，而不是用 owned 几何代替；本轮不启动 VM、不改宿主来制造条件。 |
+
+逐 ID 的当前证据、剩余条件及下一动作已回写[现有验收表](V1_ACCEPTANCE.json)：未闭合 DEV、必做 B01–B32、I01–I12 和非功能项分开。I07 不再额外依赖“必须从托盘打开配置”；I08 按指南五种中断及后继手势验收，其它队列／环境项保留在对应合同。历史 FAIL 不删除，也不通过改绑 EXE 消除。
+
+### 完整 NF02：缺哪些，以及何时才算通过
+
+保留 c452／a723 **Release** 的70 callback／15 native、p99桶500µs／p95桶49999µs、max45492µs；6e32 **Debug** 的 p99桶999µs／max45181µs另列。它们分别达到有限软件端点预算，不是完整 NF02，也不混入旧构建慢值、故障注入或物理显示延迟。
+
+剩余覆盖并入本来就要求的最终当前 Release I02–I06／I11，不另加固定次数或独立900秒批次：
+
+- 同一启动的真实混合应用、任意 source、普通 Move／Resize／Ctrl、恢复后首手势；已有单框架＋fixture 子链保留，不要求无变化重放。
+- 停靠释放／拖离、鼠标映射／双击／快捷命令和视觉状态的正常通路。记录真实入口及时间基，双击分流的有意等待不能称连续 Move 或 native API 耗时；没有 hook 的 GUI 命令不伪造 hook 起点。
+- 当前候选最终 I11 的两轮核心动作及混合／空闲链，在相同机器 QPC 时基下顺带收集端点、终止资源与前后计数。既有独立时长证据不丢弃，不为凑样本重复900秒。
+- p99 **严格小于1ms**，输入到实际几何＋post-context 完成的 p95 **严格小于50ms**；串行 follower 保留共同输入起点，不只计 native API。未解释的正常持续大于100ms停顿须调查；故意 writer stall 单独作为恢复证据。
+- 完成摘要在真实 writer stop／最后 drain 后；全部正常样本的 missing／reversed／overflow／unfinished／饱和均须核算，不能删除慢值、遗漏末次完成或把未知当0。无法解释完整分母时仍不通过。
+
+### 只读环境结论与一个最小方案（尚未执行）
+
+[本轮只读回执](v1-evidence/20261026-environment-readonly-review.json)区分实际观察与历史：T14p 为 Home／26200，物理内存31.49GiB，可用5.66GiB，已提交56.18／66.00GiB。已确认用户给定 ISO 文件存在（7,371,034,624字节），未挂载、未安装；未确认任何具名、可丢弃的完整 Windows VM。发现 vmwp 不等于可复用 VM，未触碰它。初次受限 CIM 的 access denied 经同一只读查询权限解决，空值转0不作为实测内存。
+
+ZS-Workstation 的原可信 SSH 本次只有一次有界 TCP 连接，端口22超时、未进入认证，远端查询根本未执行。因此当前内存、显示、Sandbox 占用和注册 VM 都是 **UNKNOWN**；此前 Professional／26200／已启用且实际运行过 Sandbox 只是历史确认，不当成本轮可用性。未改 SSH、宿主、CrossRec 或其它文件，没有启动 guest／新建 VM／发送输入／定时检查。
+
+**推荐只选 ZS-Workstation 上一个独立、完整 Windows11 x64 Medium 桌面 guest 的路线；不是现在启动它。** 优先采用经所有者确认可丢弃的现有具名 VM，目前没有可靠读到该名字／路径；不能虚构。若确无现成 guest，下一次需要用户决定的唯一建设方案为：在 `I:\PaneBindMVP1Runs\` 新目录中建立专属 Hyper-V Generation2 guest，建议4 vCPU、8GiB固定内存、96GiB动态 VHDX、Secure Boot／vTPM；前提是确认该主机现有 Hyper-V 能力、许可和不影响 CrossRec 的资源配额。该配置是工程预算，不是已安装事实或已授权系统变更；8GiB不从当前 T14p 的5.66GiB空闲硬挤。建议分配前主机至少有12GiB可用物理内存及不少于8GiB提交余量；若不能保证，不抢资源、不强关应用，暂不建设。
+
+只确认存在的介质为 `C:\Users\zhang\Downloads\26200.6584.250915-1905.25h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso`；未确认台式机上有同文件、也未重新确认其中 edition／评估许可期限。Windows11 VM官方最低要求为4GB内存、64GB存储、两虚拟处理器及适用的安全能力；上述8／96是为桌面＋五应用留余量的建议，不把最低配置当可用性保证。[微软VM要求](https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements)
+
+该完整 guest 首先解锁 E01／E02：标准 non-elevated 测试用户、原生 Explorer／托盘、五类真实应用先确认可启动／客户输入／正常退出，单屏100%及150%和200% UI后，再执行相应产品链。E03／E04 额外硬要求是 **guest 实际枚举两个独立显示器**、副屏负坐标、同DPI及100%／150%不同DPI；单个放大的远程窗口不满足。当前没有已确认的双虚拟显示能力，因此不能承诺 Hyper-V／增强会话自动解除此门；若现有平台不能提供，集中需要一个有此能力的隔离显示会话，不回退到宿主输入。增强会话本身依赖主机／guest条件及重定向设置，不能把 SSH 或 VMConnect 窗口等同完整显示能力。[微软VMConnect条件](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/use-local-resources-virtual-machine-connection)
+
+保留输入只读、仅任务输出可写，不映射整个用户盘／CrossRec；guest 使用空白文档及临时目录。首次可运行前建立该专属 guest 的已知干净恢复点，运行后先产品正常退出并核验 hooks／capture／浮层／writer，再仅正常退出自建客户、保存证据、正常关 guest。故障恢复仅涉及本任务资源；回退或销毁 guest 仍不计产品 cleanup PASS。
+
+现有自动 driver 的 Sandbox 账户／目录检查不能直接移用到普通 VM。只有明确选定 guest 及其归属之后，才为该具名实例增加精确身份／RunId／输入输出标记的适配，并先复验宿主拒绝；不删除保护、不加任意 `--force`，也不把产品普通入口可启动等同自动控制通道可用。本轮没有选定或启动此类 VM，相关适配不预填完成。
+
+**需用户处理／决定的集中最小项**：先恢复原台式机 LAN／SSH 可达（或提供变更后地址），不要求改安全设置；之后只有在未能确认现成可丢弃完整 guest 时，才需决定上述专属 guest／资源预算及缺少的独立双显示能力。当前只读检查不能据旧空闲或 Home 标签宣布台式机一定够用、必须购买或整版已完成。已有 Sandbox 保留为已验证的有限隔离能力，不为相同前置失败重复实验；没有将本轮环境缺项当作开发计划完成。
+
+### 本轮新候选与验证身份
+
+新增候选源码为 `936aeb9e3be25021ef7c6f7f0953de4eb3944fcf`（产品与本次构建的 driver 分别记录），[构建／定向修复回执](v1-evidence/20261027-local-fixes-review.json)登记 D31–D33、实际反例分支及边界：
+
+- Debug／Release 产品及 fixture 构建成功，`/MT`、`/EHsc /bigobj`；两配置各8项受影响 offline 加既有 timing 测试通过。实际生产 ingress／dispatch 共用的托盘判定覆盖 NIN_KEYSELECT；静态接线检查含旧丢 QPC／旧停止顺序／伪清未知／托盘漏支和分叉拒绝，不冒充真实鼠标或键盘投递。
+- Debug EXE SHA-256 `E4E37BA772E243DE25C4B5EE558CBD49E6751FA13CD1736E84FCAAFC07CFB54C`；Release `8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238`，在 `out/v1-app-sizing-936aeb9/src/platform/windows/{Debug,Release}/panebind.exe`。这不是已验便携包替换，也不开放宿主试用。
+- 实际构建：`powershell.exe -NoProfile -ExecutionPolicy Bypass -File uat/v1-control/build-v1-current-candidate.ps1`；原回执 `uat/v1-control/build-sizing-936aeb9-7a18e4aa66844cc085aef635c68a860e/receipt.json`，SHA-256 `75EED8BEADA089A80B6A8AD24564D28875FA9949EEAB9CCB1630058066B23723`。额外只构建／执行 `panebind-v1-timing-tests`／`^v1-timing$`；没有 interactive CTest。
+- 四次完整参数宿主保护实际 Exit78，guard回执 `uat/v1-host-guard/51df14e0764749c1a5ea68cb5ac384d3/receipt.json`，SHA-256 `33E71AC1444C5F912E275DBA34CA39B90D83A3FFED61DEFE0FC5832E22463AA7`。这只是保护测试，未启动普通产品GUI或发送合成输入。
+
+新候选的 owned／Explorer／三窗／真实应用／托盘／完整链现场均 **NOT_RUN**，真人 UAT PENDING；未修改系统、启动 VM、重跑 Full／历史时长批次。已测 c452／49b3 的原二进制、包和 RunId 保持不变，不以936源码重标记原证据。验收表及集中缺陷登记的 DEV_FIXED_OFFLINE_TESTED_PENDING_FIELD 不等于相应完整合同已通过。
+
+## 历史限定基线：c452 Release几何与普通便携实测，NF02仅本Run达预算（2026-10-24）
 
 **当前c452／49b3已在授权guest操作；生产60/60、独立DEV44/60、对标22/40＝55%、模块0／整链0，整版PARTIAL，真人UAT PENDING，不进入REA。** 本次仅跳过Ctrl Resize实际不使用的磁吸候选刷新和monitor测量；成员／fresh权限／writer／共享边反馈未改。
 

@@ -1,6 +1,22 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
-  "record_date": "2026-10-24",
+  "record_date": "2026-10-27",
+  "current_round_local_fix_validation": {
+    "id": "EV-936A-LOCAL-TRAY-TIMING-FIXES",
+    "kind": "LOCAL_BUILD_AND_OFFLINE_NOT_FIELD_ACCEPTANCE",
+    "source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+    "path": "docs/reports/v1-evidence/20261027-local-fixes-review.json",
+    "sha256": "AA4BC532B0BA601AD8EAAC38CE1A67A641D1C3022B662CD8D7E68B3C16749FEB",
+    "result": "DEBUG_RELEASE_AFFECTED_OFFLINE_AND_HOST_REFUSAL_PASS_FIELD_NOT_RUN",
+    "scope": "Shared actual v4 tray keyboard dispatch, mapped-command hook origin propagation and final timing summary ordering fixed; no old runtime rebinding, new guest, field or benchmark PASS."
+  },
+  "current_round_readonly_environment": {
+    "id": "EV-20261026-READONLY-ENVIRONMENT",
+    "kind": "READ_ONLY_RECEIPT_NOT_FUNCTIONAL_ACCEPTANCE",
+    "path": "docs/reports/v1-evidence/20261026-environment-readonly-review.json",
+    "sha256": "2415C8078E39716067F77C639D3DD817217CECF5BC578867ACFD5DC689CB62DD",
+    "scope": "Actual local memory, exact ISO metadata and known inventory paths; one trusted SSH TCP timeout before authentication leaves remote current capabilities UNKNOWN. No VM start/create, host change, input or new functional PASS."
+  },
   "latest_contract_evidence": [
     {
       "id": "EV-6E32-C452-011-TARGETED",

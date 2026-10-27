@@ -1,0 +1,83 @@
+{
+  "schema": "panebind-v1-targeted-review/1",
+  "kind": "READ_ONLY_ENVIRONMENT_OBSERVATION_NOT_FUNCTIONAL_ACCEPTANCE",
+  "record_date": "2026-10-26",
+  "starting_source_sha": "89e0f81638332bc67e9be13c563d44269729d3da",
+  "observation_source": "Actual bounded command outputs in this round; derived minimally redacted receipt, not a byte-for-byte stdout transcript.",
+  "local": {
+    "observed_utc": "2026-10-26T06:14:08.5008340Z",
+    "machine": "ZS-T14P",
+    "os": "Microsoft Windows 11 Home China",
+    "version": "10.0.26200",
+    "physical_bytes": 33811132416,
+    "free_physical_bytes": 6074114048,
+    "committed_bytes": 60320059392,
+    "commit_limit_bytes": 70863003648,
+    "logical_processors": 16,
+    "hypervisor_present": true,
+    "processor_reported_VirtualizationFirmwareEnabled": false,
+    "processor_reported_SLAT": false,
+    "processor_field_caveat": "A hypervisor is already present. CPU fields alone do not prove firmware virtualization disabled or a new VM supported.",
+    "video_controller": "Intel Arc 140T GPU (16GB)",
+    "reported_current_resolution": [3072, 1920],
+    "actual_independent_monitor_count": "UNKNOWN",
+    "current_per_monitor_DPI": "NOT_QUERIED",
+    "commands_checked_not_found_in_PATH": ["WindowsSandbox.exe", "wsb.exe", "VBoxManage.exe", "vmrun.exe", "vmware.exe", "Get-VM"],
+    "exact_inventory_files_checked_absent": [
+      "C:\\Users\\zhang\\.VirtualBox\\VirtualBox.xml",
+      "C:\\Users\\zhang\\AppData\\Roaming\\VMware\\inventory.vmls"
+    ],
+    "exact_program_locations_checked_absent": [
+      "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe",
+      "C:\\Program Files (x86)\\VMware\\VMware Workstation\\vmware.exe",
+      "C:\\Program Files\\VMware\\VMware Workstation\\vmware.exe"
+    ],
+    "unattributed_vmwp_process": {"pid": 3340, "ownership": "UNKNOWN", "action": "NOT_TOUCHED"},
+    "registered_disposable_Windows_VM_confirmed": false,
+    "inventory_caveat": "Only explicit known commands and inventory paths were checked, not a drive-wide absence proof. vmwp is not proof of a disposable Windows VM.",
+    "user_supplied_ISO": {
+      "path": "C:\\Users\\zhang\\Downloads\\26200.6584.250915-1905.25h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso",
+      "exists": true,
+      "bytes": 7371034624,
+      "last_write_utc": "2026-09-26T10:07:59.2678770Z",
+      "mounted_this_round": false,
+      "image_contents_or_license_validity_verified_this_round": false
+    },
+    "initial_restricted_CIM_result": "ACCESS_DENIED_0x80041003",
+    "same_read_only_query_with_approved_access": "SUCCEEDED",
+    "null_cast_warning": "Failed restricted query's free-memory zero was a null cast, not a measured zero; only successful values above are used."
+  },
+  "trusted_remote": {
+    "alias": "crossrec-desktop",
+    "ssh_program": "C:\\Windows\\System32\\OpenSSH\\ssh.exe",
+    "config": "C:\\Users\\zhang\\.ssh\\config",
+    "resolved_target": "REDACTED_PRIVATE_LAN_ADDRESS",
+    "port": 22,
+    "resolved_account": "zs",
+    "StrictHostKeyChecking": true,
+    "BatchMode": true,
+    "ConnectTimeout_seconds": 8,
+    "ConnectionAttempts": 1,
+    "actual_attempts_this_round": 1,
+    "exit_code": 1,
+    "failure_stage": "TCP_CONNECT_BEFORE_AUTHENTICATION",
+    "original_error_with_address_only_redacted": "ssh: connect to host <existing-private-address> port 22: Connection timed out",
+    "remote_script_executed": false,
+    "current_identity_RAM_displays_Sandbox_VM_inventory": "UNKNOWN",
+    "historical_identity_only": "ZS-WORKSTATION / Windows 11 Professional / build 26200 / previously enabled Sandbox and actual task guests; not new availability or resource evidence.",
+    "minimum_external_action": "Restore existing trusted host reachability on the original LAN/SSH endpoint, or supply corrected address if changed. No credential/security/configuration change requested.",
+    "unbounded_retries_or_scheduled_checks": false
+  },
+  "effects": {
+    "VM_created_or_started": false,
+    "Sandbox_started": false,
+    "host_settings_changed": false,
+    "remote_files_written_or_removed": false,
+    "CrossRec_touched": false,
+    "synthetic_input_sent": false,
+    "user_processes_terminated": false
+  },
+  "interpretation": "No new guest allocation is justified by current local headroom; remote feasibility is unverified. Only corresponding field execution is blocked. ISO is not a runnable complete Medium desktop or independent mixed-DPI displays.",
+  "whole_version_PASS": false,
+  "human_UAT": "PENDING"
+}

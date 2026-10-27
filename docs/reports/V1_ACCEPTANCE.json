@@ -2,12 +2,33 @@
   "schema": "panebind-v1-acceptance/1",
   "contract": "docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md",
   "contract_version": "1.0",
-  "record_date": "2026-10-24",
+  "record_date": "2026-10-27",
   "branch": "codex/r1c4b-live-magnet",
   "engineering_status": "PARTIAL",
   "dev_complete": false,
   "human_uat": "PENDING",
   "source_identity": {
+    "latest_local_fix_candidate": {
+      "source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+      "fix_scope": [
+        "trayNIN_KEYSELECT",
+        "mappedhookQPC",
+        "finaltimingsummary"
+      ],
+      "implementation": "IMPLEMENTED",
+      "builds": "DEBUG_RELEASE_PASS_AFFECTED_OFFLINE_AND_TIMING_PASS",
+      "debug_binary_sha256": "E4E37BA772E243DE25C4B5EE558CBD49E6751FA13CD1736E84FCAAFC07CFB54C",
+      "release_binary_sha256": "8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238",
+      "evidence_path": "docs/reports/v1-evidence/20261027-local-fixes-review.json",
+      "host_protection": "FOUR_FULL_ARGUMENT_EXIT78_REFUSALS_NO_HOST_INPUT",
+      "field": "NOT_RUN",
+      "current_actual_runtime_basis": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+      "current_actual_runtime_run_ids": [
+        "a723ce9a988e455a9af5d22b2684ae20",
+        "6e3269161d484dc993985d9091aefbf3"
+      ],
+      "no_old_EXE_runtime_rebinding": true
+    },
     "current_functional_runtime": {
       "kind": "INDEPENDENT_ACCEPTANCE_BASIS42AB_HISTORICAL_NOT_LATEST9EC7_RUNTIME",
       "latest_Explorer_qualification_observation": {
@@ -2743,10 +2764,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "【2026-10-24／2787当前限定范围】983/D133与72bd/D1114的只读UIA均ElementFromPoint成功但providerPID0，后继语义字段未查，守卫拒绝，未发托盘右键；P初ADDfalse后ADD/SETVERSIONtrue，不推永远失败或系统根因。真实菜单/TaskbarCreated仍未过。 【原不同身份事实保留】744e/3c565/3d1a纯UI：D141第二fresh pairguard真实accepted，光标两读[2802,1632]、实际TrayNotifyWnd66168/ShellPID6264/root66160、四GTI knownidle；右键2/2插入且LL RIGHTUP1(g0)实际观察，仍无精确menu。完整8P仅P1ADDfalse/P6ADD+VERSIONtrue、无tray ingress/menuAPI记录行；只排本轮前置guard拒绝，不证图标实际收到/系统根因。产品公共quit/资源stop/Default返回真实，Shellchild alive/wrapperforced分scope；停止无变量托盘重试。 【历史观察保留】当前744e/5211/af4：真实UID1右键后D643菜单未确认；完整P1..88录制中注册P1ADD=false/P6ADD+VERSION=true，但未见tray_callback_ingress或原menu API行。只记录制事实，不能由此推系统唯一原因或callback从未发生；LL RIGHTUP非Shell回执。公共quit/产品exit0/资源stop及Default输入返回已实际观察，不授菜单全部动作合同。 【历史观察保留】当前55f/3e2/26fd已核真实Esc设置销毁、UID1初ADD=false后ADD/SETVERSION=true、图标矩形及一次右键两包插入。1500ms后实际product GTI flags/menu_owner均0，FG为Shell PID3992，完整线程枚举4窗无#32768；只能证明该晚期边界未确认菜单。55f无tray ingress/menu API日志，不能据LL-UP或缺日志判零callback/未调用菜单；根因UNKNOWN。公共quit/实际exit0/资源stop与Default回切独立有scope，整托盘BLOCKED。 【先前观察保留】当前55f/020e真实Esc插入2后settingsGone、精确UID1图标矩形/光标和Shell前置下右键两包插入2；初ADD=false后真实ADD/SETVERSION=true。唯一exact菜单复合门未确认，具体子条件UNKNOWN，后继菜单/状态/TaskbarCreated未运行，仍BLOCKED；公共quit/资源stop与Default回切仅为有限事实。 【历史观察保留】当前630b/25b普通无参Medium GUI/前台已实际观察，P1 UID1 ADD=false后，P9同owner/UID1真实ADD与SETVERSION均true；不再称产品永远注册失败。首Esc SendInput0/error5未插入，托盘输入、菜单/状态/TaskbarCreated均未运行；公共--quit与产品exit0/资源停止及Default回切只有有限scope，整M01F02仍BLOCKED。 【历史观察保留】c01/e4实际NIM_ADD=false，精确UID1托盘图标不可达；没有把--settings当托盘点击。 76e Release/Medium：D47本次exact自有探针PID7116/TID6200/HWND197422、RID8192/nonElev/session1；实际Progman/Shell_TrayWnd同PID4932、RID12288/elevated/session1。探针NIM_ADD一次false、即时raw GLE5，GetRect E_FAIL/无rect，NIM_DELETE false/rawGLE5；NotifyIcon_GetLastError_extended_error_contract=false，不据5宣称已证根因。探针不激活、D48实际DestroyWindow/UnregisterClass成功；D49 Tray BLOCKED、未发菜单输入/未TaskbarCreated或Shell重启。独立产品P1 UID1 NIM_ADD=false。P18/D50实际正常退出/自有hook-overlay-writer-capture-association-visual收尾全true；D55真实客户[0,0]→[1,1]、D57 Raw移除、D58自窗/进程关闭，driver整FAIL保留；wrapperwait0/exit1/desc0/forcedfalse。只定位当前托盘前置不可用，产品/系统唯一原因UNKNOWN，不改dd02原FAIL或授托盘PASS。",
       "remaining_conditions": [
-        "3d实际第二fresh guard已经accepted，光标/实际TrayNotifyWnd/四组GTI idle和完整右键插入都已核；本轮缺口不是未取得该前置。完整8P未观察ingress/menuAPI，不证明实际图标收到/系统根因。",
-        "真实托盘菜单所有命令/状态/TaskbarCreated仍未通过；停止无变量tray重试，普通portable PASS不替代托盘，42ab GET-buffer修复也不是托盘修复。"
+        "当前c452/a723与6e32：UID1矩形可查询，但只读UIA实际provider PID=0、semantic guard=false，未发托盘点击；菜单各命令、运行/暂停/故障状态及TaskbarCreated后重建菜单仍缺实际证据。此事实不等于图标永远注册失败，也未证明系统或产品唯一原因。",
+        "独立源码缺口：键盘托盘通知NIN_KEYSELECT原未接入，现已修复，IMPLEMENTED_OFFLINE_TESTED_FIELD_NOT_RUN（源码936aeb9e3be25021ef7c6f7f0953de4eb3944fcf；现场NOT_RUN）；Debug/Release构建及offline已过；真实键盘入口仍未验证，不能把它解释为上述未点击场景的根因。"
       ],
-      "next_action": "复用冻结ccde产品与354/7bb已完成最小高度钳制及后继Move，不再写这些子项未验。剩余真实应用grid/WM_SIZING提案仅按有据的有界TEST入口继续，后继源/构建/Run尚未知，不预填。保持UIA托盘providerPID0和客户cmd失败路线边界，停止无变量重试；显示/其它应用/整链按各具体缺口推进。新ccde普通portable2579仅生成且普通GUI NOT_RUN，当前已验普通包仍42ab/d5f5/f78。新有限样本达到时延预算不是整NF02/整版PASS；44/22、modules0不增，不追加Full/900矩阵。",
+      "next_action": "NIN_KEYSELECT实际接线与D/R构建、offline已完成；仅在精确图标/真实键盘路径前置成立时验证菜单、各入口/状态及TaskbarCreated恢复。停止同一UIA PID0/相同右键的无变量重试；普通49b3/217a入口通过不替代托盘，不再指向ccde min/grid或旧portable NOT_RUN。",
       "latest_run_observation": {
         "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
         "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
@@ -3253,9 +3274,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01 Terminal真实类别通过；Explorer实际RID8192/elevated=true按正式资格拒绝；Notepad/VSCode未提供有效根，Edge命中失败。",
       "remaining_conditions": [
-        "五类合格Medium/non-elevated应用与独立工具窗/排除正反合同未齐。"
+        "合格Medium/non-elevated Explorer文件根、真实编辑器与浏览器直接接入及独立工具窗/排除正反合同尚未齐。当前c452 Terminal实际资格和增强已成立，不能概括为所有Medium/sourceGUI均不可用。",
+        "69f4实际Cabinet RID8192且elevated=true（不是High），Shell单条exact path仍未确认；Notepad有官方包但注册staging原因未明，Code restricted-primary-token准备失败与held child底层原因分列，Edge无产品时原生页初始化/正常关闭未成立。"
       ],
-      "next_action": "完整f08官方Notepad包已存在；复用e1fc精确ActivityId实测注册失败：Event709 manifest非package root、404内层0x80070057，外层0x80073CF9/异常包装0x80131620分列，staging真正原因UNKNOWN。原解包/绝对manifest路径已实际执行，无新变量不重复注册或启动，不称永久缺制品或只读Input根因。其它真实应用依各自已知前置/资格门继续，不放宽权限。",
+      "next_action": "先取得各应用可工作的原生根与精确身份/正常关闭，再补该功能正反资格；保留69f4、e1fc、8ffa及Code exact-version研究原身份。不放宽权限、路径或应用sandbox，不重复无变量启动/注册；远端本轮只发生一次TCP连接超时、未认证，不能把旧远端环境当成当前已可用能力。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS"
@@ -3416,9 +3438,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01 seq580排除/取消排除与实际动作子项通过，按规则而非标题授予资格。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；d85排除543/36fd545在规则操作前即缺合法caption候选，未发目标DOWN/未验排除效果，不把测试前置失败记产品规则失败。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。；9d74按原SHA继续实际import/save-failure/corrupt/exclusion及正常UP子项，见PO-9D74。",
       "remaining_conditions": [
-        "11ae/2c8公开设置进入先退休活动旧组、下一代规则排除/移除恢复已经实际验证，保原身份且不重开。按guide M02-F03独立合同尚缺真实编辑器添加排除→实际零操作→移除后重新采样恢复，不把整个五应用模块矩阵塞入本功能，也不由owned规则通过自动授该子项PASS。"
+        "owned/独立RuleTargets的路径、basename、可选class、功能位、活动旧组撤权及移除后重采样已分别有2c8/efed/034等原身份实证；本独立DEV尚缺实际编辑器参与排除→零操作→解除后重新采样恢复。",
+        "缺的是可操作编辑器这一具体前置，不是另加整个五应用模块矩阵；已有官方Notepad包不等于注册/合格根已成功。"
       ],
-      "next_action": "复用2c8已过活动设置/owned规则，不重开5017或已闭规则专项；只补独立合同中真实编辑器排除→恢复的实际操作。应用初始化先按其具体失败事实解决，无新条件不重复相同Sandbox启动；五应用与生命周期完整矩阵由模块另判。",
+      "next_action": "复用已过规则/活动组/路径匹配证据；只有编辑器原生初始化/身份前置出现新可区分进展后，补真实编辑器排除与恢复，不再重跑owned规则或猜标题。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
@@ -3487,9 +3510,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01 seq774实际只有一块3050×1668/DPI144屏，跨屏明确ENVIRONMENT_BLOCKED。",
       "remaining_conditions": [
-        "无真实双屏负坐标/100%与150%混合DPI/热插拔条件；单屏150%非E01/完整E02。"
+        "尚无实际双屏负工作区、100%/150%混合DPI、重新排列/断开后取回与各屏工作区的完整显示矩阵；当前实测单屏150%不能替代。",
+        "本轮本机仅已核ZS-T14P Home26200及实际资源/ISO存在；没有由此证明可创建或已运行合格VM。远端192.168.1.6:22一次8秒TCP超时且未认证，远端当前VM/RAM/Sandbox能力UNKNOWN；旧Pro/Sandbox只保历史。"
       ],
-      "next_action": "在既有隔离设施确认真实显示能力；无能力则集中列最小双屏guest缺口。",
+      "next_action": "需要既有授权内真正可用的隔离双显示器/负坐标/混合DPI及拓扑变更能力后补E03/E04/E05；不改宿主显示/内存/其它任务，不把负source坐标或纯几何模型当真实负工作区，也不将全部缺项归Sandbox。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS"
@@ -3551,9 +3575,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "原虚拟桌面/锁屏/休眠实测边界保留。04ff/935的7117新增真实精确产品owner/PID/birth/session上的TEST WM_WTSSESSION_CHANGE LOCK/UNLOCK通知注入：held Move后真实SessionLost/end5、退休pending、零迟写、独立释放capture/解绑/Gone、唯一真实清理UP；注入UNLOCK后同PID新key/新代Move和Resize exact/真实NormalUp与正常退出。此为实际生产handler执行，不是实际OS锁屏/解锁或第二虚拟桌面切换。",
       "remaining_conditions": [
-        "7117只闭合DEV允许的session-change注入/实际后继恢复子项；实际第二桌面隔离、OS锁屏/解锁与sleep/resume尚未取得对应真实环境事实。"
+        "7117已实际执行生产session-change通知注入、撤权/资源退出及同PID后继Move/Resize；原身份保留，不是实际OS锁屏/解锁或第二虚拟桌面。",
+        "真实第二桌面隔离、OS锁定/解锁、sleep/resume后的资格重建与首手势仍未取得实际环境证据。"
       ],
-      "next_action": "复用7117会话通知注入证据，不重复该专项；仅在已授权且实际具备条件时验证真实第二桌面/锁屏/休眠对应合同，其他功能继续。不得把TEST消息写成操作系统状态变化。",
+      "next_action": "不重复已闭7117注入专项；仅在已授权隔离环境确有第二桌面/实际会话状态能力时执行对应步骤及恢复首手势。能力未核前保BLOCKED，不写产品必然不支持或把注入改名真实OS变化。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS"
@@ -3615,7 +3640,8 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "已有L1独立数值与原生fixture实际矩形；c01单屏DPI144操作回读。",
       "remaining_conditions": [
-        "负坐标/非对称frame及真实DPI变更后的完整adapter合同未齐。"
+        "G01、原生frame/positioning桥接及efed负source/边框子范围已有原身份证据；真实DPI变更后的frame偏移刷新与独立读数合同尚未齐。",
+        "负source矩形与负工作区原点是不同事实；不把后者环境要求反过来抹掉已过负source子项。"
       ],
       "current_negative_source_geometry_observation": {
         "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
@@ -3623,7 +3649,7 @@
         "evidence_path": "docs/reports/v1-evidence/efed-public-rules-path-review.json",
         "observed": "实际source baseline visible[-31,150,411,481]/positioning[-40,150,420,490]，9/0/9/9非对称frame；公开Center真实native桥接exact。仅证明本源负坐标和实际frame范围，不授DPI变化、负work原点或M03F01完整PASS。"
       },
-      "next_action": "复用不变L1及efed实际负source/frame桥接子证据，只补尚缺实际DPI变更/独立读数；负source坐标不等同负工作区原点，不抬整项PASS。",
+      "next_action": "先按已有G01/efed证据明确可继承的独立数值/非对称frame范围，只在可用隔离显示条件下补真实DPI改变后的偏移刷新和独立回读；不重跑未改纯核心或为文档重建c452。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-BDAB-OWNED-FULL",
@@ -3886,10 +3912,10 @@
       "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
       "observed": "【当前ccde/24a/f46】ccde/24a/f46同PID5924完成九代：Move/右Resize/后继Move、Free/XY吸附/Hold真实noop/Detach/Resnap、两成员Ctrl、最小高度143钳制及后继Move、单次提案后的bottom Resize及再后继Move。九代实际Raw/legacy NormalUp/release/detach/Gone，13native全部exact/完整postcontext。D2261单次WM_SIZING返回C_native bottom592（R593，原窗口不变）；g8实际visible bottom584=R而非C583，D2274 MISMATCH，不是writer exact失败、不证明任意栅格或programmatic非法。P324 callback55/p99桶500us/max489us，native13/p95桶49999us/max33148us仅此scope达预算。D2291 UIA providerPID0无托盘click，总FAIL；Terminal held exit0/rootGone、产品P325资源退出/Default回切已核，Shell树及wrapper forced/desc1仍UNKNOWN。旧13a/7bb均保原身份。【历史】【ccde/354/7bb真实应用最小值子合同】D1881实际native min714×152及frame18/9；D1888 rawheight142被独立oracle钳至143，P201一次native exact、无递归，D1891实际NormalUp；D1901/1904后继Move(+24,+18)和真实NormalUp成立。实际应用grid/WM_SIZING提案未验证，不授完整M03F03。【13a原失败及历史】【ccde/13a实际自声明最小值】D1529应用返回native714×152与frame差18/9，独立visible最小696×143及customheight已知；g6真实bottom4被TEST right2断言误拒，未完成clamp/后继Move，不授此合同PASS。【历史】当前212/e7 grid4105实际拒绝与后继恢复、477实际START/cancel/END后fresh geometry拒绝且零新placement已观察；不将这些已测子项再写为待跑。 【历史观察保留】c01 seq1957/1958 grid实际单次API TRUE/non-exact后停止；1964原代UP缺失，后续恢复不关闭原失败。 【当前11ae】3f8及dfdd真实grid API TRUE但nonexact拒绝、实际尺寸回读/零递归、后继Move/Ctrl与实际UP已验证；旧c01缺UP原FAIL只属其原构建。当前未发现同类owned产品失败，完整真实应用约束合同仍BLOCKED。",
       "remaining_conditions": [
-        "f46旧ccde R/C不一致保留；9ec7 Debug86a/Release1f4已实际采用应用C并完成真实NormalUp/后继Move，关闭该单应用受影响范围，不再称该分支未跑。",
-        "1f4拒绝/abort恢复保原身份；ca56及322a/0c50已实际完成正向两成员callback C==R、两exact和NormalUp，不再列NOT_RUN。其它真实应用/全约束合同未齐，M03-F03不升PASS。"
+        "当前c452/a723与6e32已实测真实Terminal min143钳制、WM_SIZING实际C采用、正向两成员C==R/两exact、C!=R零native拒绝/真实abort UP及后继操作；旧ccde R/C mismatch保原失败，不能再列上述分支未运行。",
+    "原min/max/grid原生fixture及750b固定尺寸零写/后继Move保留原身份；后继liveResize/limits路径实际改变，尚缺当前候选的max上界钳制、固定尺寸Resize零native且Move可继续、明确grid合法集合的postverify/非exact拒绝零递归及恢复的受影响回归。真实Terminal最小值/C偏好接受与拒绝已有当前实证，不再列为未运行，也不额外附加五应用模块门。"
       ],
-      "next_action": "复用ca56与当前322a/0c50实际正向接受、拒绝/abort恢复和真实应用约束子范围，不重开相同专项；其它应用/完整合同按各自前置，不能由两成员子链升完整功能PASS。",
+  "next_action": "936aeb9构建封存后，复用现成fixed/grid约束入口，仅补当前liveResize/limits受影响的max/fixed/grid postverify、零递归与后继恢复断言；复用c452/a723及6e32已完成的Terminal最小值/C接受/拒绝，不重跑整套几何，不把单次WM_SIZING偏好称为任意栅格已学习。完整断言齐前本功能不授PASS。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -4224,9 +4250,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01五键映射/客户区透传与Terminal真实标题/边框操作有子结果；bdab实际多手势。",
       "remaining_conditions": [
-        "a575已补D09撤权后新DOWN/UP对称配对，历史owned八区范围保留且不盲重跑；真实浏览器/Electron标签、按钮、菜单原功能和文字选择仍未实际成立，这是本功能自带缺口。"
+        "a575已闭合D09撤权后新DOWN/UP对称配对，owned标题栏/八方向及五键模型证据保留。",
+        "真实浏览器/Electron的标签按钮、客户文字选择和菜单原功能尚未实际成立；Terminal客户内容前置也未成立。增强几何通过不证明这些普通客户输入均透传。"
       ],
-      "next_action": "D09按a575实际范围关闭，不重复其专项或既有owned八区；待真实应用原生前置成立后，只补标签/按钮/菜单和文字选择等实际客户原功能，不把owned归因外推。",
+      "next_action": "等对应真实应用原生页面/客户内容与合格根前置成立，只补其实际按钮/文字选择/菜单与增强区域区分；不放宽命中或把SendInput插入当客户投递，不重复已过D09/owned八区。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-BDAB-OWNED-FULL",
@@ -5640,9 +5667,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01单屏工作区/边缘操作实际执行；跨屏774为环境阻断。",
       "remaining_conditions": [
-        "四边/接缝与跨屏当前屏选择须真实双显示器。"
+        "单屏工作区四边/任务栏及窗口磁吸已有历史实际子范围；真实两屏接缝、当前屏选择与快速跨屏不被永久锁边尚缺。",
+        "当前只有一块实测显示器；模拟坐标或负source不是双屏现场。"
       ],
-      "next_action": "有真实隔离双屏后补边缘/快速跨屏，不用模拟坐标计现场。",
+      "next_action": "在既有授权内取得真实隔离双屏后只补接缝/快速跨屏及各屏工作区；沿用不变的单屏证据，不无变量重跑或以High替代显示矩阵。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL"
@@ -7452,9 +7480,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01真实preview/离开取消/角UP提交/半屏热键/拖离恢复，单屏核心通过。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。 当前d8a3同产品五代真实补DockTop/Bottom/TR/BL/BR，公开Top从Maximize改DockTop并恢复，独立work半/四分预览、UP前零离散提交、真实Raw/legacy UP后唯一exact normal_up_dock、公开Undo回到UP前raw及自主清理通过。结合既有left/topLeft/right，当前单屏八方向已齐。",
       "remaining_conditions": [
-        "独立DEV明文要求负坐标工作区/副屏：现实际physical work原点仍[0,0]，尚未具备；负source矩形不是负work-origin实证。普通真实应用/完整环境门另判。"
+        "历史d8a3/11ae结合既有目标已实际覆盖单屏八方向、预览/离区取消、真实UP后唯一提交和Undo；G09独立数值保留原身份。",
+        "独立DEV明确的负工作区原点/副屏实际目标、任务栏/各屏组合仍无真实显示条件；负source不替代负work-origin。"
       ],
-      "next_action": "复用现有同产品单屏八方向，不无变化重跑。负work-origin用例等待既有授权内真实可用显示环境，其他可运行合同继续；不由此次五目标补件自动提升F01/B12。",
+      "next_action": "复用已过单屏八目标，不再次补齐同一几何；待真实负工作区隔离显示后补该具体子合同，M08模块/其它应用另判，不把单屏补件直接升F01/B12/B13。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-408AC52-UP-DISPATCH",
@@ -8331,9 +8360,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "212/e7命令与旧c01子项原身份保留。11ae/4362同key真实Maximize/Restore、Minimize/ownUI last_target Restore子PASS，Lower原FAIL；761a有限source→exactShell→NULL及原WINDOWPOS前驱暴露生产/TEST口径缺陷，旧FAIL保留。dff3下限300/240各exact一次、两noop零native及15px微移越work边缘再返回真实PASS。新c355/8e5a一回公开Lower实际nativeTRUE/completionknown，raw bottom=false原值保留，有限两次稳定source→当时exact GetShellWindow→NULL使生产semantic lower=true；独立tail与原WINDOWPOS/DefProc消息、几何不变及P31资源退出核实，Lower受影响子合同PASS，不授托盘/NextDisplay或M09F03整项。",
       "remaining_conditions": [
-        "真实托盘菜单与热键同目标一致性仍未齐；相邻显示器选择、跨屏DIP尺寸/工作区钳制缺真实双屏。dff3仅同一显示器微移，不能代替跨屏门。"
+        "原4362状态命令、dff3微移/尺寸下限、c355/8e5a Lower实际语义均有原身份子PASS；真实菜单与热键同目标一致性及NextDisplay跨屏DIP尺寸/工作区钳制仍未齐。",
+        "独立时序可观测性源码缺口：mapped command丢失原hook QPC，IMPLEMENTED_OFFLINE_TESTED_FIELD_NOT_RUN（源码936aeb9e3be25021ef7c6f7f0953de4eb3944fcf；现场NOT_RUN）；Debug/Release构建及offline已过，实际端点仍未验证；不是既有命令几何从未执行，也不是旧慢样本已证根因。"
       ],
-      "next_action": "复用c355/8e5a Lower与原身份4362状态命令/dff3几何子PASS，不重复已闭子动作。仅在准确环境具备时补真实托盘同目标一致性与NextDisplay跨屏合同，不无变化重跑Full或将旧11ae运行换绑92d。",
+      "next_action": "复用已过命令动作；完成mapped-command QPC传递后按新身份核实际端点。真实托盘目标一致性依可用菜单，NextDisplay依真实双屏；不重跑Lower或把同屏微移当跨屏。",
       "latest_runtime_component_observation": {
         "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
         "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
@@ -8567,8 +8597,11 @@
       "assessment_scope": "正摇/再次恢复/限一次/负例实际SCOPED PASS，非完整M09-F05；系统Shake共存为guide376明确未满足条件",
       "status_basis": "OBSERVED_ACTION_SUBCONTRACTS_WITH_EXPLICIT_UNTESTED_SYSTEM_SHAKE_COEXISTENCE",
       "observed": "原7060/477a产品Shake正负轨迹/一次限额/再次恢复及正常UP证据保留。57f0当前9d在产品真正未启动且进程枚举零实例的guest做一次native标题栏Shake对照：实际native START/capture/movesize、真实移动和单次taggedUP/END均成立，但两个对照窗未按系统Shake最小化。实际环境可用性前置不成立，产品共存phase明确NOT_RUN，driver整批非零退出保留，非产品FAIL或cleanup PASS。",
-      "remaining_conditions": ["Guide376的系统Shake共存仍缺可先建立实际原生作用的已授权隔离桌面；当前guest原生control无效果，仅阻断此子合同。"],
-      "next_action": "复用57f0真实产品缺席原生对照，不改宿主/系统偏好、不重复无变量输入；在具备可证实原生Shake的隔离环境或明确新变量时继续，其他合同照常推进。",
+      "remaining_conditions": [
+        "原7060/477a及后继同源范围已实际验证正/负摇动、一次限额、再次恢复和真实UP；不能再把产品摇动动作全写未测。",
+        "57f0产品真正缺席时原生Shake并未最小化对照窗，故系统Shake共存前置未成立；具体原因UNKNOWN，不是已证产品失败，也未证明所有隔离环境都无该能力。"
+      ],
+      "next_action": "保留57f0原生无效果与产品共存NOT_RUN；只有可证明原生Shake实际起效的隔离条件或明确新变量才继续共存，不改宿主/系统偏好、不无变量重放，不重复已过产品摇动/透明专项。",
       "current_contract_review": "docs/reports/v1-evidence/57f0-system-shake-native-control-review.json",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -8704,10 +8737,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01原屏边preview子项保留；另21a5/4f7原EXE9790B38A...实际150% owned preview：D219 alpha255、非激活/透明命中样式与source前台/自有shield实际命中；D222实际屏像素RGB(32,96,160)，D226离区取消、D228真实UP后D231仍隐藏。其原身份/字面证据不改为ccde运行；该批没有真实Dock提交后的preview/final几何对照，不推全矩阵PASS。",
       "remaining_conditions": [
-        "21a5已实际覆盖颜色/alpha/像素、非激活命中、离区取消及真实UP后隐藏，不再把这些子项一律NOT_RUN。",
-        "历史d8a3/11ae与3c21/04ff已有preview/final证据；322a/2387已真实验证单屏top preview=最终Maximize、真实UP后隐藏和资源退出，不再称该语义未测。跨屏/100%/200%及完整显示/浮层合同仍未齐，M10-F01/B30不升PASS。"
+        "21a5/4f7颜色、alpha、像素/非激活命中、离区取消/UP隐藏，以及d8a3/3c21和322a/2387预览对最终提交/Maximize子范围已实际验证，均保原身份。",
+        "真实跨屏定位及100%/150%/200%的完整预览/穿透/取消退出浮层合同尚未齐；当前150%有限帧/单屏动作不替代。"
       ],
-      "next_action": "复用21a5颜色/alpha及d8a3/3c21、当前322a/2387预览提交/UP/退出scope，不重复单屏既有动作。剩余跨屏与100/200%需真实显示条件，完整合同仍不PASS。",
+      "next_action": "复用已过颜色与单屏提交，不再称其未测；只有真实显示条件具备后补跨屏/100%/200%定位与浮层退出，B30的M11-F02参数验证已PASS，不重复参数专项。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -9112,10 +9145,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "【当前ccde/24a/108必要影响复验】ccde/24a/108实际flags126/off/空scheme→127/ON；六颜色未变化。真实150%中文设置页0/3焦点、Enter/Esc不写配置；主执行者已view两原BMP：两静态帧文字控件可读且未见显著截断，page3黑白黄及焦点可见，非全页动态/200%/真人结论。restore SET返回true后flags126/off及六颜色恢复，scheme却为高对比黑色≠原空字符串，D117/118 exact restore FAIL；不能用销guest补恢复。D116仅TEST保留GET系统buffer一次LocalFree，不冒充生产API轨迹；产品实际HC settings路径已运行，正常quit/资源退出/客户恢复成立，wrapper exit1/desc0/无强制。旧8d8a同类FAIL不关。【历史原身份】8d8a当前4f7/9d实际142D/32P完整运行：原flags126/off/空scheme→SET/GET flags127/ON；真实144DPI中文设置页0/3已读BMP，Tab/Enter/Esc/焦点与草稿保留子范围通过。restore SET真实成功，最终flags126/off及六颜色恢复，但scheme成为高对比黑色≠原空字符串，故完整恢复断言FAIL；一个distinct保留系统buffer在全部读取后真实LocalFree一次成功，产品正常shutdown与driver exit1/无强制收尾成立。旧34f/aa2e heap失败保持原身份，本批未复现heap不证明旧根因。",
       "remaining_conditions": [
-        "当前108 exact恢复仍FAIL（flags/六颜色已恢复，空scheme变高对比黑色）；不能删除scheme比较或以free/exit/销guest补PASS。",
-        "150%两静态页实读不替代全页动态/200%/完整HC视觉；生产LocalFree实际API轨迹未观察，TEST的单次free不改名产品计数。"
+        "108/ccde及8d8a/4f7实测150%页0/3键盘焦点与两静态视觉帧，flags/六颜色恢复，但原空scheme变成高对比黑色导致exact restore FAIL；产品GET buffer LocalFree修复/构建与TEST free分开，不能由TEST计数冒充生产API轨迹。",
+        "完整主要设置页动态键盘/焦点、中文不截断及200%主要控件仍未齐；当前没有证据把scheme差异定性为生产HC缺陷或随意删掉恢复比较。"
       ],
-      "next_action": "保存108与旧8d8a各自exact scheme恢复失败；无新官方依据不叠SET/API/无变量重跑。当前ccde HC settings、真实键盘和正常退出子范围已验，200%/完整视觉仍缺，独立继续其余有前置合同。",
+      "next_action": "保留两次原身份restore FAIL，先核官方恢复语义/现有工具判据的具体依据再决定是否有最小修复；不叠SET/API、不无变量重跑。真实200%与全主要页可用性等待相应隔离显示能力，NIN_KEYSELECT新修复亦不替代HC合同。",
       "latest_runtime_component_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
@@ -9201,8 +9234,11 @@
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "原4f7/4ff的21a四phase控件及重启/实际行为保持原身份；当前25b/001c的a014普通无参打开后真实CtrlTab到第6页，用户保存/取消说明实际Static可见且在viewport中、无旧代际/内部版本术语，返回原页后继续设置实际Move/真UP/退出。仅一行生产metadata文字改变，机制与控件未改；不是新控件矩阵或托盘入口实证。",
-      "remaining_conditions": ["Guide M11F01独立DEV明确要求从真实托盘打开并操作，当前可用托盘入口尚未建立；不将不同DPI/多屏整模块门重复塞入本独立项。"],
-      "next_action": "当前42ab/f78普通无参GUI/公开设置已实测，3d与4ff本产品UID1注册/图标矩形/右键前置亦已实际运行，不能再写子路径编码中或未构建/现场；但仍未取得真实tray菜单及从托盘打开设置，故独立F01保持BLOCKED。Terminal sourceGUI/VDM相关exact-Run产品路线已有4ff真实增强，不再仅待只读前置；客户nonce/内容语义仍按bb23等自身事实保留未知。复用已有GUI/规则/映射证据，仅有新可区分依据才推进实际托盘入口，不无变量重复右键，不将显示/DPI或整个五应用模块门混入此独立项。",
+      "remaining_conditions": [
+        "已有各原身份六页控件/参数/映射/规则/持久化及当前49b3/217a普通空参GUI、保存实际效果；独立DEV仍明确缺从真实托盘打开设置并逐页操作。",
+        "当前UIA provider0未click与源码NIN_KEYSELECT漏接分开；后者IMPLEMENTED_OFFLINE_TESTED_FIELD_NOT_RUN（源码936aeb9e3be25021ef7c6f7f0953de4eb3944fcf；现场NOT_RUN）；Debug/Release构建及offline已过，不能预填实际托盘打开PASS。"
+      ],
+      "next_action": "复用已过GUI/规则/映射，不将五应用或多屏模块门塞入本独立项；新键盘入口修复后仅验证精确真实托盘→设置入口及对应命令目标，不盲重复原UIA0右键，也不再把旧42ab便携写成当前入口。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -10358,9 +10394,10 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "当前744e/be7/e4b9已实际读普通GUI两行Save/Cancel中文帮助并经键盘返回不写配置、真实保存改变Move、正常退出，仍不等于按整份中文指南走完托盘/全部窗口操作/整I12。 【历史观察保留】当前25b/bfb/a014普通无参GUI、新用户保存取消说明、二启同PID、公开设置效果/Move-UP和正常退出均有原件；原4f7/ec2f与11ae/2432保持原身份。真实托盘及最终全入口说明走查尚缺，不能由普通入口子链授完整交付。",
       "remaining_conditions": [
-        "本项还缺在最终同候选按说明走完真实托盘等全部规定入口；a014普通无参/GUI/新说明/设置/Move-UP/退出仅闭合对应子范围。五应用/显示与整版链按各自合同，真人UAT单列，不作为本DEV尚缺条件。"
+        "当前c452/49b3/217a已按实际中文包验证空参可见GUI/二启、Save-Cancel说明、保存改变Move/两NormalUp与正常退出；旧42ab/f78、ccde/bea等仍各保原身份。",
+        "尚未在同一最终候选按说明走完真实托盘及所有规定窗口/启停入口，不能由普通PortableEntryOnly标签授完整交付DEV。真人UAT单列PENDING，不作为本DEV额外前置。"
       ],
-      "next_action": "f78d按当前d5f5说明已实际启动、读Save/Cancel提示、保存并改变Move/UP与退出，保留e4b9历史；真实菜单和剩余说明操作仍待完整入口，不把本地I12 scope当整链。",
+      "next_action": "以49b3原包及其当前说明为已验入口，修正旧当前导航而不重打包/重放已过入口；待菜单及stop最终drain修复有实际证据后走剩余说明步骤，保留集中缺陷/真实限制，不自签整版或真人UAT。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
@@ -11426,9 +11463,9 @@
       ],
       "observed": "已有具体子项/失败见关联功能，不增加分数。",
       "remaining_conditions": [
-        "M05-F03: 完整功能合同尚未通过，见功能行具体条件"
+        "M05-F03：尚缺真实两屏工作区边缘、接缝及快速跨屏；对应已测单屏/产品动作保原身份，不重新记未运行。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "只补关联功能该具体剩余合同；真实显示/菜单/原生前置未成立时保持BLOCKED/0，不重跑已过动作、不改固定40分母。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT"
       ]
@@ -11995,9 +12032,9 @@
       ],
       "observed": "已有具体子项/失败见关联功能，不增加分数。",
       "remaining_conditions": [
-        "M08-F01: 完整功能合同尚未通过，见功能行具体条件"
+        "M08-F01：尚缺负工作区/副屏下四方向半屏及任务栏组合；对应已测单屏/产品动作保原身份，不重新记未运行。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "只补关联功能该具体剩余合同；真实显示/菜单/原生前置未成立时保持BLOCKED/0，不重跑已过动作、不改固定40分母。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT"
       ]
@@ -12027,9 +12064,9 @@
       ],
       "observed": "已有具体子项/失败见关联功能，不增加分数。",
       "remaining_conditions": [
-        "M08-F01: 完整功能合同尚未通过，见功能行具体条件"
+        "M08-F01：尚缺负工作区/副屏下四角分区及实际预览提交；对应已测单屏/产品动作保原身份，不重新记未运行。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "只补关联功能该具体剩余合同；真实显示/菜单/原生前置未成立时保持BLOCKED/0，不重跑已过动作、不改固定40分母。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT"
       ]
@@ -12428,9 +12465,9 @@
       ],
       "observed": "7060有效Move g1五次实际写入样本的hookQPC间隔经D175/179/183/187/191核实超过700ms，D196零visual_mutation；g2仅单次反向三样本、D216零mutation。P87/P117两代均真实NormalUp/pending退休，P85/115真实release/detach/isolationGone、P86/116实际shield legacyUP。正摇证据明确复用未改同212旧477a而非625：D2900/P132–133 g3真实173/topfalse→190/toptrue，D2935/P171–172 g4第二次恢复173/topfalse；D2916/2951在真实UP后属性保持，D2917/2952及额外反向保证每手势至多切换一次；物理344–346/383–385真实清理、legacyUP与NormalUp。确定性ShakeDetector幅度/反向/时长/时间回退覆盖由既有208 offline保留。系统Shake共存未运行，仍是M09-F05完整合同缺项；B21动作子项保留，不计完整PASS。",
       "remaining_conditions": [
-        "直接映射M09-F05完整DEV合同尚缺系统Shake共存实测；保留动作子合同，不据不完整F05授B21分数。"
+        "M09-F05：尚缺原生系统Shake可用前提下的共存；对应已测单屏/产品动作保原身份，不重新记未运行。"
       ],
-      "next_action": "按固定score规则暂0分，取得M09-F05系统Shake共存对应真实证据后再判；不重跑已过动作或用构建/模型替代。",
+      "next_action": "只补关联功能该具体剩余合同；真实显示/菜单/原生前置未成立时保持BLOCKED/0，不重跑已过动作、不改固定40分母。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
@@ -12588,9 +12625,9 @@
       ],
       "observed": "已有具体子项/失败见关联功能，不增加分数。",
       "remaining_conditions": [
-        "M09-F03: 完整功能合同尚未通过，见功能行具体条件"
+        "M09-F03：尚缺真实菜单/热键同目标与相邻屏尺寸/工作区策略；对应已测单屏/产品动作保原身份，不重新记未运行。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "只补关联功能该具体剩余合同；真实显示/菜单/原生前置未成立时保持BLOCKED/0，不重跑已过动作、不改固定40分母。",
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-C01-INDEPENDENT",
@@ -12693,10 +12730,9 @@
       ],
       "observed": "已有具体子项/失败见关联功能，不增加分数。",
       "remaining_conditions": [
-        "M02-F04: 完整功能合同尚未通过，见功能行具体条件",
-        "M09-F03: 完整功能合同尚未通过，见功能行具体条件"
+        "M02-F04/M09-F03：尚缺真实负坐标双屏/混合DPI、跨屏操作与NextDisplay；对应已测单屏/产品动作保原身份，不重新记未运行。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "只补关联功能该具体剩余合同；真实显示/菜单/原生前置未成立时保持BLOCKED/0，不重跑已过动作、不改固定40分母。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-269B-OWNED"
@@ -12744,9 +12780,10 @@
       ],
       "observed": "744e/3c565/3d1a纯UI：D141第二fresh pairguard真实accepted，光标两读[2802,1632]、实际TrayNotifyWnd66168/ShellPID6264/root66160、四GTI knownidle；右键2/2插入且LL RIGHTUP1(g0)实际观察，仍无精确menu。完整8P仅P1ADDfalse/P6ADD+VERSIONtrue、无tray ingress/menuAPI记录行；只排本轮前置guard拒绝，不证图标实际收到/系统根因。产品公共quit/资源stop/Default返回真实，Shellchild alive/wrapperforced分scope；停止无变量托盘重试。 【历史观察保留】当前744e/5211/af4真实UID1右键后的菜单D643仍FAIL，完整88P仅P1/P6注册、无tray ingress/menu API记录；公共quit实际exit0/资源stop不替代托盘命令，Terminal三段scope不加B分。 【历史观察保留】当前55f/3e2/26fd实际Esc/UID1/右键输入，晚期product GTI0、Shell前台、完整线程清单无popup；菜单/启停命令仍未确认，callback/API根因UNKNOWN。新744e仅诊断候选未现场，不加B分。 【先前观察保留】当前55f/020e已有真实Esc关闭设置、精确UID1矩形/右键插入，菜单复合门仍未确认；不再泛写产品从未收到任何UI输入。 当前630b普通产品GUI与后续UID1 ADD/SETVERSION真实成功，首Esc插入0/error5导致菜单输入未发；不改旧2b49 probe FALSE，也不授托盘/启停入口PASS。 已有具体子项/失败见关联功能，不增加分数。 76e Release/Medium：D47本次exact自有探针PID7116/TID6200/HWND197422、RID8192/nonElev/session1；实际Progman/Shell_TrayWnd同PID4932、RID12288/elevated/session1。探针NIM_ADD一次false、即时raw GLE5，GetRect E_FAIL/无rect，NIM_DELETE false/rawGLE5；NotifyIcon_GetLastError_extended_error_contract=false，不据5宣称已证根因。探针不激活、D48实际DestroyWindow/UnregisterClass成功；D49 Tray BLOCKED、未发菜单输入/未TaskbarCreated或Shell重启。独立产品P1 UID1 NIM_ADD=false。P18/D50实际正常退出/自有hook-overlay-writer-capture-association-visual收尾全true；D55真实客户[0,0]→[1,1]、D57 Raw移除、D58自窗/进程关闭，driver整FAIL保留；wrapperwait0/exit1/desc0/forcedfalse。只定位当前托盘前置不可用，产品/系统唯一原因UNKNOWN，不改dd02原FAIL或授托盘PASS。",
       "remaining_conditions": [
-        "当前744e菜单全部操作/状态/TaskbarCreated未通过，88P缺对应行只作本录制事实；新ordinary便携入口也尚未实测，不由同EXE其它子scope补门。"
+        "M01-F02真实托盘菜单、启停/退出命令及图标状态/TaskbarCreated仍未通过；c452 UIA provider0拒绝未click，不是从未有产品GUI/普通入口。",
+        "NIN_KEYSELECT源码接线IMPLEMENTED_OFFLINE_TESTED_FIELD_NOT_RUN（源码936aeb9e3be25021ef7c6f7f0953de4eb3944fcf；现场NOT_RUN）；stop最终drain后的汇总亦已修复并通过D/R构建与offline，现场NOT_RUN。独立普通49b3入口与公共quit不能代替托盘命令。"
       ],
-      "next_action": "3d fresh pairguard已实测通过但菜单未开，停止无变量重试；当前be7/744e便携入口scope不授托盘命令。须新可区分事实才能接续，不从缺行/LL-UP推系统根因。",
+      "next_action": "停止相同UIA0/右键无变量重试；完成有据键盘入口与最终stop/drain修复后核真实菜单和逐项资源退出。保持原FAIL及旧身份，不把未知原因统称Sandbox故障。",
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -12797,9 +12834,9 @@
       ],
       "observed": "M11-F02已按ca0e非法参数拒绝/同草稿合法保存及真实后继动作独立PASS，M11-F04已按efed公开路径/名称/功能规则及原身份类名/活动组撤权证据独立PASS；不再将两项列为当前未过依赖。M11-F03映射与M11-F05配置持久化各保已有独立PASS及原运行身份。本B项仍缺M11-F01规定的真实托盘打开逐页修改和实际操作，普通无参GUI或公开--settings不替代该入口；保持BLOCKED/0。",
       "remaining_conditions": [
-        "M11-F01: 尚未取得真实托盘打开设置并逐页修改/真实操作；见功能行实际菜单失败与具体剩余条件。M11-F02/F03/F04/F05已有独立PASS，不重复列为未过依赖。"
+        "M11-F02/F03/F04/F05已有独立PASS及原证据；本B项只剩M11-F01明确要求的真实托盘打开设置/逐页实际操作。"
       ],
-      "next_action": "只推进仍缺的M11-F01真实托盘入口，并在同候选实际窗口链取得证据后重判B28；不重跑已闭参数/规则/映射/持久化专项，不将模块五应用或显示门重复塞入本B项，不新增PASS。",
+      "next_action": "仅接续NIN_KEYSELECT修复后的真实托盘→设置入口；不重跑已闭参数、规则、映射、持久化或给此B额外五应用/显示门，尚无现场结果不增分。",
       "partial_observation_ids": [
         "PO-269B-GUI",
         "PO-C01-INDEPENDENT",
@@ -12886,9 +12923,9 @@
       ],
       "observed": "M11-F02参数/视觉选项验证已按ca0e及原身份补充证据独立PASS，不再列为当前未过依赖。M10-F01预览与actual、穿透/取消/退出及真实100/150/200%/跨屏定位完整合同仍缺，现有单屏子项不能补齐；B30保持BLOCKED/0。",
       "remaining_conditions": [
-        "M10-F01: 实际preview/actual、穿透及取消/退出与真实100/150/200%/跨屏定位完整合同尚未通过；M11-F02已独立PASS，具体尚缺条件见M10-F01。"
+        "M11-F02参数/视觉验证已独立PASS；M10-F01还缺真实跨屏及100%/200%预览定位/穿透/取消退出完整合同。已有21a5颜色/alpha及2387预览最终Maximize子范围不再列未测。"
       ],
-      "next_action": "仅补M10-F01尚缺的真实显示/预览合同并按同候选窗口证据重判B30；复用已过M11-F02，不重跑参数验证或以构建/模拟坐标提升本项。",
+      "next_action": "只补M10-F01确切显示缺口，保原证据身份与0分；不重复参数验证或用模拟坐标/单屏通过替代真实条件。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE"
@@ -12922,9 +12959,9 @@
       ],
       "observed": "已有具体子项/失败见关联功能，不增加分数。",
       "remaining_conditions": [
-        "M11-F01: 完整功能合同尚未通过，见功能行具体条件"
+        "M01-F01普通中文GUI已有独立PASS；M11-F01仍缺真实中文托盘打开设置并实际操作，不能从普通--settings/空参GUI外推。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "新键盘托盘入口经构建和真实验证后核中文菜单/设置路径；不将已过中文控件/说明重做一轮，也不凭文档授B31分数。",
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -13223,9 +13260,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "714c普通七文件ZIP无参启动/中文设置/保存效果/正常退出/真实poststop通过子流程；托盘未取得。；9e5原2632独立便携功能PASS，但本整链尚缺真实托盘/全部规定入口。",
       "remaining_conditions": [
-        "独立便携功能M12-F03已通过，不再作为本链缺口；本链完整操作顺序及所有规定入口尚未齐备。"
+        "当前49b3/217a普通空参启动、设置保存效果、两Move/NormalUp及quit通过子范围；尚未按顺序完成真实托盘→启用→新开普通应用→磁吸→改设置→退出→再启动整链。",
+        "当前普通二启是主实例仍在时的二启，不自动等于最后退出后的重启；NIN_KEYSELECT与stop/drain已在936aeb9修复并通过D/R构建、offline，现场仍NOT_RUN，不能补成托盘或最后收尾PASS。"
       ],
-      "next_action": "76e同Medium自有通知探针与产品UID1注册均不可用，Tray仍BLOCKED且未发菜单输入；dd02普通GUI/设置/便携已测scope保留。仅补可用真实托盘环境与整I01未齐行为，不重复已测便携子链。",
+      "next_action": "复用49b3已验入口与字节；待有可用真实托盘后只补完整顺序所缺步骤及最终drain后的收尾，不重复普通ZIP/已过几何或把旧76e ADD失败当当前唯一状态。",
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -13322,9 +13360,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "当前744e/af4在exact Run真实新Terminal单窗Move→Resize→后继Move三段正常UP已实测，未替代A/B/C五阶段/Ctrl follower/Explorer或混合组完整I02。55f/02ec Default两轮保留原身份，不能换绑当前EXE。 【历史观察保留】当前55f/02ec在同PID3948不重启的Default旧route完成两轮owned核心，包含真实Resize/postResizeA五阶段/UP/CtrlC及T/L共享约束/后继；Run_membership_evidence_used=false。新exact-Run增强、真实Explorer/跨应用完整合同仍未通过，不由02ec授整链PASS。 【历史观察保留】当前212/dedc178 owned I02/commands通过，e7同PID7156两轮chain_i02实际完成，包含Resize后A及后继Ctrl/UP；四rapid是native-only。正式Explorer资格仍拒绝，现代Terminal单窗五阶段通过不等于Explorer/混合应用I02。 【历史观察保留】bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R8/7149仅Debug首次A五阶段及真实UP资源闭环被观察，原driver50因legacy派发时间戳0仍FAIL；Release激活计数0/0，无产品手势，其后回环未运行，不是完整I02。；R8/c17e Release samePID6408六段含实际Resize后A五阶段及149NormalUp已完成；六代真实UP后新增native0。CtrlC在鼠标DOWN前修饰键观测失败，后继未执行，不授完整I02。；34bf同PID5260两轮owned core均含真实postResizeA/CtrlC/UP，c17未发CtrlC的缺口在新范围实际推进；仍非真实Explorer/跨应用完整I02。 当前证据：owned历史七代五阶段、A/C Ctrl与真实B Resize/postResizeA回环已在11ae/dfdd实际完成；不是新建Explorer/混合应用完整I02。",
       "remaining_conditions": [
-        "真实Explorer及混合应用完整合同仍受资格/原生前置阻断，owned结果不能替代。"
+        "当前c452/a723与6e32真实Terminal Move/Resize/五阶段/两成员Ctrl/NormalUp已有scope；55f/02ec、11ae/dfdd的同PID owned完整回环保其原身份。",
+        "仍缺实际Explorer及规定混合真实应用A/B/C连续顺序：Ctrl A带B/C、B/C Move、B真实Resize→关系刷新→A五阶段→Ctrl C follower/UP/停止。单Terminal+owned blank不等于该整链。"
       ],
-      "next_action": "不重复已过744e单Terminal三段或55f Default双轮；补当前精确Explorer/跨应用完整回环、吸附各阶段和真实Ctrl follower，按未满足前置继续，不以局部新Run闭环授整I02。",
+      "next_action": "先解决实际Explorer/编辑器/自绘应用的合格根与原生可用前置，再按完整顺序接续；不重跑已过Terminal几何或旧owned回环，不再把exact-Run source/writer本身说成尚未接通。",
       "status_basis": "CURRENT_11AE_SCOPED_RUNTIME_OBSERVED_COMPLETE_CHAIN_GAPS_BLOCKED_HISTORY_RETAINED",
       "historical_pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -13391,9 +13430,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "当前55f/02ec在同PID3948不重启的Default旧route完成两轮owned核心，包含真实Resize/postResizeA五阶段/UP/CtrlC及T/L共享约束/后继；Run_membership_evidence_used=false。新exact-Run增强、真实Explorer/跨应用完整合同仍未通过，不由02ec授整链PASS。 【历史观察保留】当前212/e7两轮实际三窗T竖/横共享Resize、min夹制/原DOWN回拉、普通Move分离及真实形成两成员L后换leader移动；dedc另一水平场景被未知起因FG变化安全拒绝。未把创建8窗当八窗组操作。 【历史观察保留】bdab竖/横共享线、T/min/拉回/实际Move、L换Leader、四格及真实UP通过owned子项。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。 当前证据：11ae/dfdd D811实际纵横/T→L、四格共享角与8窗末成员Ctrl已执行；旧dedc失败保留身份，不代表当前这些几何全部未测。",
       "remaining_conditions": [
-        "混合应用与实际min/max完整组合仍未齐，不把owned布局子项提升完整I03。"
+        "历史11ae/dfdd、55f/02ec已经实际T/L/纵横/min/拉回/后继owned核心；当前c452正向两成员共享回调、拒绝/abort恢复及min143不等于三真实应用T→L整链。",
+        "仍缺规定混合应用的纵横共享线、约束拉回、实际Move改成L及换Leader在同一启动中的完整证据。"
       ],
-      "next_action": "复用55f/02ec两轮Default影响回归，不单独重复核心或900秒；继续当前exactRun真实source/writer、普通Explorer和混合应用缺口，保留原产品/driver/包身份，不将owned Default通过换绑命名Run路线。",
+      "next_action": "保留原数值/owned子链及当前两成员scope，等实际混合应用根可用后补规定链；不重复核心/900，也不把新的单应用接线证据改绑旧T/L运行。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
         "PO-408AC52-UP-DISPATCH",
@@ -13486,9 +13526,9 @@
       "candidate_identity_ref": "current_package",
       "observed": "c01单屏普通/XY→preview→离开→角停靠→拖离→半屏热键→再吸附通过；774只有一实际屏。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。 当前证据：11ae/3f8与dfdd实际单屏普通磁吸、预览取消、角停靠、拖离及半屏快捷键后再磁吸；dfdd三次单屏链后缀实际执行，跨屏均因只有一屏ENVIRONMENT_BLOCKED。",
       "remaining_conditions": [
-        "真实跨屏、负坐标和任务栏/各屏工作区组合仍缺，不以模拟坐标补齐。"
+        "历史单屏磁吸→预览取消→停靠/拖离→半屏命令→再吸附及322a/2387顶部UP提交已有子证据；实际跨屏步骤、负工作区/各屏任务栏组合仍未完成。"
       ],
-      "next_action": "复用当前25b/540f（原4f7/1a62保留）两轮单屏预览/取消/真实UP停靠及原DOWN拖离恢复；真实跨屏接缝合同尚缺，不能单屏替代，不盲重Full/900。",
+      "next_action": "只在真实双显示器条件下接续规定跨屏与再磁吸步骤；复用已过单屏动作，不以负source或模型坐标代替，不盲重Full/900。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-408AC52-UP-DISPATCH",
@@ -13559,9 +13599,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "c01单屏smartDock on/off、实际边角/Shift拉伸、恢复、微移和GUI改热键效果通过组件。 当前证据：当前11ae/3f8与dfdd已运行边/Shift边/普通BR/Shift BR、Undo、微移增高及GUI修改热键实际几何；dfdd smartStretch为enabled。角helper非strict，不能声称第二NormalUp。fdf2单BR在Paused后真实UP匹配false事实不改。",
       "remaining_conditions": [
-        "当前smart开关与完整入口组合尚未齐，真实应用普通输入透传仍需对应前置；旧212独立F04/F05保留原身份。"
+        "既有smartDock/边角与Shift拉伸/恢复/微移/改热键动作分别有原身份证据；当前完整规定顺序与smart开关效果、实际普通应用输入不被误吞仍未连成完整链证据。",
+        "这是具体链证据/应用原生前置缺口，不是已证当前拉伸全部失效；托盘/双屏不是guide本链额外步骤。"
       ],
-      "next_action": "复用当前25b/540f（原4f7/1a62保留）两轮边/Shift边/角/Shift角真实双击与热键几何动作；保留corner动作分流延迟语义，具体smart独立合同按已有证据，第三方/整链缺口另判。",
+      "next_action": "先核已有540f/1a62及原smart控件证据是否在同启动覆盖全部顺序，仅补缺项；客户输入必须基于可用原生内容，不重复已闭双击/热键专项或900秒。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -13634,9 +13675,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "c01 visual1779实际原属性/拖动透明/摇动/暂停/退出子流程通过；临时在途1859仍失败。；90b8第二shake实际restore在UP前被context拒绝（152/153），原属性未恢复；新R6待现场。；625 Release真实两shake与NormalUp/资源退出通过，D25定向关闭；完整合同其余条件仍未齐。 当前证据：11ae/3f8与dfdd真实半透明/置顶、正常退出同EXE新PID、在途视觉恢复等有限子项已运行，不能拼多个PID为同一生命周期。",
       "remaining_conditions": [
-        "系统Shake共存与完整当前视觉/暂停/退出链合同仍未齐，不授整I06。"
+        "已测原alpha/topmost所有权、DragGlass恢复、两次Shake、Pause/Resume与退出子范围保留；当前候选尚缺在同一生命周期按原半透明/置顶→DragGlass结束→Shake开/关→暂停→退出完整顺序的证据。",
+        "系统Shake共存是M09-F05/B21独立未齐条件，不把它改写成I06规定步骤；stop最后drain后的视觉/输入资源汇总修复尚待新构建/实测。"
       ],
-      "next_action": "复用当前25b/540f（原4f7/1a62保留）两轮实际173→190→UP恢复及两次Shake/公开PauseResume，原身份独立视觉合同保留；系统Shake共存由57f原生前置BLOCKED单列，不重复透明专项。",
+      "next_action": "复用已闭所有权/在途恢复/摇动动作，只核完整链缺失顺序与最终drain后的收尾；不重开旧D25或普通透明专项，不拼多个PID成同一生命周期。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -13705,9 +13747,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "c01排除/取消、导入导出及损坏重启子流程实际运行；未标成当前EXE全链。 当前证据：11ae/dfdd已实际运行设置保存、导入导出、损坏恢复、默认/重启、规则排除与取消后普通操作；真实托盘入口和全应用规则链未齐。",
       "remaining_conditions": [
-        "真实托盘菜单/普通完整Shell与应用规则组合尚待，不因旧候选FAIL全写当前配置未运行。"
+        "guide I07不要求托盘入口；不能仅因托盘未过阻断本链。现有GUI/RuleTargets排除恢复、导出导入/损坏重启分段事实保留。",
+        "仍须核同候选完整顺序：排除应用→磁吸及组操作零写入/无陈旧组→解除恢复→导出/修改/导入→损坏后重启且原有效配置不丢；多Run/多PID子项不能直接拼整链。"
       ],
-      "next_action": "保留当前GUI与配置实际子项，补真实入口/应用组合，工具变更不重建未改产品。",
+      "next_action": "先只读核2c8/efed/dfdd等既有证据的规定顺序与可继承范围，列精确缺项后用现有最窄生产入口补齐；不重跑已闭参数/持久化或给I07另加托盘门，真实编辑器独立条件仍由M02-F03判。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
@@ -13780,9 +13823,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "当前212/e7原Hotkey即时receipt679 FAIL保留；e21仅配置准备失败、I08未跑；048/d2已实际WM_HOTKEY whilepressed通过，actor g13在8890ms因未知起因FG131910实际FocusLost撤权，资源正常退出但非30秒Deadline/NormalUp。 【历史观察保留】c01真实actor默认Deadline30031ms、撤权、后继Move/Resize及UP通过；sourceclose原代UP1217仍缺失，phase1327 FAIL。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R7/4e9 actor653真实默认30031ms Deadline及684同进程Move/Resize恢复通过，source-close616实际本代UP仍FAIL，wholeI08未过。；34bf actor默认Deadline30047ms与资源idle/overlayhidden成立，紧随g24实际nativepending但未见START、1702FAIL；sourceclose1648真实UP仍失败，不授中断恢复完整PASS。 当前证据：11ae/3f8及dfdd四实际中断原因、真实WM_HOTKEY、每次新Move/Resize恢复已执行；dfdd默认30000ms Deadline实测30015ms，并非NormalUp。历史actor FocusLost保留但不作为当前timer未跑。【已有a575/11ae直接证据】D24 exact no-own capture-loss本分支及同实例后继Move/Resize已定向闭合（RecoveryContractsOnly，非当前ccde新运行）；不能继续写该分支从未触发。",
       "remaining_conditions": [
-        "已有a575/11ae exact no-own capture-loss与同实例恢复证据；driver断连、队列溢出、hook/会话/锁屏等其余具体合同并未全部现场覆盖，仍不授whole I08。"
+        "现有四原因中断、真实WM_HOTKEY、默认Deadline及a575 exact no-own capture-loss/同PID后继Move/Resize已测；guide明确的driver断开及每次后继恢复仍需对应实际证据，不能用source关闭或Deadline改名代替。",
+        "新确定源码缺口：stop汇总发生在writer最终drain之前，IMPLEMENTED_OFFLINE_TESTED_FIELD_NOT_RUN（源码936aeb9e3be25021ef7c6f7f0953de4eb3944fcf；现场NOT_RUN）；Debug/Release构建及offline已过；旧shutdown flags保原事实，但不补成最终drain已完成。会话/锁屏由M02-F05/I09，hook/queue分支由M04共同合同另判，不全部塞为I08新增步骤。"
       ],
-      "next_action": "复用已实测四因/实际热键/默认Deadline与后继操作；只补确切剩余中断合同，不重跑设置或900替代。",
+      "next_action": "仅补driver断开及新stop/drain直接受影响收尾/后继恢复，逐项实际判定；复用已过四因/热键/Deadline，不重跑设置、完整Full或900替代，不把异常退出改NormalUp。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-408AC52-UP-DISPATCH",
@@ -13842,9 +13886,9 @@
       "candidate_identity_ref": "current_package",
       "observed": "实际只有Default/单屏DPI144环境；未运行真实第二虚拟桌面、拓扑变更或锁定恢复。",
       "remaining_conditions": [
-        "需要能提供真实虚拟桌面与显示变化的专用隔离环境。"
+        "7117生产session-change通知注入和恢复子范围已测，但真实第二虚拟桌面切换、显示DPI/拓扑变化及实际锁定/解锁尚无对应环境/完整链事实。"
       ],
-      "next_action": "先复核现有隔离设施能力，只提出实际缺的最小环境；其余功能照常。",
+      "next_action": "仅在既有授权内实际具备这些隔离能力时补真实状态变化与恢复首手势。当前远端一次TCP超时未认证，远端VM能力本轮UNKNOWN；旧单桌面/旧Pro事实不能补当前环境PASS。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS"
@@ -13905,9 +13949,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "c01实际grid单次拒绝但原g6UP缺失；第二成员API TRUE+身份失效/无第三调用/幸存新Move/Ctrl子链PASS，未观察API FALSE。；R7/4e9 grid1576缺实际本代LL清理UP；batch1636 normalizedUP为空但417真实同代LL观察，实际two native/third0保留，driver解析修订待实测。 当前证据：11ae/3f8与dfdd实际在途旧call完成后不恢复权限、grid API TRUE非exact拒绝、第二成员API TRUE身份丢失/第三0及存活成员后继Move/Ctrl已运行。原g5/grid abort不写NormalUp。",
       "remaining_conditions": [
-        "完整尺寸约束交集、真正API FALSE及其它具体部分失败组合仍按实际缺口保留；不以这些子项宣称完整I10。"
+        "已有原生min/max/grid拒绝、第二成员API TRUE后身份失效/第三0、在途完成不复权及后继Move/Ctrl实证；当前Terminal实际C采用/两成员接受与拒绝也只是对应子范围。",
+        "尚缺规定min/max/grid组Resize与强制第二成员真实native失败后回读/新合法手势的完整组合。API TRUE后的身份失效不能伪称API FALSE；必要失败分支须明确，不扩成无边界故障矩阵。"
       ],
-      "next_action": "保留当前失败分类与恢复实际证据，不回退R7或重开旧批次；仅补完整I10确切未齐合同。",
+      "next_action": "先锁定现有生产writer尚未覆盖的第二成员native失败判据及约束交集断言，只补该窄组合与第三0/恢复；不回退旧R7或重跑已过几何，也不因当前缺整链把原真实abort写成NormalUp。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -13983,9 +14028,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "当前212/d2的9724同PID7136完成两轮owned核心、20slot和900.037841秒；四样本无严格持续资源增长，正常退出/逐项资源停止和实际客户DOWN-UP恢复均有原件。e7不足900秒、f54读取失败保留各自身份，不改绑旧R8结果。普通完整Medium、混合应用/跨屏及整版仍未齐。 当前证据：dfdd同一产品PID5264真实两轮、20 mixed slot累计900.035872s及idle60.0156957s已完成；其余组件明确正常退出到新PID，不拼六PID整版。前台observer256/257 overflow1，不能宣称全时无丢失。",
       "remaining_conditions": [
-        "真实应用/普通完整桌面/显示与整版硬门未齐；当前owned有限时长通过不授整I11或长期稳定性。"
+        "212/9724、11ae/dfdd的同PID两轮/20slot/严格900秒与有限资源、退出/客户恢复均有原身份事实，不能改绑c452或说规定owned阶段从未跑。",
+        "最终当前候选尚无包括规定I02–I06核心两轮、真实应用/适用显示条件与完整退出的整链证据；源码stop早于writer最终drain的汇总缺口IMPLEMENTED_OFFLINE_TESTED_FIELD_NOT_RUN（源码936aeb9e3be25021ef7c6f7f0953de4eb3944fcf；现场NOT_RUN），不用旧flags或guest销毁补全。"
       ],
-      "next_action": "当前25b/540f（原4f7/1a62保留）已两轮同PID核心操作/正常退出/后续客户恢复；11ae/dfdd的900秒和idle保留原身份，不冒名为4f7新900。当前物理P仅1001–1977/977条与早期driver嵌入rec，不称全历完整/全历零迟写。仅补整链确切应用/显示缺口，不追加独立900。",
+      "next_action": "复用原有限时长/趋势，不单独再跑旧900；先解决实际应用/显示前置及stop/drain修复，最终可适用整链届时按实际候选另记。不将有限样本当长期稳定性，也不把整版所有未齐条件归同一环境原因。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-408AC52-UP-DISPATCH",
@@ -14069,9 +14115,10 @@
       "candidate_identity_ref": "current_package",
       "observed": "【当前ccde/2579/bea0】ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。【历史原身份】744e/3c565/e4b9真实be7a ZIP在中文空格目录无参可见GUI/二启同实例、Save/Cancel中文实控件、10DIP默认吸附与真实保存0后的Move几何不同；两代均有实际Raw/legacy NormalUp、release/detach/Gone与idle，正常Quit/客户输入恢复及原载荷字节有scope。setupPID6252与ZIP PID6812物理日志分别保留，不合成全时序。原D182本地I12 PASS只指PortableEntryOnly，不授整I12/Tray/Full/五应用，包内NOT_RUN元数据不回写。 【历史观察保留】当前25b/bfb在a014实际普通无参首启/可见中文GUI/二启同PID/第6页新用户说明及viewport、默认10DIP与公开保存0的实际Move差异、真UP/正常Quit/客户配对和资源恢复通过。raw I12标签只该入口子流程，不授guide整链；旧ec2f/5f87与2432/528a全部保留身份。",
       "remaining_conditions": [
-        "独立便携功能M12-F03已通过，不再作为本链缺口；本链完整操作顺序及所有规定入口尚未齐备。"
+        "当前c452/49b3/217a已真实普通ZIP空参中文GUI/二启、说明、保存Move效应/两NormalUp/正常退出与原字节；旧42ab、ccde、9ec7、322a包各保原身份，独立M12-F03/B32已PASS。",
+        "按最终同候选中文指南核所有规定入口、诊断/版本/证据与完整操作仍未齐，特别是真实托盘及最终drain后的正常停止；PortableEntryOnly原I12 PASS只属该入口scope。"
       ],
-      "next_action": "当前9ec7/8d048/1ccec普通ZIP入口已实际scopedPASS，ccde/2579/bea0与42ab/d5/f78保历史；只继续真实托盘、全部规定入口和同候选完整操作链，不能把本地I12标签提升整链。",
+      "next_action": "继续49b3已验包以外尚缺的实际入口/指南步骤；等待有据生产修复与新候选后按影响核验，不重放已过便携几何或把旧包运行改绑新EXE，不授整体I12。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-408AC52-UP-DISPATCH",
@@ -15126,7 +15173,7 @@
       ],
       "candidate_identity_ref": "pending_product_candidate",
       "remaining_conditions": [],
-      "next_action": "复用dfdd同产品预算与连续阶段，不追加空闲或900秒重跑；应用/托盘和显示条件独立验收。",
+      "next_action": "保留11ae/dfdd本机60.0156957秒/CPU0及约29.4MB工作集的原身份预算PASS，不称c452新实测。只有新改动影响常驻资源/空闲机制时按影响复验；不为文档更新重复60秒或900秒。",
       "current_candidate_observation": {
         "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
         "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
@@ -15189,10 +15236,12 @@
       ],
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "c452/a723完整P431 max45492us/p95桶49999、callback70/max422us/p99桶500仅本Run达预算；f7d6未终验FAIL不冒完整通过。ca56 max54012us、0c50 max53212us及旧callback/端点FAIL各保原身份，完整应用/整链NF02仍未齐，不推唯一系统原因。",
-        "QPC软件端点非物理显示；不追加无变量压力/计数矩阵，后继生产新候选按影响另记。"
+        "当前c452/a723 Release15native完整geometry+postcontext端点max45492us/p95桶49999，callback70/max422us/p99桶500；6e32 Debug同15native max45181us、callback70/max575us/p99桶999，各只证明本Run预算，不混算D/R或不同EXE样本。",
+    "当前c452两成员Terminal链未覆盖同候选Release的I02–I06与I11代表正常操作范围：多成员串行写入、T/L关系/分组Resize、8窗/停靠、视觉与mapped命令；旧830a透明/合法失焦/后继回路callback p99=1755us保原失败。各代表范围的hook/placement总分母、丢弃及未完成数尚未齐，不能将a723/6e32有限样本外推整产品。离散双击/停靠须采用实际触发分流时钟，不把等待双击时间当native调用耗时，也不增加无关压力矩阵。",
+    "mapped command丢原hook QPC，以及timing summary早于writer最后drain，均为新确认源码缺口，IMPLEMENTED_OFFLINE_TESTED_FIELD_NOT_RUN（源码936aeb9e3be25021ef7c6f7f0953de4eb3944fcf；现场NOT_RUN）。新候选需实际保留原hook时间，并在最后drain完成后汇总全部issued/completed/discarded/unfinished，未完成或分母未知不得授完整统计PASS。通过条件为同候选Release、同机QPC源及完整geometry+postcontext端点可核，正常callback p99<1000us、输入到完整后验p95<50000us，持续>100ms异常如实登记；软件时间不是物理显示延迟。",
+        "830a/4f7、4ff/42ab、72bd/c14/2787、ca56/9ec7、0c50/322a等历史FAIL保原身份，不永久否定后继EXE；当前缺代表性证明也不能用旧小值或只报callback授整体NF02 PASS。应用/显示整版矩阵独立，不能把所有未过项重复硬塞成NF02前置。"
       ],
-      "next_action": "复用c452/a723和6e3各自有限性能/几何证据，不抹旧失败或关闭完整NF02。Debug预算补验已真实完成，仅工具受影响范围关闭；不重开Full/900或增加无关样本，应用/完整链和真人门分别保留。",
+  "next_action": "936aeb9构建封存后，先定向核mapped原hook QPC与最后writer drain后summary真实顺序/分母；再随当前交付报告列明的I02–I06/I11代表正常操作采集完整端点和分类分母，按两个严格阈值评估。复用a723/6e32已过有限范围，不为NF单独重跑900、不扩大无变量样本或改写历史FAIL，不推唯一线程/系统根因。",
       "current_serial_timing_review": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
       "current_contract_review": "docs/reports/v1-evidence/830a-focus-successor-review.json",
       "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
@@ -15254,7 +15303,40 @@
         "verdict": "FINITE_CURRENT_SCOPE_TARGETS_MET_NOT_WHOLE_NF02_PASS_HISTORICAL_FAILURES_RETAINED",
         "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json"
       },
-      "latest_current_candidate_measurement": {
+  "latest_current_candidate_measurement": {
+    "source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+    "release": {
+      "run_id": "a723ce9a988e455a9af5d22b2684ae20",
+      "binary_sha256": "10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560",
+      "driver_source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+      "product_sequence": 431,
+      "callback_samples": 70,
+      "callback_p99_bucket_upper_us": 500,
+      "callback_max_us": 422,
+      "native_samples": 15,
+      "hook_to_postverify_p95_bucket_upper_us": 49999,
+      "hook_to_postverify_max_us": 45492
+    },
+    "debug": {
+      "run_id": "6e3269161d484dc993985d9091aefbf3",
+      "binary_sha256": "76354B8DBAB23395A9D5FA2B7990CE42C798A7AF7C5BF38764F0BE7D7D737C4D",
+      "driver_source_sha": "011ed1c458612491d878db7a2db70f72824fff03",
+      "product_sequence": 431,
+      "callback_samples": 70,
+      "callback_p99_bucket_upper_us": 999,
+      "callback_max_us": 575,
+      "native_samples": 15,
+      "hook_to_postverify_p95_bucket_upper_us": 49999,
+      "hook_to_postverify_max_us": 45181
+    },
+    "endpoint": "geometry_and_post_context_complete",
+    "configuration_populations_not_merged": true,
+    "physical_display_latency": false,
+    "verdict": "EACH_LIMITED_SCOPE_BUDGET_MET_NOT_WHOLE_NF02_PASS",
+    "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
+    "new_local_fix_candidate_field_validation": "NOT_RUN"
+  },
+  "historical_1f4_current_candidate_measurement": {
         "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
         "binary_sha256": "8B3E350F2CC5E60C25DA4CFFE87027B57D930BF6DEE719B2ABC3C5B95A517226",
         "driver_source_sha": "79760ce7b858654f2ad9a41912ce21e468a18557",
@@ -15284,9 +15366,11 @@
       ],
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "真实应用客户区前置及正常关闭尚未齐，普通完整Medium桌面与混合应用整链未满足；owned规定连续阶段已运行，不要求无变化重复900秒。"
+        "历史dfdd/9724严格900秒/两轮及有限对象趋势有原件，1a62/540f两轮/正常退出也各保原身份；没有新c452整版900实测，不改绑或说从未运行。",
+        "尚缺最终候选完整适用I11与真实应用退出/全树收尾；Shell/测试wrapper后代UNKNOWN不因产品自身资源退出或guest销毁转PASS。",
+        "stop汇总早于writer最后drain的源码遗漏IMPLEMENTED_OFFLINE_TESTED_FIELD_NOT_RUN（源码936aeb9e3be25021ef7c6f7f0953de4eb3944fcf；现场NOT_RUN），D/R构建及offline已过，仍待实际最后完成/资源停止顺序复验；当前own shutdown true只保其真实记录，不提前授最终drain门。"
       ],
-      "next_action": "复用当前4f7/1a62同PID两轮/正常退出/独立客户恢复及原11ae/dfdd时长；不以有限资源两点证明长期无泄漏，不重复owned核心/900。只继续未齐真实应用/完整环境和整版链。",
+      "next_action": "不单独重复原900或用两点趋势证明长期无泄漏。先补stop/drain受影响正常退出与实际应用/显示前置，最终整链可运行时按同一候选记录有限连续阶段、逐项资源及正常全树结果；不把wrapper未评估false初始化当产品清理失败。",
       "current_candidate_observation": {
         "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
         "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
@@ -15381,6 +15465,39 @@
     }
   ],
   "defects": [
+    {
+      "id": "V1-D31",
+      "status": "DEV_FIXED_OFFLINE_TESTED_PENDING_FIELD",
+      "severity": "S2",
+      "kind": "V4_TRAY_KEYBOARD_ACTIVATION_OMITTED",
+      "description": "生产已设NOTIFYICON_VERSION_4，却未处理NIN_KEYSELECT；现接入实际共享Settings分流并通过D/R离线正反例与旧遗漏mutation。此窄键盘缺口有公共设置命令绕行，但不降低M01-F02必做门，也未解释UIA provider0或未点击。",
+      "repair_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+      "features": ["M01-F02"],
+      "evidence_paths": ["docs/reports/v1-evidence/20261027-local-fixes-review.json"],
+      "next_action": "合格隔离桌面实际键盘激活与菜单/状态验证；不重放无变量UIA0点击，不预填现场PASS。"
+    },
+    {
+      "id": "V1-D32",
+      "status": "DEV_FIXED_OFFLINE_TESTED_PENDING_FIELD",
+      "severity": "S2",
+      "kind": "MAPPED_COMMAND_DROPPED_ACTUAL_HOOK_QPC",
+      "description": "真实mapped鼠标事件已有QPC，却在command入口丢失并让apply计为missing；现沿实际两调用边保留该起点，GUI/menu无hook起点仍未知。此计量缺口不等于业务命令全部失败，也不解释旧慢值；NF02必做门保持未过。",
+      "repair_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+      "features": ["M09-F02", "M09-F03"],
+      "evidence_paths": ["docs/reports/v1-evidence/20261027-local-fixes-review.json"],
+      "next_action": "在既有I05离散命令流程核真实origin与完整writer端点、缺失分母；不造GUI hook时间或重算旧统计。"
+    },
+    {
+      "id": "V1-D33",
+      "status": "DEV_FIXED_OFFLINE_TESTED_PENDING_FIELD",
+      "severity": "S2",
+      "kind": "TIMING_SUMMARY_PRECEDED_WRITER_FINAL_DRAIN",
+      "description": "唯一summary原早于writer.stop/最终完成drain，可能漏掉停止中完成的真实调用；现移到该屏障之后并保留actual worker/unknown/unfinished。尚待实际停止期间完成覆盖，不据此关闭NF02/NF03、cleanup或将unknown写0。",
+      "repair_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+      "features": ["M01-F04", "M04-F05"],
+      "evidence_paths": ["docs/reports/v1-evidence/20261027-local-fixes-review.json"],
+      "next_action": "在受影响停止/退出流程核最后实际完成、未知回执和资源收尾；仍未知则保留，不追加独立时长矩阵。"
+    },
     {
       "id": "V1-D30",
       "status": "CLOSED_SCOPED_RUNTIME_REVALIDATED",
@@ -15624,7 +15741,8 @@
     },
     {
       "id": "V1-D01",
-      "status": "OPEN",
+      "status": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONSTRAINT_GAPS",
+      "current_review": "Original grid17/missing-UP failures below keep their old identities, not a current matched-UP defect. Currentc452 real Terminal min143/C-proposal acceptance and rejection/recovery are scoped evidence; current max/fixed/custom-grid native postverify, zero-recursion and successor coverage remain the explicit M03-F03/I10 gaps after live-Resize changes.",
       "kind": "IMPLEMENTATION_GAP",
       "description": "未知app栅格是适配限制，生产min/max/postverify拒绝已接线。8453及d49原生grid17非exact后拒绝通过；8453下一联合断言失败且子项未知，ff分流后d49单次调用通过而实际UP未观察。c01后继Move/Ctrl恢复子项已通过，但原g6实际UP仍缺失、完整I10未闭环，不能关闭完整约束验收。",
       "features": [
@@ -15715,8 +15833,10 @@
     },
     {
       "id": "V1-D07",
-      "status": "OPEN",
+      "status": "CLOSED_SCOPED_RUNTIME_REVALIDATED",
       "kind": "POST_STOP_CLIENT_DELIVERY_NOT_CONFIRMED",
+      "current_scope_verdict": "POST_STOP_DELIVERY_SCOPED_PASS_NOT_WHOLE_CLEANUP",
+      "current_scope_basis": "The actual paired client-count observations already recorded below close only delivery after product stop. Full application roots/process-tree and exception cleanup remain independent NF03/I08/I11 gates; no new936 field run or feature score is claimed.",
       "latest_observation_id": "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
       "runtime_revalidation": "ACTUAL_212_PRODUCT_STOP_AND_POST_STOP_CLIENT_DOWN_UP_OBSERVED_SCOPED_PASS",
       "next_action": "dedc526/531与e74362/4367真实产品资源stop及客户投递已确认；完整cleanup仍受应用根未closed和未验异常分支约束，不重复已通过投递专项、不补NormalUp。",
@@ -15866,6 +15986,8 @@
       "historical_description": "fdfe421/425及e4 498/504精确当前产品UID1托盘图标不可达，BLOCKED。--settings/--pause/--quit实际命令入口和普通无参可见设置不能替代真实托盘菜单验收；未操作未知Console/托盘对象。 最新022已实际通过Edge caption/DOWN/START，但firstfree前产品end3，无placement，原因UNKNOWN；旧caption超时历史不抹除也不再描述为当前同一失败。exact关闭仍未确认。",
       "historical_status": "OPEN",
       "id": "V1-D10",
+      "current_review_date": "2026-10-27",
+      "current_review": "c452/a723/6e32 actual icon rectangle/UIA provider PID0, no semantic click; older permanent ADD-failure wording below is historical. Independent NIN_KEYSELECT omission fixed at936/offline, not proof of that route's system cause or a real tray/menu PASS.",
       "status": "BLOCKED_CURRENT_GUEST_TRAY_ENTRY",
       "kind": "TRAY_ENTRY_NOT_REACHABLE_IN_ACTUAL_GUEST",
       "description": "当前76e自身Medium探针真实ADD=false/rawGLE5、Shell Progman/TrayWnd High、GetRect=E_FAIL，dfdd D1385当前精确UID1图标仍不可达且未发菜单输入。rawGLE5不是官方extended-error根因；完整普通Medium Shell条件未具备，尚不能证明完整性差异是唯一原因。命令/普通无参GUI通过不能替代托盘，旧失败保留。",
@@ -15912,6 +16034,8 @@
     {
       "id": "V1-D12",
       "status": "OPEN",
+      "current_review_date": "2026-10-27",
+      "current_review": "c452/a723/6e32 Terminal geometry/real NormalUp and exact held root exit0 are actual limited results; client initialization/input and complete Shell/job descendants still not proven. Explorer69f4 exact qualification/path rejected; complete official Notepad assets exist but registration fails; Code restricted-token chain and Edge native initialization/close remain separate UNKNOWN causes. Earlier missing-EXE/old-UP descriptions below retain historical identities, not current next actions.",
       "kind": "APPLICATION_MATRIX_AND_EXACT_CREATED_ROOT_CLEANUP_INCOMPLETE",
       "latest_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
       "runtime_revalidation": "ACTUAL_FE0_WITHOUT_CANDIDATE_PRODUCT_NATIVE_CLIENT_FAILURES_PRODUCT_NOT_RUN_EDGE_CLOSE_FAIL",
@@ -16078,7 +16202,7 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/99f-1b5-notepad-preparation-selected.json"
       ],
-      "next_action": "不绕凭据/Store许可；保留官方获取所需认证的具体缺口，评估已授权许可允许的官方可取得包。先修专用准备工具的实际GeoId恢复回读合同，不能仅按cmdlet返回记恢复成功。"
+      "next_action": "保留99f的Geo恢复FAIL，不以guest销毁关闭；不复用这条会改位置的准备路线或绕凭据/Store许可。完整f08官方资产已备，当前Notepad阻断是后续注册/交互而非缺包；只有今后确需此准备工具时，先修其实际GeoId恢复合同再使用，不重复旧下载。"
     },
     {
       "id": "V1-D20",

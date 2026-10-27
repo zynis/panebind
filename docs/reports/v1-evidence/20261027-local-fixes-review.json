@@ -1,0 +1,92 @@
+{
+  "schema": "panebind-v1-targeted-review/1",
+  "kind": "LOCAL_BUILD_AND_OFFLINE_REVIEW_NOT_GUEST_ACCEPTANCE",
+  "record_date": "2026-10-27",
+  "starting_source_sha": "89e0f81638332bc67e9be13c563d44269729d3da",
+  "product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+  "driver_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+  "fixes": [
+    {
+      "id": "V1-D31",
+      "kind": "V4_TRAY_KEYBOARD_ACTIVATION_OMITTED",
+      "counterexample": "Actual product selected NOTIFYICON_VERSION_4 but omitted NIN_KEYSELECT in ingress and dispatch. Offline shared production predicate now requires Settings for that event; static mutation rejects the old omission and a divergent real dispatch.",
+      "repair": "Same small Windows-platform predicate is used by actual ingress, dispatch and existing input-route tests; no new UI/input mechanism.",
+      "field_status": "NOT_RUN",
+      "does_not_explain": "c452/6e32 UIA provider PID0 and no click; actual keyboard/tray/menu still not accepted."
+    },
+    {
+      "id": "V1-D32",
+      "kind": "MAPPED_MOUSE_COMMAND_DROPPED_ACTUAL_HOOK_QPC",
+      "counterexample": "The mapped event had hook_observed_qpc, but consume called command without it and the geometry apply used the default zero. Static mutation directly reinstates and rejects both lost callsite edges.",
+      "repair": "Actual mapped mouse origin passes through command to the existing writer timing. GUI/menu/hotkey without a mouse-hook origin remain zero/missing, not zero latency.",
+      "field_status": "NOT_RUN",
+      "does_not_explain": "Prior callback/native slow values or all missing clocks; old statistics are not recalculated."
+    },
+    {
+      "id": "V1-D33",
+      "kind": "TIMING_SUMMARY_BEFORE_FINAL_WRITER_COMPLETION_DRAIN",
+      "counterexample": "The unique summary preceded writer.stop and its final completion drain, so a call completing during stop could be absent. The production-order regression rejects that old order and clearing unfinished calls.",
+      "repair": "Summary follows actual input stop, writer stop and final actual drain. Native-worker exit, unconfirmed-call flag and unfinished map size remain actual facts.",
+      "field_status": "NOT_RUN",
+      "does_not_prove": "Windows delayed completion/whole process-tree cleanup or complete NF02/NF03."
+    }
+  ],
+  "build": {
+    "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File uat/v1-control/build-v1-current-candidate.ps1",
+    "directory": "out/v1-app-sizing-936aeb9",
+    "completed_utc": "2026-10-27T02:12:34.3191329Z",
+    "receipt": "uat/v1-control/build-sizing-936aeb9-7a18e4aa66844cc085aef635c68a860e/receipt.json",
+    "receipt_sha256": "75EED8BEADA089A80B6A8AD24564D28875FA9949EEAB9CCB1630058066B23723",
+    "runtime": "MultiThreaded",
+    "compiler_flags": "/DWIN32 /D_WINDOWS /EHsc /bigobj",
+    "Debug": {
+      "product_sha256": "E4E37BA772E243DE25C4B5EE558CBD49E6751FA13CD1736E84FCAAFC07CFB54C",
+      "product_bytes": 4309504,
+      "driver_sha256": "6EA152625AA56C77A46CD76344F9A5C9C50AA0F227DB36CAD3C0AEC53A1CDFE0",
+      "driver_bytes": 10763776,
+      "affected_offline_tests": "8_OF_8_PASS",
+      "ctest_log_sha256": "1A5572FE5340081485FB5D7C8D0922CF0811D67D509F8C4E79B6D8BBC3664E09",
+      "timing_test": "PASS",
+      "timing_log_sha256": "D2ED6CD376611783377C3BC3E54FFD28078CFC9D5697D431E57993D9AD21C270"
+    },
+    "Release": {
+      "product_sha256": "8CDAAAD4B19B2F9D606EF145E00A47429EE50D59052266D3993950B93F9C4238",
+      "product_bytes": 1241088,
+      "driver_sha256": "7C56910799D3017E7E0A18614149120A012F200C9689353335E066F310030714",
+      "driver_bytes": 4508672,
+      "affected_offline_tests": "8_OF_8_PASS",
+      "ctest_log_sha256": "BDD19754B4FC31DD049090528999612104C746150E23E17D6D1C1FE2D6278272",
+      "timing_test": "PASS",
+      "timing_log_sha256": "5FDC829AE3F6F2B0D1F171B521FAF6ACEB20B88ABA3A5033185BC326E8DC6A3D"
+    },
+    "affected_ctest_filter": "^(v1-settings|v1-guest-path|v1-catalog-rules|v1-writer|v1-input-route|v1-recovery|test-product-input-isolation|v1-layout)$",
+    "additional_ctest_filter": "^v1-timing$",
+    "static_wiring_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/check-v1-package-identity.ps1",
+    "static_wiring_result": "266_PASS_INCLUDING_SIX_NEW_ACTUAL_WIRING_MUTATION_REJECTIONS",
+    "static_results_source": "Actual execution output reviewed this round; summary here is derived, not an original stdout log.",
+    "source_frozen_during_build": true,
+    "interactive_ctest_executed": false
+  },
+  "host_protection": {
+    "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File uat/v1-control/guard-current-candidate.ps1 -BuildDirectory D:/repository/panebind/out/v1-app-sizing-936aeb9 -Source 936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
+    "receipt": "uat/v1-host-guard/51df14e0764749c1a5ea68cb5ac384d3/receipt.json",
+    "sha256": "33E71AC1444C5F912E275DBA34CA39B90D83A3FFED61DEFE0FC5832E22463AA7",
+    "full_argument_host_refusals_exit78": 4,
+    "ordinary_product_UI_launches": 0,
+    "synthetic_input": 0,
+    "scope": "Exact build identity and guest-driver host rejection only, not guest behavior."
+  },
+  "unchanged_actual_runtime_basis": {
+    "product_source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+    "Debug_sha256": "76354B8DBAB23395A9D5FA2B7990CE42C798A7AF7C5BF38764F0BE7D7D737C4D",
+    "Release_sha256": "10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560",
+    "portable_id": "49b36fc6fd0845da8714559a6de47132",
+    "portable_zip_sha256": "410D5AF9C70042A21BA639B8B396A1B5151F35802466E8EA0A43276A0D06AD94",
+    "runtime_rebound": false
+  },
+  "new_candidate_owned_Explorer_three_window_tray_real_applications_or_human_field_run": "NOT_RUN",
+  "VM_or_Sandbox_started": false,
+  "new_feature_or_benchmark_PASS": false,
+  "whole_version_PASS": false,
+  "human_UAT": "PENDING"
+}

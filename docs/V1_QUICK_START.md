@@ -4,7 +4,7 @@
 
 最新已实测普通便携入口为`c452bfdb750fed6714e7bdf6a4505ea4051cde21`／49b3包：217a实际验证空参数Medium/non-elevated可见GUI、二启同实例、保存影响Move、两代真实Raw／legacy NormalUp及正常退出。Release a723完整12代（11次NormalUp、一次安全拒绝后的abort清理）、15次exact native及资源收尾通过限定几何范围。
 
-本候选另跳过Ctrl Resize不使用的磁吸候选／显示测量；成员、权限、writer及共享边反馈不变。D/R构建及受影响offline各8/8通过；a723 Release与后继6e3 Debug均完成12代／15exact／真实UP及几何子链收尾，软件端点分别max45492µs／45181µs，仅各自scope达到预算，**不关闭完整NF02**。6e3使用011ed1c驱动修复有限预算，末尾state及正常目标关闭／Default回切均在原parent30秒期限内；旧c1a5／f7d6超时FAIL保留，产品未重建。整Run仍因托盘providerPID0／未click为FAIL；108高对比scheme恢复FAIL、客户内容及完整应用／显示合同分别保留，**不开放宿主试用，不授整版PASS。**
+截至2026-10-26，以上仍是**已实测基线**，不是后续源码修复的验收结果。本轮托盘键盘激活、映射命令计时起点和最终计时汇总的修复候选另记在[集中报告当前段](reports/V1_DELIVERY_REPORT.md)，尚未现场复验，不覆盖49b3包。真实托盘尚未点击、客户初始化、高对比scheme恢复及完整进程树退出各有独立缺口；完整NF02／真实应用／显示合同仍未通过，**不开放宿主试用，不授整版PASS。**
 
 - 当前产品／已验便携包内TEST源码：`c452bfdb750fed6714e7bdf6a4505ea4051cde21`。
 - 当前已实测Release EXE SHA-256：`10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560`。
@@ -14,13 +14,7 @@
 - ZIP SHA-256：`410D5AF9C70042A21BA639B8B396A1B5151F35802466E8EA0A43276A0D06AD94`；manifest SHA-256：`8D11632A795502509B4E3F295152B4526984912F73905BA0EEE584158F9ECDA4`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
-历史d5f5／42ab已在[f78d](reports/v1-evidence/f78d-current-42ab-portable-entry-review.json)实际验证中文空格目录无参GUI、二启同实例、保存改变Move实际几何、两次真实Raw／legacy NormalUp和正常退出／客户输入恢复，无后代或强制清理。setup PID3464与ZIP PID6864为不同原FILETIME／物理日志；只是普通便携入口scope，不是整I12／托盘／五应用或宿主试用。旧be7／744e／[e4b9](reports/v1-evidence/e4b9-current-744e-portable-entry-review.json)、bfb／25b原ZIP各保身份。包内说明／manifest的NOT_RUN保留封包时点，后续结果由仓库报告记录，不改原包。
-
-322a／e2bf／e172、9ec7／8d048／1ccec、ccde／2579／bea0及42ab／d5f5／f78各保原包和运行身份，不改绑当前EXE。实际范围与剩余条件统一见[集中报告当前段](reports/V1_DELIVERY_REPORT.md)。
-
-自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
-
-构建历史、阶段分数、失败原件、当前功能结果和下一动作统一维护在[集中报告](reports/V1_DELIVERY_REPORT.md)、[验收表](reports/V1_ACCEPTANCE.json)及[证据索引](reports/v1-evidence/index.json)，不在快速入门重复多个“当前版本”。自动DEV不等于真人UAT或普通宿主试用许可。
+自动测试driver、产品与包装身份分别记录；仅改驱动或文档不替换产品EXE，产品实际变化则建立新候选并按影响复验，旧包不换绑。历史构建、分数、失败原件和下一动作只在[集中报告](reports/V1_DELIVERY_REPORT.md)、[验收表](reports/V1_ACCEPTANCE.json)及[证据索引](reports/v1-evidence/index.json)维护。包内manifest／说明保留封包时点，后续实测由仓库报告补充，不改原包；本页不并列多个“当前版本”。自动DEV不等于真人UAT或普通宿主试用许可。
 
 当前包仍仅供已授权隔离环境中的独立复核；不由局部guest结果授权普通宿主试用。Explorer文件窗口的非elevated资格与精确路径验证尚未通过，不能因为Shell或物理文件窗出现就认为已绑定可操作；托盘菜单与客户输入的限制分别见集中报告。
 
