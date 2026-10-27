@@ -1188,6 +1188,7 @@ function Assert-V1TargetedAccountingRecoveryWiring([string]$Fixture,[string]$Tim
         throw 'Targeted recovery must retain old settings entry, actual abort UP and same-process successor.'
     }
     foreach($value in @('static_assert(sizeof(InputActorDisconnectPacket)==96);',
+        'portable_field(package,"guest_suite")!="DriverDisconnectOnly"',
         'GENERIC_WRITE,0,nullptr,CREATE_NEW,','disconnect_flushed=disconnect_flush_return!=FALSE;',
         'disconnect_closed=CloseHandle(completion.value)!=FALSE;',
         'disconnect_created&&disconnect_written&&disconnect_flushed&&disconnect_closed&&disconnect_hash.size()==64',
@@ -1218,6 +1219,7 @@ Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('disconnect_closed=CloseHandle(completion.value)!=FALSE;','disconnect_closed=true;')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects a fabricated packet close'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('process_birth(child_process.value)==child_birth&&immutable','true')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects dropping held child identity and actual packet immutability'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('std::string(after_bytes.data(),after_bytes.size())==packet_before_bytes&&after_hash==packet_before_hash;','true;')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect rejects replacing actual before/after bytes and hash with a claimed boolean'
+Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings ($targetedActor.Replace('portable_field(package,"guest_suite")!="DriverDisconnectOnly"','portable_field(identity,"guest_suite")!="DriverDisconnectOnly"')) $targetedDisconnect $lifecyclePrepare $lifecycleGuest} 'static driver disconnect must read the actual full manifest suite after files, not the binary identity prefix'
 function Assert-V1StandardLogonIdentityWiring([string]$Probe,[string]$Guest){
     $start=$Guest.IndexOf('    if($standardLogonIdentity){',[StringComparison]::Ordinal)
     $end=$Guest.IndexOf('    if($probeDesktop -and -not $standardNativeClients -and -not $standardLogonIdentity){',$start,[StringComparison]::Ordinal)

@@ -90,7 +90,9 @@ int input_actor_child(int count,LPWSTR* args,bool disconnect=false){
     if(disconnect){
         const auto package=read(input/L"manifest.json",256*1024);const auto files=package.find("\"files\"");
         if(files==package.npos)return 78;const std::string_view identity(package.data(),files);
-        if(portable_field(identity,"run_id")!=utf8(run)||portable_field(identity,"guest_suite")!="DriverDisconnectOnly"||
+        // The immutable packager puts guest_suite AFTER the files array. Only
+        // the binary identity fields belong to the flat pre-files prefix.
+        if(portable_field(identity,"run_id")!=utf8(run)||portable_field(package,"guest_suite")!="DriverDisconnectOnly"||
             portable_field(identity,"driver_source_commit")!=PANEBIND_BUILD_SHA||
             portable_field(identity,debug?"driver_debug_sha256":"driver_release_sha256")!=image_hash)return 78;
         disconnect_packet=input_actor_disconnect_packet_path(output,run,debug);SetLastError(ERROR_SUCCESS);
@@ -560,8 +562,17 @@ void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product
             shared->phase.store(product::guest::ActorCapturePhase::ActualStartReady,std::memory_order_release);}
         const bool ack_called=capture_written&&WaitForSingleObject(child_process.value,0)==WAIT_TIMEOUT;
         const bool ack_sent=ack_called&&SetEvent(start_ack.value)!=FALSE;const auto ack_error=ack_called&&!ack_sent?GetLastError():0;
+        const DWORD child_wait_before_ack=WaitForSingleObject(child_process.value,0);DWORD child_exit_before_ack=STILL_ACTIVE;
+        BOOL child_exit_code_known=FALSE;DWORD child_exit_query_error{};
+        if(child_wait_before_ack==WAIT_OBJECT_0){SetLastError(ERROR_SUCCESS);child_exit_code_known=GetExitCodeProcess(child_process.value,&child_exit_before_ack);
+            child_exit_query_error=child_exit_code_known?ERROR_SUCCESS:GetLastError();}
         s.log.check("I08_actor_actual_product_START_ack_once",ack_sent,
             "\"generation\":"+std::to_string(g.generation)+",\"expected_source_key\":"+std::to_string(expected_key)+
+            ",\"held_child_wait_before_START_ack\":"+std::to_string(child_wait_before_ack)+
+            ",\"child_exit_code_query_attempted\":"+(child_wait_before_ack==WAIT_OBJECT_0?"true":"false")+
+            ",\"child_exit_code_query_return\":"+(child_wait_before_ack==WAIT_OBJECT_0?(child_exit_code_known?"true":"false"):"null")+
+            ",\"child_exit_code_before_START_ack\":"+(child_exit_code_known?std::to_string(child_exit_before_ack):"null")+
+            ",\"child_exit_code_query_error\":"+(child_wait_before_ack==WAIT_OBJECT_0&&!child_exit_code_known?std::to_string(child_exit_query_error):"null")+
             ",\"current_product_PID\":"+std::to_string(product_pid)+",\"actual_DOWN\":"+quote(actual_down)+",\"actual_START\":"+quote(actual_start)+
             ",\"actual_CaptureReady\":"+quote(actual_ready)+",\"immutable_capture_receipt_written\":"+(capture_written?"true":"false")+
             ",\"actual_native_START\":"+quote(actual_native_start)+",\"actual_native_END\":"+quote(actual_native_end)+
