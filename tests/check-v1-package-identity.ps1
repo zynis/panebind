@@ -2353,4 +2353,45 @@ Assert-V1BatchFailureOnlyWiring $fixtureSource $batchFailureOnly $lifecyclePrepa
 Check $true 'static narrow batch entry calls the actual second-member failure and survivor recovery once'
 Reject {Assert-V1BatchFailureOnlyWiring $fixtureSource ($batchFailureOnly.Replace('owned_second_member_native_failure_case(s);','')) $lifecyclePrepare $lifecycleGuest} 'static a summary cannot replace the actual batch failure helper'
 Reject {Assert-V1BatchFailureOnlyWiring $fixtureSource ($batchFailureOnly.Replace('!s.left&&!s.control&&hash(s.product)==binary','true')) $lifecyclePrepare $lifecycleGuest} 'static batch success cannot bypass released input and unchanged actual product'
+function Assert-V1ContextualDoubleClickPreparation([string]$Application){
+    $start=$Application.IndexOf('void Application::begin(const InputEvent& e){',[StringComparison]::Ordinal)
+    $end=$Application.IndexOf('void Application::cancel_seam_timer(',$start,[StringComparison]::Ordinal)
+    if($start -lt 0 -or $end -le $start){throw 'Actual contextual-double-click begin body missing.'}
+    $begin=$Application.Substring($start,$end-$start)
+    $decision=$begin.IndexOf('const bool contextual_double_click=e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u);',[StringComparison]::Ordinal)
+    $members=$begin.IndexOf('active.members=native_handoff&&active.ctrl?p.native_ctrl_members:catalog.all(settings);',[StringComparison]::Ordinal)
+    $fresh=$begin.IndexOf('const auto actual=catalog.get(member.hwnd,settings);',[StringComparison]::Ordinal)
+    $tail=$begin.IndexOf('if(contextual_double_click){',[StringComparison]::Ordinal)
+    $targets=[regex]::Match($begin,'(?s)if\(!contextual_double_click\)\{(?<body>.*?)\r?\n    \}')
+    if($members -lt 0 -or $fresh -le $members -or $decision -le $fresh -or $tail -le $decision -or
+       -not $targets.Success -or $targets.Index -le $decision -or $targets.Index -ge $tail -or
+       -not $targets.Value.Contains('active.targets=catalog.all(settings);active.targets.erase(') -or
+       -not $targets.Value.Contains('std::find(selected.begin(),selected.end(),s.key)!=selected.end()||!(s.feature_mask&1u)') -or
+       [regex]::Matches($begin,'active\.targets=catalog\.all\(settings\);').Count -ne 1){
+        throw 'Only the exact immediate contextual-double-click branch may omit unused continuous targets; source topology and full participant reads remain.'
+    }
+    foreach($fact in @('if(!input.context_allowed(e.generation))return;',
+        'if(gesture)finish(v::End::QueueFailure);if(!e.prepared||!epoch.begin(e.generation))return;',
+        'native_move->end!=e.native_move_receipt||!native_move->gate.may_write(e.generation,input.allowed(e.generation),true,',
+        'if(active.members.empty()){input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;}',
+        'for(auto& member:active.members){','!Catalog::same(member,*actual)||actual->visible!=expected.visible||',
+        'member=*actual;','active.expected[s.key]=s;')){
+        if(-not $begin.Contains($fact)){throw ('Double-click preparation cannot remove existing epoch/END/source/member admission: '+$fact)}
+    }
+    $discrete=$begin.Substring($tail)
+    foreach($fact in @('auto other=catalog.all(settings);other.erase(',
+        'return item.key==fresh->key;}),other.end());',
+        'items(other),settings.smart_stretch);',
+        'if(input.allowed(e.generation)&&apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc))remember_receipt(*fresh,true);',
+        'input.revoke_generation(e.generation);finish(v::End::Paused);')){
+        if(-not $discrete.Contains($fact)){throw ('Contextual stretch must independently resample its actual read-only neighbours and retain the real writer/retirement: '+$fact)}
+    }
+}
+Assert-V1ContextualDoubleClickPreparation $liveResizeApplication
+Check $true 'static contextual double-click alone omits unused continuous targets while keeping source, fresh members and final neighbour sampling'
+Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('const bool contextual_double_click=e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u);','const bool contextual_double_click=true;'))} 'static ordinary Move and Resize cannot lose targets through an unconditional double-click flag'
+Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('if(!contextual_double_click){','if(false){'))} 'static the actual target acquisition must remain enabled for all other routes'
+Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('active.members=native_handoff&&active.ctrl?p.native_ctrl_members:catalog.all(settings);','active.members={*fresh};'))} 'static contextual preparation cannot bypass the first source topology and occlusion gate'
+Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('const auto actual=catalog.get(member.hwnd,settings);','const auto actual=catalog.get(member.hwnd,settings,nullptr,false,false);'))} 'static selected participants still require actual full tracking-limit observations'
+Reject {Assert-V1ContextualDoubleClickPreparation ($liveResizeApplication.Replace('auto other=catalog.all(settings);other.erase(','auto other=active.members;other.erase('))} 'static final stretch candidates cannot be replaced by an earlier cached topology'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

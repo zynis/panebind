@@ -1527,8 +1527,13 @@ void Application::begin(const InputEvent& e){
     if(std::none_of(active.members.begin(),active.members.end(),[&](const auto& member){return member.key==fresh->key;})){
         input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;
     }
-    active.targets=catalog.all(settings);active.targets.erase(std::remove_if(active.targets.begin(),active.targets.end(),[&](const auto& s){
-        return std::find(selected.begin(),selected.end(),s.key)!=selected.end()||!(s.feature_mask&1u);}),active.targets.end());
+    const bool contextual_double_click=e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u);
+    // 双击在本次 begin 内离散完成，不消费连续 motion 的 targets。
+    // 保留首次 source 资格门与末次独立 stretch 候选采样。
+    if(!contextual_double_click){
+        active.targets=catalog.all(settings);active.targets.erase(std::remove_if(active.targets.begin(),active.targets.end(),[&](const auto& s){
+            return std::find(selected.begin(),selected.end(),s.key)!=selected.end()||!(s.feature_mask&1u);}),active.targets.end());
+    }
     for(const auto& s:active.members)active.expected[s.key]=s;
     if(native_handoff)for(auto& member:active.members)if(member.key==p.source.key){
         const auto actual_limits=member.limits;const bool observed_limits=member.declared_track_limits_observed;
@@ -1563,7 +1568,7 @@ void Application::begin(const InputEvent& e){
         L"Ctrl 临时邻接："+std::to_wstring(gesture->members.size())+(is_resize(gesture->edges)?L" 个窗口；粗线为实际共享边，尚未缩放":L" 个窗口；细框仅表示成员，尚未移动"),{},
         is_resize(gesture->edges)?shared_feedback_edges(items(gesture->members),fresh->key,gesture->edges,
             dip(settings.adjacency_dip,fresh->dpi)):std::vector<FeedbackLine>{});
-    if(e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u)){
+    if(contextual_double_click){
         auto other=catalog.all(settings);other.erase(std::remove_if(other.begin(),other.end(),[&](const auto& item){return item.key==fresh->key;}),other.end());
         const auto desired=v::stretch(fresh->visible,fresh->work,gesture->edges,(e.modifiers&4u)!=0,items(other),settings.smart_stretch);
         if(input.allowed(e.generation)&&apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc))remember_receipt(*fresh,true);
