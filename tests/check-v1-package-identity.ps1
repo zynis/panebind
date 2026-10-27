@@ -2316,9 +2316,9 @@ Reject {Assert-V1CtrlResizeUnusedPreparation ($liveResizeApplication.Replace('if
 Reject {Assert-V1CtrlResizeUnusedPreparation ($liveResizeApplication.Replace('const auto displays=ctrl_resize?std::vector<Display>{}:catalog.displays();','const auto displays=catalog.displays();'))} 'static Ctrl Resize cannot recreate unused monitor measurement windows'
 function Assert-V1FinalTimingAndTrayRoute([string]$Application,[string]$Tray){
     foreach($value in @(
-        'void command(v::Action action,std::optional<Snapshot> target={},std::uint64_t hook_observed_qpc=0);',
-        'try{if(e.prepared)command(action,e.prepared->source,e.hook_observed_qpc);',
-        'if(apply({true,"command",{{s.key,desired}}},{s},0,false,hook_observed_qpc))')){
+        'void command(v::Action action,std::optional<Snapshot> target={},std::uint64_t hook_observed_qpc=0,std::uint64_t command_generation=0);',
+        'try{if(e.prepared)command(action,e.prepared->source,e.hook_observed_qpc,e.second_click_continuation?e.generation:0);',
+        'if(apply({true,"command",{{s.key,desired}}},{s},command_generation,false,hook_observed_qpc,std::nullopt,command_generation?s.hwnd:nullptr))')){
         if(-not $Application.Contains($value)){throw ('Actual mapped command must carry its observed hook QPC while GUI defaults remain unknown: '+$value)}
     }
     $begin=$Application.IndexOf('void Application::stop(){')
@@ -2359,8 +2359,8 @@ function Assert-V1FinalTimingAndTrayRoute([string]$Application,[string]$Tray){
 $trayCallbackSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/tray_callback_route.h'),[Text.Encoding]::UTF8)
 Assert-V1FinalTimingAndTrayRoute $liveResizeApplication $trayCallbackSource
 Check $true 'static actual mapped timing, final writer barrier and v4 keyboard tray dispatch are connected'
-Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('command(action,e.prepared->source,e.hook_observed_qpc);','command(action,e.prepared->source);')) $trayCallbackSource} 'static old mapped branch cannot discard an actually observed hook timestamp'
-Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('{s},0,false,hook_observed_qpc))','{s},0,false,0))')) $trayCallbackSource} 'static command cannot replace the real mapped timestamp with an unknown default'
+Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('command(action,e.prepared->source,e.hook_observed_qpc,e.second_click_continuation?e.generation:0);','command(action,e.prepared->source);')) $trayCallbackSource} 'static old mapped branch cannot discard an actually observed hook timestamp'
+Reject {Assert-V1FinalTimingAndTrayRoute ($liveResizeApplication.Replace('{s},command_generation,false,hook_observed_qpc,std::nullopt,command_generation?s.hwnd:nullptr))','{s},command_generation,false,0,std::nullopt,command_generation?s.hwnd:nullptr))')) $trayCallbackSource} 'static command cannot replace the real mapped timestamp with an unknown default'
 Reject {
     $oldOrder=$liveResizeApplication.Replace('log.event("timing_summary",','log.event("timing_summary_after_stop_disabled",')
     $oldOrder=$oldOrder.Replace('const bool native_writer_exited=writer.stop();','log.event("timing_summary","old_before_writer_stop");const bool native_writer_exited=writer.stop();')
@@ -2589,7 +2589,7 @@ function Assert-V1ContextualDoubleClickStages([string]$Application){
     $returned=$consume.IndexOf('const auto returned_qpc=diagnostic_qpc();',[StringComparison]::Ordinal)
     $emit=$consume.IndexOf('log.event("contextual_double_click_stages"',$returned,[StringComparison]::Ordinal)
     if($call -lt 0 -or $returned -le $call -or $emit -le $returned -or
-       $consume -notmatch 'while\(input.pop\(e\)\)\{\r?\n    const auto GUI_dequeued_qpc=diagnostic&&\(e.kind==InputKind::Down\|\|e.kind==InputKind::Mapped\|\|e.kind==InputKind::Up\)\?diagnostic_qpc\(\):0;'){
+       $consume -notmatch 'while\(input.pop\(e\)\)\{\r?\n    const auto GUI_dequeued_qpc=diagnostic&&\(e.kind==InputKind::Down\|\|e.kind==InputKind::Mapped\|\|e.kind==InputKind::Up\|\|e.kind==InputKind::ContinuationPending\)\?diagnostic_qpc\(\):0;'){
         throw 'A timestamp taken after logging or before the handler returns cannot stand in for actual GUI dequeue/return.'
     }
     foreach($fact in @('const auto clock=[](std::uint64_t value){return value?std::to_string(value):"null";};',
@@ -2640,4 +2640,51 @@ Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('if(!ec&&actual_
 Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('stream_.flush();return stream_.good();','return stream_.good();'))} 'static held log streams must expose each actual row to the existing evidence reader'
 Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('stream_.flush();return stream_.good();','stream_.flush();return true;'))} 'static a failed stream cannot be reported as a successful row flush'
 Reject {Assert-V1LogStreamReuse ($liveResizeApplication.Replace('const auto actual_size=fs::file_size(path_,ec);','const auto actual_size=fs::exists(path_,ec)?fs::file_size(path_,ec):0;'))} 'static Log cannot restore the redundant per-row exists prequery'
+function Assert-V1NativeClickContinuation([string]$Header,[string]$Service,[string]$Application){
+    foreach($value in @('prepared_click_admitted(*p,packet.pt,bundle->continuation_only,double_click)',
+        'publish_native_click_continuation(self->prepared_,original,',
+        'clear_exact_preparation(self->prepared_,original);',
+        'if(!capture_request_generation_current(pending.generation,generation_))continue;',
+        'approved=receipt&&continuation_pending(pending)&&continuation_capture_approval_matches(pending,*receipt);')){
+        if(-not $Service.Contains($value)){throw ('Actual native-click continuation lost exact version/generation/resource approval: '+$value)}
+    }
+    foreach($value in @('auto expected=original;return slot.compare_exchange_strong(expected,continuation);',
+        '(!continuation_only||actual_double_click)',
+        'e.down_serial==serial&&available&&!paused&&!stopping&&',
+        'source.visible==actual.visible&&source.positioning==actual.positioning&&',
+        'prepared.region==actual_region&&')){
+        if(-not $Header.Contains($value)){throw ('Actual shared continuation predicate is missing: '+$value)}
+    }
+    $deferred=[regex]::Match($Service,'(?s)if\(continuation\)\{(?<body>.*?)\}else if\(self->capture_pair_\)\{')
+    if(-not $deferred.Success -or -not $deferred.Value.Contains('InputKind::ContinuationPending') -or
+       $deferred.Groups['body'].Value.Contains('PostThreadMessageW(') -or
+       $deferred.Groups['body'].Value.Contains('begin_capture(') -or $deferred.Groups['body'].Value.Contains('shield_->')){
+        throw 'Classification-only second DOWN must reach GUI approval without starting input resources.'
+    }
+    $freshStart=$Application.IndexOf('bool Application::continuation_fresh(')
+    $freshEnd=$Application.IndexOf('void Application::prepare(){',$freshStart)
+    if($freshStart -lt 0 -or $freshEnd -le $freshStart){throw 'Actual GUI continuation freshness adapter missing.'}
+    $fresh=$Application.Substring($freshStart,$freshEnd-$freshStart)
+    foreach($value in @('actual=catalog.get(original.hwnd,settings,nullptr,false,false);',
+        'SendMessageTimeoutW(hit,WM_NCHITTEST',
+        'continuation_source_context_matches(prepared,*actual,settings.generation,point,region,',
+        'observe_gui_context(*actual).idle())&&input.continuation_pending(event);')){
+        if(-not $fresh.Contains($value)){throw ('GUI cannot promote a retained classification without actual context: '+$value)}
+    }
+    foreach($value in @('const bool fresh=continuation_fresh(e);',
+        'input.activate_continuation_mapped(e)',
+        'route.route==DownRoute::Gesture&&input.approve_continuation_capture(e)',
+        'e.second_click_continuation?e.generation:0',
+        'input.operation_guard(command_generation,false,command_generation?s.hwnd:nullptr)',
+        '||e.kind==InputKind::ContinuationPending)?diagnostic_qpc():0;')){
+        if(-not $Application.Contains($value)){throw ('Actual GUI continuation dispatch/issued-call guard is missing: '+$value)}
+    }
+}
+Assert-V1NativeClickContinuation $queueFailureHeader $queueFailureService $liveResizeApplication
+Check $true 'static retained native-click classification uses exact-version CAS, deferred fresh GUI approval and same-generation writer authority'
+Reject {Assert-V1NativeClickContinuation ($queueFailureHeader.Replace('(!continuation_only||actual_double_click)','true')) $queueFailureService $liveResizeApplication} 'static a retained first click cannot become ordinary hover authority'
+Reject {Assert-V1NativeClickContinuation ($queueFailureHeader.Replace('return slot.compare_exchange_strong(expected,continuation);','slot.store(continuation);return true;')) $queueFailureService $liveResizeApplication} 'static a late UP cannot overwrite GUI invalidation or a newer preparation'
+Reject {Assert-V1NativeClickContinuation $queueFailureHeader ($queueFailureService.Replace('if(!capture_request_generation_current(pending.generation,generation_))continue;','')) $liveResizeApplication} 'static a retired first-click capture message cannot abort a newer second click'
+Reject {Assert-V1NativeClickContinuation $queueFailureHeader $queueFailureService ($liveResizeApplication.Replace('const bool fresh=continuation_fresh(e);','const bool fresh=true;'))} 'static real identity/geometry/native-hit freshness cannot be replaced by the continuation hint'
+Reject {Assert-V1NativeClickContinuation $queueFailureHeader $queueFailureService ($liveResizeApplication.Replace('e.second_click_continuation?e.generation:0','0'))} 'static continuation mapped writes cannot fall back to public generation-zero authority'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

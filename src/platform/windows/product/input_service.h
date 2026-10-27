@@ -119,6 +119,38 @@ struct ClickCandidate {
     }
     void release(int released_button){if(pressing&&released_button==button)pressing=false;}
 };
+// A retained native-click snapshot is classification-only. It must never
+// become hover preparation for a new ordinary click or a moved point.
+inline bool prepared_click_admitted(const Prepared& prepared,POINT point,bool continuation_only,bool actual_double_click)noexcept{
+    return prepared.region>=0&&prepared.point.x==point.x&&prepared.point.y==point.y&&
+        (!continuation_only||actual_double_click);
+}
+inline bool prepared_double_click_matches(const Prepared& prepared,const ClickCandidate& candidate,POINT point,DWORD stamp,
+    UINT interval,int maximum_x,int maximum_y,DWORD previous_stamp,int previous_region,int previous_button,
+    unsigned previous_modifiers,std::uint64_t previous_key,int button,unsigned modifiers)noexcept{
+    const auto dx=static_cast<std::int64_t>(point.x)-candidate.anchor.x;
+    const auto dy=static_cast<std::int64_t>(point.y)-candidate.anchor.y;
+    return candidate.eligible&&!candidate.pressing&&static_cast<DWORD>(stamp-previous_stamp)<=interval&&
+        dx>=-maximum_x&&dx<=maximum_x&&dy>=-maximum_y&&dy<=maximum_y&&previous_region==prepared.region&&
+        previous_button==button&&previous_modifiers==modifiers&&previous_key==prepared.source.key;
+}
+inline bool native_click_continuation_ready(bool native_first,bool resource_requested,bool aborted,
+    bool available,bool candidate_eligible,bool candidate_pressing,POINT anchor,POINT up_point,int paired_button,int up_button)noexcept{
+    return native_first&&!resource_requested&&!aborted&&available&&candidate_eligible&&!candidate_pressing&&
+        paired_button==up_button&&anchor.x==up_point.x&&anchor.y==up_point.y;
+}
+// Used by the actual UP publication. A concurrent GUI replacement or explicit
+// invalidation wins: an old release cannot overwrite a newer/null cache.
+template<class Bundle> bool publish_native_click_continuation(std::atomic<std::shared_ptr<const Bundle>>& slot,
+    const std::shared_ptr<const Bundle>& original,const std::shared_ptr<const Bundle>& continuation,bool eligible)noexcept{
+    if(!eligible||!original||!continuation)return false;
+    auto expected=original;return slot.compare_exchange_strong(expected,continuation);
+}
+template<class Bundle> bool clear_exact_preparation(std::atomic<std::shared_ptr<const Bundle>>& slot,
+    const std::shared_ptr<const Bundle>& original)noexcept{
+    if(!original)return false;
+    auto expected=original;return slot.compare_exchange_strong(expected,{});
+}
 inline bool native_event_is_current(DWORD event_stamp,DWORD down_stamp) {
     return static_cast<DWORD>(event_stamp-down_stamp)<0x80000000u;
 }
@@ -298,7 +330,7 @@ inline bool native_geometry_handoff_compatible(const Prepared& prepared,const Sn
         (top||(end.visible.top()==down.visible.top()&&end.positioning.top()==down.positioning.top()))&&
         (bottom||(end.visible.bottom()==down.visible.bottom()&&end.positioning.bottom()==down.positioning.bottom()));
 }
-enum class InputKind { Down, Move, Up, Abort, Mapped, Resource, NativeMovePending, NativeMoveStart, NativeMoveEnd, NativeMoveReleased };
+enum class InputKind { Down, Move, Up, Abort, Mapped, Resource, NativeMovePending, NativeMoveStart, NativeMoveEnd, NativeMoveReleased, ContinuationPending };
 enum class InputOrigin { MouseHook, ShieldLegacy, PlatformAbort, ShieldResource, NativeMoveEvent };
 enum class InputAbortOrigin { Unknown,WinEventForeground,WinEventCaptureStart };
 [[nodiscard]] constexpr const char* input_abort_origin_name(InputAbortOrigin value)noexcept{
@@ -334,7 +366,40 @@ struct InputEvent {
     std::shared_ptr<const NativeMoveReceipt> native_move_receipt;
     std::shared_ptr<const Snapshot> handoff_snapshot;
     std::optional<InputAbortObservation> abort_observation;
+    // Only a real second DOWN admitted from the same-version native-click
+    // continuation. It carries no ordinary preparation or resource authority.
+    bool second_click_continuation{};
+    std::uint64_t down_serial{};
 };
+inline bool continuation_pending_current(const InputEvent& e,std::uint64_t authority,std::uint64_t serial,
+    bool available,bool paused,bool stopping)noexcept{
+    return e.second_click_continuation&&e.kind==InputKind::ContinuationPending&&e.prepared&&e.clicks==2&&
+        e.generation&&e.down_serial&&e.down_serial==serial&&available&&!paused&&!stopping&&
+        authority==(e.generation|input_pending_capture_mask);
+}
+inline bool continuation_capture_approval_matches(const InputEvent& pending,const InputEvent& approval)noexcept{
+    return pending.kind==InputKind::ContinuationPending&&pending.second_click_continuation&&
+        approval.kind==InputKind::Down&&approval.second_click_continuation&&pending.generation==approval.generation&&
+        pending.down_serial==approval.down_serial&&pending.prepared==approval.prepared&&
+        pending.point.x==approval.point.x&&pending.point.y==approval.point.y&&
+        pending.button==approval.button&&pending.clicks==approval.clicks&&pending.modifiers==approval.modifiers&&
+        pending.action==approval.action&&pending.tick==approval.tick&&
+        pending.native_message_time==approval.native_message_time&&pending.hook_observed_qpc==approval.hook_observed_qpc;
+}
+inline bool capture_request_generation_current(std::uint64_t requested,std::uint64_t current)noexcept{
+    return requested&&requested==current;
+}
+inline bool continuation_source_context_matches(const Prepared& prepared,const Snapshot& actual,
+    std::uint64_t configuration_generation,POINT down_point,int actual_region,bool exact_hit,bool foreground,bool gui_idle)noexcept{
+    const auto& source=prepared.source;
+    return Catalog::same(source,actual)&&source.visible==actual.visible&&source.positioning==actual.positioning&&
+        source.monitor==actual.monitor&&source.dpi==actual.dpi&&source.work==actual.work&&
+        source.feature_mask==actual.feature_mask&&source.maximized==actual.maximized&&
+        source.minimized==actual.minimized&&source.can_resize==actual.can_resize&&
+        source.native_arranged==actual.native_arranged&&prepared.config_generation==configuration_generation&&
+        prepared.point.x==down_point.x&&prepared.point.y==down_point.y&&prepared.region==actual_region&&
+        actual_region>=0&&exact_hit&&foreground&&gui_idle;
+}
 // The resource adapter calls this exact immutable-DOWN matching predicate.
 // It does not query a window or grant live authority: CaptureBridge separately
 // checks current generation, DOWN serial, actual UP/revocation and deadline.
@@ -480,6 +545,7 @@ struct ButtonAdmission {
     int previous_region{-1},previous_button{};unsigned previous_modifiers{},double_click_time{};
     bool matching_up{},up_push_attempted{},up_push_succeeded{};
     bool native_release_push_attempted{},native_release_push_succeeded{};
+    bool continuation_only_preparation{};
 };
 static_assert(std::is_trivially_copyable_v<ButtonAdmission>);
 // Separate 64-slot SPSC: a diagnostic loss must never fail the input queue,
@@ -568,6 +634,9 @@ public:
     ~InputService(){stop();}
     void prepare(std::shared_ptr<const Prepared> value);
     bool pop(InputEvent&);
+    bool continuation_pending(const InputEvent&)const;
+    bool approve_continuation_capture(const InputEvent&);
+    bool activate_continuation_mapped(const InputEvent&);
     POINT latest()const;
     void prepared_point(){prepare_pending_=false;}
     void pause(bool value);
@@ -693,6 +762,8 @@ private:
     ButtonAdmissionQueue button_admissions_;std::atomic<std::uint64_t> button_admission_wake_failures_{};
     core::v1::TimingHistogram callback_timing_;
     std::atomic<std::shared_ptr<const PreparedBundle>> prepared_;
+    std::shared_ptr<const PreparedBundle> active_prepared_bundle_; // input owner only
+    std::atomic<std::shared_ptr<const InputEvent>> continuation_capture_approval_;
     std::array<InputEvent,256> queue_{};
     std::atomic<unsigned> read_{0},write_{0};
     // 0 empty, 1 publishing, 2 armed, 3 consumed. Never reset by Pause/Resume.

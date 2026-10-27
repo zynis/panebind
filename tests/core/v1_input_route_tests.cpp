@@ -45,6 +45,106 @@ int main() {
     native_down.source.visible={100,100,360,460};native_down.source.positioning={93,100,367,467};
     native_down.source.work={0,0,1920,1080};native_down.region=0;
     product::prepare_mappings(native_down,v1::default_settings());
+    // Actual UP -> same-point second DOWN while the GUI refresh is delayed.
+    // The production hook publishes this same preallocated/CAS path; no test
+    // adapter can simply declare a stale cache to be ordinary preparation.
+    auto click_prepared=std::make_shared<product::Prepared>(native_down);
+    click_prepared->region=1;click_prepared->point={93,250};click_prepared->config_generation=8;
+    product::prepare_mappings(*click_prepared,v1::default_settings());
+    struct ClickBundle {std::shared_ptr<const product::Prepared> prepared;bool continuation_only{};};
+    const auto first_bundle=std::make_shared<const ClickBundle>(ClickBundle{click_prepared,false});
+    const auto continuation_bundle=std::make_shared<const ClickBundle>(ClickBundle{click_prepared,true});
+    std::atomic<std::shared_ptr<const ClickBundle>> prepared_slot{first_bundle};
+    product::ClickCandidate first_click;first_click.begin(click_prepared->point,1,true);first_click.release(1);
+    const auto release_ready=[&](bool resource=false,bool aborted=false,bool available=true){
+        return product::native_click_continuation_ready(true,resource,aborted,available,first_click.eligible,
+            first_click.pressing,first_click.anchor,click_prepared->point,1,1);};
+    check(product::publish_native_click_continuation(prepared_slot,first_bundle,continuation_bundle,release_ready()),
+          "real native first UP retains only its same-version double-click classification before GUI refresh");
+    const auto is_second=[&](DWORD time,POINT point){return product::prepared_double_click_matches(*click_prepared,first_click,
+        point,time,500,4,4,51593,1,1,0,click_prepared->source.key,1,0);};
+    const auto second=prepared_slot.load();
+    check(second&&second->continuation_only&&is_second(51625,click_prepared->point)&&
+          product::prepared_click_admitted(*second->prepared,click_prepared->point,second->continuation_only,is_second(51625,click_prepared->point))&&
+          product::route_down(*second->prepared,1,2,0).route==product::DownRoute::Mapped,
+          "deterministic 32ms second edge DOWN reaches the actual mapped route without waiting for Prepared refresh");
+    check(!product::prepared_click_admitted(*click_prepared,click_prepared->point,true,is_second(52100,click_prepared->point)),
+          "continuation-only cache cannot authorize a later ordinary single click");
+    check(!product::prepared_click_admitted(*click_prepared,{94,250},true,is_second(51625,{94,250})),
+          "even an OS double-click candidate at another point cannot use the retained exact-point classification");
+    check(!release_ready(true)&&!release_ready(false,true)&&!release_ready(false,false,false),
+          "live old resources or abort/stop cannot publish native-click continuation");
+    first_click.begin(click_prepared->point,1,true);first_click.motion({130,250},4,4);first_click.release(1);
+    check(!release_ready(),"returning after a native drag cannot retain a first-click continuation");
+    first_click.begin(click_prepared->point,1,true);first_click.release(1);
+    const auto newer_bundle=std::make_shared<const ClickBundle>(ClickBundle{click_prepared,false});
+    prepared_slot.store(newer_bundle);
+    check(!product::publish_native_click_continuation(prepared_slot,first_bundle,continuation_bundle,true)&&prepared_slot.load()==newer_bundle,
+          "late native UP cannot replace a newer GUI publication");
+    prepared_slot.store({});
+    check(!product::publish_native_click_continuation(prepared_slot,first_bundle,continuation_bundle,true)&&!prepared_slot.load(),
+          "explicit GUI invalidation cannot be resurrected by an old native UP");
+    prepared_slot.store(first_bundle);
+    check(product::clear_exact_preparation(prepared_slot,first_bundle)&&!prepared_slot.load(),
+          "ineligible native release clears its old full preparation rather than retaining ordinary stale authority");
+    prepared_slot.store(newer_bundle);
+    check(!product::clear_exact_preparation(prepared_slot,first_bundle)&&prepared_slot.load()==newer_bundle,
+          "old release cleanup also preserves a newer GUI preparation");
+    auto corner_prepared=*click_prepared;corner_prepared.region=5;product::prepare_mappings(corner_prepared,v1::default_settings());
+    check(product::route_down(corner_prepared,1,2,0).route==product::DownRoute::Gesture,
+          "actual contextual corner route remains a gesture requiring separate GUI capture approval");
+    product::InputEvent continuation_down;continuation_down.kind=product::InputKind::ContinuationPending;
+    continuation_down.generation=81;continuation_down.down_serial=12;continuation_down.clicks=2;continuation_down.button=1;
+    continuation_down.point=click_prepared->point;continuation_down.prepared=click_prepared;
+    continuation_down.second_click_continuation=true;continuation_down.hook_observed_qpc=516579293;
+    continuation_down.native_message_time=51625;
+    const auto pending=[&](std::uint64_t authority=81|product::input_pending_capture_mask,std::uint64_t serial=12,
+                          bool available=true,bool paused=false,bool stop=false){
+        return product::continuation_pending_current(continuation_down,authority,serial,available,paused,stop);};
+    check(pending(),"second click reserves a generation but does not yet grant writer/resource authority");
+    check(!pending(0)&&!pending(82|product::input_pending_capture_mask)&&!pending(81|product::input_pending_capture_mask,13)&&
+          !pending(81|product::input_pending_capture_mask,12,false)&&!pending(81|product::input_pending_capture_mask,12,true,true)&&
+          !pending(81|product::input_pending_capture_mask,12,true,false,true),
+          "actual early UP/new DOWN/unavailable/Pause/stop all reject delayed GUI approval");
+    const auto fresh_matches=[&](const product::Snapshot& actual,std::uint64_t cfg=8,int hit=1,bool exact_hit=true,bool foreground=true,bool idle=true){
+        return product::continuation_source_context_matches(*click_prepared,actual,cfg,click_prepared->point,hit,exact_hit,foreground,idle);};
+    check(fresh_matches(click_prepared->source),"GUI continuation predicate accepts actual unchanged identity/geometry/point/context");
+    auto changed=click_prepared->source;++changed.born;
+    check(!fresh_matches(changed),"same HWND with different lifetime rejects continuation");
+    changed=click_prepared->source;changed.visible={100,101,360,461};
+    check(!fresh_matches(changed),"external translation cannot become the continuation command baseline");
+    changed=click_prepared->source;changed.positioning={93,99,367,466};
+    check(!fresh_matches(changed),"changed native frame cannot use old continuation geometry");
+    changed=click_prepared->source;changed.dpi=144;
+    check(!fresh_matches(changed),"DPI change rejects continuation before command or capture");
+    changed=click_prepared->source;changed.monitor=reinterpret_cast<HMONITOR>(77);
+    check(!fresh_matches(changed),"monitor change rejects continuation");
+    changed=click_prepared->source;changed.work={0,0,1910,1080};
+    check(!fresh_matches(changed)&&!fresh_matches(click_prepared->source,9)&&!fresh_matches(click_prepared->source,8,2)&&
+          !fresh_matches(click_prepared->source,8,1,false)&&!fresh_matches(click_prepared->source,8,1,true,false)&&
+          !fresh_matches(click_prepared->source,8,1,true,true,false),
+          "work/config/native-hit/foreign-hit/foreground/GUI changes reject delayed continuation");
+    auto approval=continuation_down;approval.kind=product::InputKind::Down;
+    check(product::continuation_capture_approval_matches(continuation_down,approval),
+          "owner capture request requires the exact GUI-approved original second DOWN");
+    ++approval.down_serial;
+    check(!product::continuation_capture_approval_matches(continuation_down,approval),
+          "an approval for another actual DOWN serial cannot create capture resources");
+    std::atomic<std::uint64_t> continuation_authority{81|product::input_pending_capture_mask};
+    check(product::arm_exact_capture_generation(continuation_authority,81)&&
+          product::operation_permission(81,continuation_authority.load(),0,true,false),
+          "fresh mapped continuation activates only its exact reserved generation");
+    continuation_authority=0;
+    check(!product::arm_exact_capture_generation(continuation_authority,81)&&
+          !product::operation_permission(81,continuation_authority.load(),0,true,false),
+          "UP before approval cannot restore continuation writer authority");
+    check(!product::capture_request_generation_current(80,81)&&product::capture_request_generation_current(81,81),
+          "old first-click capture message cannot abort a current mapped second-click generation");
+    std::uint64_t request_generation=80;
+    check(product::capture_request_generation_current(80,request_generation),"old request may initially be current before a native query");
+    request_generation=81;
+    check(!product::capture_request_generation_current(80,request_generation),
+          "nested UP then DOWN during the read-only query prevents old failure cleanup from revoking the new generation");
     // Same pure match that InputService::push uses after the real GUI-only
     // guest proof. This does not assert that a native guest ran or a queue filled.
     product::GuestQueueFailurePermit fault_permit{true,61,native_down.source,"0123456789abcdef0123456789abcdef","hash"};

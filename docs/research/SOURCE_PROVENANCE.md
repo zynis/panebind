@@ -3785,3 +3785,35 @@ actually hits its exact visible popup HWND/PID/TID before moving the pointer.
 This observation neither changes the menu nor grants product authority. The
 original 6b2b failure did not record that rectangle: its value and the unique
 cause remain unknown. No external implementation code was copied or adapted.
+
+### 2026-10-27 — real native-first double-click continuation gap
+
+Revisited the existing mature, reference-only AltSnap pin
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d` (GPL-3.0-or-later): pinned
+`hooks.c` worker dispatch and PR609's worker/clean-exit history. The raw source
+request missed cache; the GitHub source view actually exposed the worker
+section. Re-read mature PowerToys/FancyZones pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a` (MIT),
+`WindowMouseSnap.cpp` and destroy/abort commit
+`dd26d86580168d2e368701f7b0c4d629dc9cd9ac`. Preserve event-driven invalidation
+and abort, rather than turning a stale observation into a completed operation.
+These are architecture references, not implementations of this PaneBind fix;
+no external code is copied, translated or adapted.
+
+Official contracts re-read:
+https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc
+and https://learn.microsoft.com/en-us/windows/win32/inputdev/about-mouse-input .
+Keep the dedicated hook fast and hand work off; the system double-click
+interval is not permission to wait synchronously in the hook or synthesize an
+extra click. Actual 0c Run91b5 observed two real same-point DOWNs 32ms apart;
+the second had an eligible click candidate but an empty Prepared and no route.
+The later rgnupdt foreground observation cannot explain that earlier gate.
+The exact GUI republishing delay was not recorded and remains unknown.
+
+The local repair keeps only a version-bound second-click classification hint,
+not ordinary admission, native-pair reuse or write authority. Current source,
+geometry, configuration, GUI context and the original point's actual hit must
+be revalidated outside the LL callback before dispatch/resources; real UP or
+stop still prevents pending capture/write issuance. Driver timing and the
+real four input packets are not modified. Offline and matching new-source
+guest evidence are required; the original 91b5 FAIL is retained.

@@ -153,6 +153,8 @@ struct InputService::CaptureBridge {
 struct InputService::PreparedBundle {
     std::shared_ptr<const Prepared> prepared;
     std::shared_ptr<CaptureBridge::Pair> native_pair;
+    std::shared_ptr<const PreparedBundle> continuation;
+    bool continuation_only{};
 };
 void InputService::prepare(std::shared_ptr<const Prepared> value){
     if(!value){prepared_.store({});return;}
@@ -162,11 +164,30 @@ void InputService::prepare(std::shared_ptr<const Prepared> value){
         if(native_geometry_entry(capture_route_enabled_,p,1,1,0,route_down(p,1,1,0))||
            native_geometry_entry(capture_route_enabled_,p,1,1,2,route_down(p,1,1,2)))
             bundle->native_pair=std::make_shared<CaptureBridge::Pair>();
+        // Both immutable tuples are allocated on the GUI owner, never in the
+        // hook. The second one cannot start another native single-click pair.
+        auto continuation=std::make_shared<PreparedBundle>();continuation->prepared=bundle->prepared;
+        continuation->continuation_only=true;bundle->continuation=std::move(continuation);
         prepared_.store(std::move(bundle));
     }catch(...){
         prepared_.store({});*available_=false;healthy_=false;
         PostMessageW(owner_,catalog_message,1,0);
     }
+}
+bool InputService::continuation_pending(const InputEvent& event)const{
+    return capture_bridge_&&continuation_pending_current(event,authorized_->load(),capture_bridge_->down_serial.load(),
+        available_->load()&&healthy_.load(),paused_.load(),stop_requested_.load());
+}
+bool InputService::activate_continuation_mapped(const InputEvent& event){
+    return continuation_pending(event)&&route_down(*event.prepared,event.button,event.clicks,event.modifiers).route==DownRoute::Mapped&&
+        arm_exact_capture_generation(*authorized_,event.generation);
+}
+bool InputService::approve_continuation_capture(const InputEvent& event){
+    if(!continuation_pending(event)||route_down(*event.prepared,event.button,event.clicks,event.modifiers).route!=DownRoute::Gesture)return false;
+    auto approved=std::make_shared<InputEvent>(event);approved->kind=InputKind::Down;
+    continuation_capture_approval_.store(std::move(approved));
+    if(continuation_pending(event)&&PostThreadMessageW(thread_id_,capture_request_message,static_cast<WPARAM>(event.generation),0))return true;
+    revoke_generation(event.generation);return false;
 }
 bool InputService::native_move_pending(std::uint64_t generation)const {
     const auto bridge=capture_bridge_;if(!bridge)return false;const auto p=bridge->pair.load();
@@ -236,7 +257,9 @@ bool InputService::begin_capture(const InputEvent& event){
             SetTimer(receiver_,gesture_deadline_timer,gesture_deadline_ms,nullptr);
     }
     if(event.kind!=InputKind::Down||!consumed_down_||native_move_||!capture_pair_)return false;
-    auto p=std::make_shared<CaptureBridge::Pair>();p->down=event;p->down_serial=capture_bridge_->down_serial.load();
+    if(event.second_click_continuation&&(!event.down_serial||event.down_serial!=capture_bridge_->down_serial.load()||
+        paused_||stop_requested_||!available_->load()||aborted_))return false;
+    auto p=std::make_shared<CaptureBridge::Pair>();p->down=event;p->down_serial=event.down_serial;
     p->deadline=event.tick+gesture_deadline_ms;
     p->request.gesture={event.generation,event.prepared->source.hwnd,event.prepared->source.pid,event.prepared->source.tid,gesture_deadline_ms};
     p->request.gesture.process_birth=event.prepared->source.born;
@@ -244,7 +267,11 @@ bool InputService::begin_capture(const InputEvent& event){
     p->request.source_was_maximized=event.prepared->source.maximized;
     if(!consumed_capture_request_matches_down(p->request,event))return false;
     p->request.external_stop_owner_pid=GetCurrentProcessId();p->request.external_stop_owner_tid=thread_id_;
-    p->request.external_stop_hotkey_id=910;capture_bridge_->pair.store(p);
+    p->request.external_stop_hotkey_id=910;
+    if(!capture_request_generation_current(event.generation,generation_)||
+        authorized_->load()!=(event.generation|pending_capture_mask)||!event.down_serial||
+        event.down_serial!=capture_bridge_->down_serial.load()||paused_||stop_requested_||!available_->load()||aborted_)return false;
+    capture_bridge_->pair.store(p);
     return shield_->request_capture_for_consumed_down(p->request);
 }
 void InputService::drain_capture_events(){
@@ -334,6 +361,7 @@ bool InputService::start(HWND owner,bool diagnostic){
         static_cast<std::uint64_t>(frequency.QuadPart):0;
     paused_=false;healthy_=false;stop_requested_=false;prepare_pending_=false;
     read_=0;write_=0;consumed_down_=false;native_move_=false;aborted_=false;click_candidate_={};
+    active_prepared_bundle_.reset();capture_pending_down_.reset();continuation_capture_approval_.store({});
     captured_move_.retire();
     owner_=owner;ready_=CreateEventW(nullptr,TRUE,FALSE,nullptr);if(!ready_)return false;
     try{thread_=std::thread([this]{run();});}catch(...){CloseHandle(ready_);ready_=nullptr;return false;}
@@ -365,7 +393,7 @@ void InputService::stop(){
     retire_capture_pair(0,core::v1::End::Exit);
     *completion_=0;*available_=false;*authorized_=0;paused_=true;stop_requested_=true;
     if(thread_.joinable()){const auto id=thread_id_.load();if(id)PostThreadMessageW(id,WM_QUIT,0,0);thread_.join();}
-    prepared_.store({});guest_callback_wait_thread_=nullptr;
+    prepared_.store({});continuation_capture_approval_.store({});active_prepared_bundle_.reset();capture_pending_down_.reset();guest_callback_wait_thread_=nullptr;
 }
 void InputService::pause(bool value){if(value)retire_capture_pair(0,core::v1::End::Paused);*completion_=0;paused_=value;*available_=!value&&healthy_;const auto retired=authorized_->exchange(0);
     auto generation=retired&~pending_capture_mask;
@@ -704,6 +732,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
         const auto bundle=self->prepared_.load();const auto p=bundle?bundle->prepared:nullptr;
         const auto mods=modifiers();const auto b=button(message,packet.mouseData);
         if(admission){auto& facts=*admission;facts.down_branch_entered=true;facts.cache_read=true;
+            facts.continuation_only_preparation=bundle&&bundle->continuation_only;
             facts.prepared=button_prepared_facts(p.get());facts.modifiers=mods;
             facts.candidate_eligible=self->click_candidate_.eligible;facts.candidate_pressing=self->click_candidate_.pressing;
             facts.candidate_anchor=self->click_candidate_.anchor;facts.previous_down_time=self->last_down_;
@@ -715,17 +744,11 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
         // This exact-point preparation is invalidated/rebuilt by native
         // geometry/lifecycle/foreground events, not an arbitrary hover timeout.
         // The GUI still revalidates identity and geometry before ANY write.
-        if(p&&p->region>=0&&p->point.x==packet.pt.x&&p->point.y==packet.pt.y&&
-            observed_foreground()==p->source.hwnd){
+        const bool double_click=p&&prepared_double_click_matches(*p,self->click_candidate_,packet.pt,packet.time,
+            self->double_click_time_,self->double_click_x_,self->double_click_y_,self->last_down_,self->last_region_,
+            self->last_button_,self->last_modifiers_,self->last_source_key_,b,mods);
+        if(p&&prepared_click_admitted(*p,packet.pt,bundle->continuation_only,double_click)&&observed_foreground()==p->source.hwnd){
             if(admission)admission->prepared_gate_passed=true;
-            const auto difference_x=static_cast<std::int64_t>(packet.pt.x)-self->click_candidate_.anchor.x;
-            const auto difference_y=static_cast<std::int64_t>(packet.pt.y)-self->click_candidate_.anchor.y;
-            const bool double_click=self->click_candidate_.eligible&&
-                static_cast<DWORD>(packet.time-self->last_down_)<=self->double_click_time_&&
-                difference_x>=-self->double_click_x_&&difference_x<=self->double_click_x_&&
-                difference_y>=-self->double_click_y_&&difference_y<=self->double_click_y_&&
-                self->last_region_==p->region&&self->last_button_==b&&self->last_modifiers_==mods&&
-                self->last_source_key_==p->source.key;
             self->last_down_=packet.time;self->last_region_=p->region;
             self->last_button_=b;self->last_modifiers_=mods;self->last_source_key_=p->source.key;
             self->click_candidate_.begin(packet.pt,b,!double_click);
@@ -739,14 +762,25 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 self->capture_pair_=self->capture_route_enabled_&&route.route==DownRoute::Gesture&&b==1;
                 self->native_move_=native_geometry_entry(self->capture_route_enabled_,*p,b,clicks,mods,route);
                 self->captured_move_.begin(self->generation_,self->capture_pair_,!self->native_move_);
-                *self->authorized_=self->generation_|(self->capture_pair_?pending_capture_mask:0);
+                const bool continuation=bundle->continuation_only;
+                *self->authorized_=self->generation_|((self->capture_pair_||continuation)?pending_capture_mask:0);
                 self->consumed_down_=!self->native_move_;self->aborted_=false;self->button_=b;self->modifiers_=mods;
                 self->active_down_stamp_=packet.time;
-                self->active_prepared_=p;self->active_action_=route.action;self->active_end_=core::v1::End::NormalUp;
+                self->active_prepared_=p;self->active_prepared_bundle_=bundle;
+                self->active_action_=route.action;self->active_end_=core::v1::End::NormalUp;
                 self->deadline_=tick+gesture_deadline_ms;
-                if(self->capture_pair_){
+                if(continuation){
+                    InputEvent e{InputKind::ContinuationPending,packet.pt,self->generation_,tick,mods,b,clicks,
+                        core::v1::End::NormalUp,p,route.action,observed_qpc};
+                    e.native_message_time=packet.time;e.second_click_continuation=true;
+                    e.down_serial=self->capture_bridge_->down_serial.load();
+                    // A GUI-fresh decision is required even for a mapped
+                    // command. In particular no shield request is posted here.
+                    if(self->capture_pair_)self->capture_pending_down_=e;
+                    routed=consume=SetTimer(self->receiver_,gesture_deadline_timer,gesture_deadline_ms,nullptr)&&self->push(e);
+                }else if(self->capture_pair_){
                     InputEvent e{InputKind::Down,packet.pt,self->generation_,tick,mods,b,clicks,core::v1::End::NormalUp,p,route.action,observed_qpc};
-                    e.native_message_time=packet.time;
+                    e.native_message_time=packet.time;e.down_serial=self->capture_bridge_->down_serial.load();
                     bool pair_prepared=true;
                     if(self->native_move_){
                         e.kind=InputKind::NativeMovePending;
@@ -789,6 +823,18 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             // ambiguity. It passes through to capture; only queued legacy UP
             // can later establish NormalUp. No native query or fake UP here.
             *self->authorized_=0;
+            if(self->capture_pending_down_&&self->capture_pending_down_->second_click_continuation&&
+               self->capture_pending_down_->generation==self->generation_){
+                // Actual UP before GUI approval retires the deferred DOWN;
+                // there is no shield/legacy-UP claim and no late resource start.
+                auto released=*self->capture_pending_down_;released.kind=InputKind::Up;
+                released.end=core::v1::End::SourceLost;released.point=packet.pt;
+                released.native_message_time=packet.time;released.hook_observed_qpc=observed_qpc;
+                self->push(std::move(released));self->capture_pending_down_.reset();
+                self->consumed_down_=false;self->capture_pair_=false;self->active_prepared_.reset();
+                KillTimer(self->receiver_,gesture_deadline_timer);consume=true;
+                if(!self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);
+            }
             if(auto p=self->capture_bridge_->pair.load();p&&p->down.generation==self->generation_){
                 if(auto context=p->context.load())context->matching_up_observed.store(true,std::memory_order_release);
                 p->up_observed=true;
@@ -802,7 +848,20 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                     if(admission){admission->native_release_push_attempted=true;admission->native_release_push_succeeded=release_pushed;}
                     if(p->resource_requested)self->abort(core::v1::End::SourceLost);
                     else {KillTimer(self->receiver_,gesture_deadline_timer);self->native_move_=false;
-                        self->capture_pair_=false;self->active_prepared_.reset();self->prepared_.store({});
+                        if(self->capture_pending_down_&&self->capture_pending_down_->generation==self->generation_)
+                            self->capture_pending_down_.reset();
+                        const auto original=self->active_prepared_bundle_;
+                        const bool candidate=native_click_continuation_ready(true,false,self->aborted_,
+                            !self->paused_&&!self->stop_requested_&&self->healthy_&&self->available_->load(),
+                            self->click_candidate_.eligible,self->click_candidate_.pressing,self->click_candidate_.anchor,packet.pt,
+                            self->button_,button(message,packet.mouseData));
+                        // Only this exact GUI bundle can publish its preallocated
+                        // classification hint. Never overwrite a newer cache.
+                        if(!publish_native_click_continuation(self->prepared_,original,
+                            original?original->continuation:nullptr,candidate)&&original){
+                            clear_exact_preparation(self->prepared_,original);
+                        }
+                        self->capture_pair_=false;self->active_prepared_.reset();self->active_prepared_bundle_.reset();
                         if(!self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);}
                 }
             }
@@ -1039,8 +1098,21 @@ void InputService::run(){
             // potentially final shared reference is retired outside the LL ABI.
             if(capture_bridge_)capture_bridge_->retired_pair.exchange({});
             if(capture_pending_down_&&capture_pending_down_->generation==msg.wParam){
-                const auto pending=std::move(*capture_pending_down_);capture_pending_down_.reset();
-                if(!begin_capture(pending)){
+                auto pending=std::move(*capture_pending_down_);capture_pending_down_.reset();
+                // A late posted request from a retired first native click
+                // must not abort/clear the newer second-click generation.
+                if(!capture_request_generation_current(pending.generation,generation_))continue;
+                bool approved=true;
+                if(pending.second_click_continuation){
+                    const auto receipt=continuation_capture_approval_.exchange({});
+                    approved=receipt&&continuation_pending(pending)&&continuation_capture_approval_matches(pending,*receipt);
+                    if(approved)pending=*receipt;
+                }
+                if(!approved||!begin_capture(pending)){
+                    // Read-only native queries above can deliver a nested
+                    // hook observation. A newer DOWN must also win AFTER the
+                    // rejected old call returns, not only on message entry.
+                    if(!capture_request_generation_current(pending.generation,generation_))continue;
                     abort(core::v1::End::SourceLost);consumed_down_=false;native_move_=false;capture_pair_=false;active_prepared_.reset();prepared_.store({});
                     if(!prepare_pending_.exchange(true))PostMessageW(owner_,prepare_message,0,0);
                 }
