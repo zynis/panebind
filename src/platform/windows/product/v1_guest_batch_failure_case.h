@@ -4,6 +4,73 @@
 // No production API outcome is overridden. The exact owned test application's
 // second actually received sizing operation destroys its own HWND, on its UI
 // thread; the real outer SetWindowPos and postverification classify the result.
+void batch_loss_abort_cleanup_up(LayoutFixtures& set,const Gesture& g){
+    auto& s=set.state;namespace e=product::guest::up_evidence_detail;
+    const HWND source=set.frames[0].hwnd;std::string ended,gone;
+    const auto receipt=[&](std::string_view row,std::string_view type){
+        return !row.empty()&&row.size()<=16384&&row.front()=='{'&&row.back()=='}'&&row.find_first_of("\r\n")==row.npos&&
+            e::quoted(row,"\"schema\":","panebind-v1/1")&&e::quoted(row,"\"type\":",type)&&
+            e::quoted(row,"\"source_sha\":",s.product_source)&&e::number(row,"\"process_id\":")==s.product_pid&&
+            e::number(row,"\"generation\":")==g.generation;
+    };
+    const bool resources_gone=wait([&]{
+        ended=record(s,g.offset,"gesture_end",g.generation);gone.clear();
+        std::istringstream rows(product_log_since(s,g.offset));std::string row;
+        while(std::getline(rows,row))if(receipt(row,"gesture_input_resource")&&e::quoted(row,"\"fact\":","isolation_gone"))gone=row;
+        return g.generation&&receipt(ended,"gesture_end")&&e::unique_value(ended,"\"normal_up\":")=="false"&&
+            e::unique_value(ended,"\"pending_retired\":")=="true"&&e::number(ended,"\"end\":")&&e::number(ended,"\"end\":")!=0&&
+            receipt(gone,"gesture_input_resource")&&e::number(gone,"\"source\":")==reinterpret_cast<std::uintptr_t>(source)&&
+            e::number(gone,"\"source_pid\":")==GetCurrentProcessId()&&e::number(gone,"\"source_tid\":")==set.thread&&
+            e::number(gone,"\"overlay\":")&&e::number(gone,"\"overlay\":")!=0&&
+            e::unique_value(gone,"\"release_attempted\":")=="true"&&e::unique_value(gone,"\"release_completed\":")=="true"&&
+            e::unique_value(gone,"\"release_succeeded\":")=="true"&&e::number(gone,"\"capture_after_release\":")==0&&
+            e::unique_value(gone,"\"detach_attempted\":")=="true"&&e::unique_value(gone,"\"detach_completed\":")=="true"&&
+            e::unique_value(gone,"\"detach_succeeded\":")=="true"&&e::unique_value(gone,"\"overlay_destroyed\":")=="true"&&
+            e::unique_value(gone,"\"hotkey_unregistered\":")=="true";
+    },1500);
+    RECT positioning{},client{};const auto original=visible(source);POINT point{};bool move_called=false,ready=false;
+    HWND hit{},root{};DWORD hit_pid{},hit_tid{};std::string why;
+    const auto exact_client=[&]{
+        DWORD pid{};GUITHREADINFO gui{sizeof(gui)};RECT now{},current_client{};
+        hit=WindowFromPoint(point);root=hit?GetAncestor(hit,GA_ROOT):nullptr;hit_pid=0;hit_tid=hit?GetWindowThreadProcessId(hit,&hit_pid):0;
+        POINT mapped{static_cast<LONG>((static_cast<long long>(client.left)+client.right)/2),
+            static_cast<LONG>((static_cast<long long>(client.top)+client.bottom)/2)};
+        return desktop()&&s.process&&GetProcessId(s.process)==s.product_pid&&WaitForSingleObject(s.process,0)==WAIT_TIMEOUT&&
+            process_birth(s.process)&&set.owns(0)&&set.frames[0].hwnd==source&&GetWindowThreadProcessId(source,&pid)==set.thread&&pid==GetCurrentProcessId()&&
+            s.left&&!s.left_up_attempted&&s.control&&GetForegroundWindow()==source&&IsWindowVisible(source)&&!IsIconic(source)&&
+            original&&visible(source)==original&&GetWindowRect(source,&now)&&EqualRect(&now,&positioning)&&
+            GetClientRect(source,&current_client)&&EqualRect(&current_client,&client)&&ClientToScreen(source,&mapped)&&mapped.x==point.x&&mapped.y==point.y&&
+            hit==source&&root==source&&hit_pid==pid&&hit_tid==set.thread&&GetGUIThreadInfo(set.thread,&gui)&&
+            !gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+            !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));
+    };
+    try{
+        if(!resources_gone||!original||!GetWindowRect(source,&positioning)||!GetClientRect(source,&client)||
+           static_cast<long long>(client.right)-client.left<3||static_cast<long long>(client.bottom)-client.top<3)
+            throw std::runtime_error("actual_abort_resources_or_exact_client_unavailable");
+        point={static_cast<LONG>((static_cast<long long>(client.left)+client.right)/2),static_cast<LONG>((static_cast<long long>(client.top)+client.bottom)/2)};
+        if(!ClientToScreen(source,&point)||point.x<=original->l||point.y<=original->t||point.x>=original->r-1||point.y>=original->b-1||!exact_client())
+            throw std::runtime_error("exact_owned_idle_foreground_client_required");
+        // Reuse the existing owned-client preparation and input helper. This
+        // is one TEST MOVE, never placement, activation, capture or a new UP.
+        move_called=true;cursor(s,point);POINT actual{};
+        if(!GetCursorPos(&actual)||actual.x!=point.x||actual.y!=point.y||!exact_client())
+            throw std::runtime_error("actual_cursor_or_client_changed_after_cleanup_MOVE");
+        ready=true;why="exact_owned_idle_client_observed_before_unique_abort_UP";
+    }catch(const std::exception& error){why=error.what();}catch(...){why="abort_UP_preparation_unknown";}
+    s.log.emit("I10_batch_single_UP_client_preparation","\"generation\":"+std::to_string(g.generation)+
+        ",\"resources_gone_observed\":"+(resources_gone?"true":"false")+",\"preparation_ready\":"+(ready?"true":"false")+
+        ",\"reason\":"+quote(why)+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source))+
+        ",\"client_screen\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+
+        ",\"actual_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+",\"hit_PID\":"+std::to_string(hit_pid)+",\"hit_TID\":"+std::to_string(hit_tid)+
+        ",\"cleanup_MOVE_called_once\":"+(move_called?"true":"false")+",\"UP_not_yet_attempted\":true,\"delivery_or_NormalUp_inferred\":false");
+    POINT fresh{};
+    // Logging is not a lease: recheck the actual destination immediately
+    // before the original single UP. Rejection leaves its ledger pending.
+    if(!ready||!GetCursorPos(&fresh)||fresh.x!=point.x||fresh.y!=point.y||!exact_client())
+        throw std::runtime_error("I10_abort_unique_UP_destination_not_confirmed");
+    button(s,false);
+}
 void batch_loss_release(LayoutFixtures& set,const Gesture& g,const std::vector<std::size_t>& live,const std::vector<Rect>& expected){
     auto& s=set.state;const auto mark=read_product(s).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);
     s.log.check("I10_recovery_actual_matching_UP",wait([&]{return !actual_up(s,mark,g.generation).empty()&&record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;}));
@@ -34,6 +101,7 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
     for(std::size_t n=0;n<3;++n){if(!set.owns(n))throw std::runtime_error("I10_batch_exact_identity_missing");
         loss->exact[n]=set.frames[n].hwnd;loss->userdata[n]=reinterpret_cast<LONG_PTR>(&set.frames[n]);}
     const auto disarm=[&]{for(std::size_t n=0;n<3;++n)set.frames[n].native_batch_loss.store({});};
+    bool guarded_cleanup_started=false;
     try{
         const auto g=layout_down(set,0,HTRIGHT,true);
         // Arming AFTER actual START excludes setup, hover and min/max queries.
@@ -68,10 +136,10 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
         const bool api_false=second_receipt.find("\"native_succeeded\":false")!=std::string::npos;
         s.log.emit("I10_second_native_outcome","\"status\":"+quote(api_false?"ACTUAL_API_FALSE_OBSERVED":"PARTIAL_API_TRUE_IDENTITY_LOST")+
             ",\"SetWindowPos_FALSE_observed\":"+(api_false?"true":"false")+",\"whole_I10_PASS\":false,\"actual_receipt\":"+quote(second_receipt));
-        disarm();const auto before=calls().size();const auto barrier=constraint_last_product_sequence(s);cursor(s,{g.anchor.x+91,g.anchor.y+23});
+        disarm();const auto before=calls().size();const auto barrier=constraint_last_product_sequence(s);
         const auto status_offset=read_product(s).size();
         s.log.check("I10_failure_status_responsive",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);}));
-        button(s,false);key(s,VK_CONTROL,false);
+        guarded_cleanup_started=true;batch_loss_abort_cleanup_up(set,g);key(s,VK_CONTROL,false);
         // The already-aborted shield pair may be fully retired before this
         // one cleanup UP. Its actual LL callback then has no normalized UP to
         // enqueue. Require the existing exact after-send public receipt and
@@ -83,6 +151,7 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
             calls().size()==before&&before==2&&loss->arrivals==2&&record(s,g.offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos,
             "\"third_member_native_attempts\":0,\"no_compensating_window_movement\":true,\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation))+
             ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+","+cleanup_up.json());
+        guarded_cleanup_started=false;
         std::vector<std::size_t> live;std::vector<Rect> actual;
         for(std::size_t n=0;n<3;++n)if(n!=second){const auto frame=visible(set.frames[n].hwnd);if(!set.owns(n)||!frame)throw std::runtime_error("I10_survivor_actual_snapshot_missing");live.push_back(n);actual.push_back(*frame);}
         const std::size_t source=live[0];const Rect neighbour=actual[1];const Rect from=actual[0];
@@ -95,5 +164,5 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
         for(auto& frame:actual)frame=translated(frame,33,27);
         batch_loss_move(set,live,source,actual,true,g.generation,"I10_partial_failure_fresh_Ctrl_two_survivors");
         s.log.check("I10_batch_failure_owned_resources_destroyed",set.close(),"\"guest_destruction_is_not_cleanup\":true");
-    }catch(...){disarm();try{if(s.left)button(s,false);if(s.control)key(s,VK_CONTROL,false);}catch(...){}throw;}
+    }catch(...){disarm();try{if(s.left&&!guarded_cleanup_started)button(s,false);if(s.control)key(s,VK_CONTROL,false);}catch(...){}throw;}
 }

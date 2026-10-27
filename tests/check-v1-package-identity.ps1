@@ -2353,6 +2353,38 @@ Assert-V1BatchFailureOnlyWiring $fixtureSource $batchFailureOnly $lifecyclePrepa
 Check $true 'static narrow batch entry calls the actual second-member failure and survivor recovery once'
 Reject {Assert-V1BatchFailureOnlyWiring $fixtureSource ($batchFailureOnly.Replace('owned_second_member_native_failure_case(s);','')) $lifecyclePrepare $lifecycleGuest} 'static a summary cannot replace the actual batch failure helper'
 Reject {Assert-V1BatchFailureOnlyWiring $fixtureSource ($batchFailureOnly.Replace('!s.left&&!s.control&&hash(s.product)==binary','true')) $lifecyclePrepare $lifecycleGuest} 'static batch success cannot bypass released input and unchanged actual product'
+function Assert-V1BatchAbortReleaseDestination([string]$Cases){
+    $prepare=Get-V1FixtureFunctionText $Cases 'batch_loss_abort_cleanup_up'
+    $flow=Get-V1FixtureFunctionText $Cases 'owned_second_member_native_failure_case'
+    foreach($fact in @('e::quoted(row,"\"fact\":","isolation_gone")','e::number(gone,"\"source_pid\":")==GetCurrentProcessId()',
+        'e::number(gone,"\"source_tid\":")==set.thread','e::unique_value(gone,"\"release_succeeded\":")=="true"',
+        'e::unique_value(gone,"\"detach_succeeded\":")=="true"','e::unique_value(gone,"\"overlay_destroyed\":")=="true"',
+        'if(!resources_gone||!original','set.owns(0)&&set.frames[0].hwnd==source',
+        's.left&&!s.left_up_attempted&&s.control&&GetForegroundWindow()==source',
+        'hit==source&&root==source&&hit_pid==pid&&hit_tid==set.thread',
+        '!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner',
+        'original&&visible(source)==original','move_called=true;cursor(s,point);',
+        'if(!ready||!GetCursorPos(&fresh)||fresh.x!=point.x||fresh.y!=point.y||!exact_client())')){
+        if(-not $prepare.Contains($fact)){throw ('Batch abort release lost its actual resource/destination prerequisite: '+$fact)}
+    }
+    $release=$prepare.IndexOf('button(s,false);',[StringComparison]::Ordinal)
+    $fresh=$prepare.IndexOf('if(!ready||!GetCursorPos(&fresh)',[StringComparison]::Ordinal)
+    if($release -le $fresh -or [regex]::Matches($prepare,'\bbutton\(s,false\);').Count -ne 1 -or
+       [regex]::Matches($prepare,'\bcursor\(s,point\);').Count -ne 1 -or
+       -not $flow.Contains('guarded_cleanup_started=true;batch_loss_abort_cleanup_up(set,g);key(s,VK_CONTROL,false);') -or
+       -not $flow.Contains('if(s.left&&!guarded_cleanup_started)button(s,false);') -or
+       -not $flow.Contains('abort_cleanup_up_receipt(s,g.offset,g.generation)') -or
+       $flow.Contains('cursor(s,{g.anchor.x+91,g.anchor.y+23})')){
+        throw 'Batch abort must use one guarded client preparation and the unchanged strict UP matcher; no catch may bypass a rejected destination.'
+    }
+}
+$batchAbortRelease=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_batch_failure_case.h'),[Text.Encoding]::UTF8)
+Assert-V1BatchAbortReleaseDestination $batchAbortRelease
+Check $true 'static batch abort sends its sole cleanup UP only after actual Gone and fresh exact owned idle client preparation'
+Reject {Assert-V1BatchAbortReleaseDestination ($batchAbortRelease.Replace('if(!resources_gone||!original','if(!original'))} 'static actual abort resource retirement cannot be omitted before cleanup input'
+Reject {Assert-V1BatchAbortReleaseDestination ($batchAbortRelease.Replace('GetForegroundWindow()==source','true'))} 'static batch cleanup cannot activate or accept a foreign foreground'
+Reject {Assert-V1BatchAbortReleaseDestination ($batchAbortRelease.Replace('if(!ready||!GetCursorPos(&fresh)||fresh.x!=point.x||fresh.y!=point.y||!exact_client())','if(!ready)'))} 'static logging cannot substitute for a fresh unique UP destination recheck'
+Reject {Assert-V1BatchAbortReleaseDestination ($batchAbortRelease.Replace('if(s.left&&!guarded_cleanup_started)button(s,false);','if(s.left)button(s,false);'))} 'static rejected batch cleanup cannot fall through to an unguarded catch UP'
 function Assert-V1ContextualDoubleClickPreparation([string]$Application){
     $start=$Application.IndexOf('void Application::begin(const InputEvent& e){',[StringComparison]::Ordinal)
     $end=$Application.IndexOf('void Application::cancel_seam_timer(',$start,[StringComparison]::Ordinal)
