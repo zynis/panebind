@@ -478,7 +478,7 @@ void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_v
         throw;
     }
 }
-void settings_guest_exclusion(State& s){
+void settings_guest_exclusion(State& s,void(*while_excluded)(State&)){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);
     settings_guest_effect_layout(s);
     foreground(s,s.frames[0].hwnd);const auto point=hit_point(s.frames[0].hwnd,HTCAPTION);if(!point)throw std::runtime_error("rule_exact_source_caption_missing");cursor(s,*point);Sleep(100);
@@ -500,12 +500,14 @@ void settings_guest_exclusion(State& s){
             rule.excluded&&rule.window_class==utf8(s.class_name)&&rule.feature_mask==0xffffffffU;});
     s.log.check("rule_actual_GUI_added_exact_source_class",exact_rule);
     settings_guest_effect_layout(s);settings_guest_native_move(s,36,21,"excluded_Move");
+    if(while_excluded)while_excluded(s);
     std::string rules;for(const auto row:v::settings_detail::split(v::serialize(original),'\n'))if(row.starts_with("rule_count=")||row.starts_with("rule.")){
         if(!rules.empty())rules+="\r\n";rules+=row;}
     gui=gui_open(s);gui_page_select(s,gui,4);std::wstring wide_rules(rules.begin(),rules.end());
     settings_guest_replace(s,gui,gui_number(s,gui,L"rule.编号"),wide_rules);gui_save_enter(s,gui);
     s.log.check("rule_actual_GUI_removed_exclusion",settings_guest_configuration(s).rules==original.rules);settings_guest_move_effect(s,true,"rule_unexcluded_next_actual_Move");
 }
+void settings_guest_exclusion(State& s){settings_guest_exclusion(s,nullptr);}
 void settings_guest_attraction(State& s,int value){
     const auto gui=gui_open(s);gui_page_select(s,gui,1);gui_edit_number(s,gui,gui_number(s,gui,L"吸引距离"),static_cast<unsigned>(value));gui_save_enter(s,gui);
     s.log.check("settings_actual_attraction_saved",settings_guest_configuration(s).attraction_dip==value);

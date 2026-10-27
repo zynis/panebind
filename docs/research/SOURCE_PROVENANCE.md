@@ -3676,3 +3676,29 @@ Unknown in-flight calls remain unknown. Neither correction changes input
 revocation, placement admission, identity/context checks or histogram budgets.
 Prior runtime results retain their original source/binary identities; the new
 candidate requires its own affected runtime verification.
+
+### 2026-10-27: isolated TEST timing, configuration and actor-disconnect cases
+
+The existing pinned AltSnap/FancyZones reviews are reused, not represented as
+a new upstream inspection. The product input/writer implementation is unchanged;
+these narrowly scoped guest drivers are original PaneBind test code. No external
+code was copied or adapted and no additional attribution obligation is introduced.
+
+The official [UpdateProcThreadAttribute](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute)
+and [CreatePipe](https://learn.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-createpipe)
+contracts were actually read on this date. The existing exact input child gains
+one explicitly inherited pipe handle; the supervisor closes its duplicate writer
+and observes actual pipe closure and the held child process exit. The official
+[GetNamedPipeServerProcessId](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getnamedpipeserverprocessid)
+contract was also read: its CreateNamedPipe requirement is not misrepresented
+as an anonymous-pipe identity check. Existing exact child/process/window/run
+checks remain in effect. Pipe loss is a TEST driver fact, not a product protocol
+notification or proof of normal UP.
+
+The bounded owned-source WndProc stall preserves the actual WINDOWPOS and
+distinguishes receiver-wait completion from the outer native call's recorded
+completion. Actual input-owner thread exit is only an observable stop-path
+boundary, not an invented writer.stop timestamp. Final summaries must preserve
+missing origins and unfinished calls. Configuration-chain tests reuse the
+existing visible settings UI and exact test-owned files. All new runtime
+claims require separately identified guest evidence; build success is not PASS.

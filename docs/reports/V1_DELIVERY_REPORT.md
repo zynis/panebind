@@ -8,7 +8,7 @@
 
 | 对象及合同 | 已有直接事实／原因确定度 | 本轮动作与仍缺证明 |
 | --- | --- | --- |
-| 托盘 M01-F02／B01／I01 | c452／6e3 的 UIA provider PID=0，守卫没有发送 click；不能写成实际菜单已执行失败。另有独立、确定的生产遗漏：v4 托盘未处理 `NIN_KEYSELECT`。 | 键盘激活接回既有设置路由，生产共享判定及实际 ingress／dispatch 接线离线复验；真实托盘鼠标／键盘／菜单操作仍待验证。修此遗漏不关闭 UIA0 的未知原因。 |
+| 托盘 M01-F02／B27／I01 | c452／6e3 的 UIA provider PID=0，守卫没有发送 click；不能写成实际菜单已执行失败。另有独立、确定的生产遗漏：v4 托盘未处理 `NIN_KEYSELECT`。 | 键盘激活接回既有设置路由，生产共享判定及实际 ingress／dispatch 接线离线复验；真实托盘鼠标／键盘／菜单操作仍待验证。修此遗漏不关闭 UIA0 的未知原因。 |
 | NF02 输入起点 | 鼠标映射已有真实 hook QPC，却在 `consume → command → apply` 中丢失；GUI／菜单本来没有该 hook 起点，不能混写 QPC 硬件失败。 | 保留鼠标映射真实起点；未观察到 hook 的入口仍缺失，不造时间。双击有意等待与连续 Move 分开解释，既有样本不重算或跨构建合并。 |
 | NF02 结束汇总 | 唯一 `timing_summary` 早于 `writer.stop()` 和最后完成回执 drain，可能遗漏停止期间实际完成的调用。 | 汇总移到完成屏障／最后 drain 之后；仍未知的调用保留 unknown／unfinished，不清零、不声称取消在途调用。现场末端覆盖仍待运行。 |
 | Terminal／Edge 客户初始化及透传 | 真正无产品对照已有 cmd `0xC0000142`、Terminal `0xD0000022`／无 ready／无客户 nonce；Edge 离线文档未就绪、`WM_NULL` 1460。较深原因 UNKNOWN。 | 无新变量不重复启动。先在完整、可见 Medium 隔离桌面确认各客户原生可用，再比较产品 ABSENT／运行；暂停而 hooks 尚在不算 ABSENT。几何 PASS 不替代客户输入。 |

@@ -47,8 +47,35 @@ struct InputActorCaptureView {
     void* value{};
     ~InputActorCaptureView(){if(value)UnmapViewOfFile(value);}
 };
-int input_actor_child(int count,LPWSTR* args){
-    if(count!=11)return 78;const std::wstring run=args[2];
+// A small completion transport for the SAME real input child. No product
+// connection, controller proxy, new input permissions or retry protocol.
+struct InputActorDisconnectPacket {
+    std::uint64_t version{},parent_pid{},parent_birth{},child_pid{},child_birth{},source{},source_tid{},generation{};
+    std::uint64_t down_qpc{},down_inserted{},move_inserted{},total_inserted{};
+};
+static_assert(sizeof(InputActorDisconnectPacket)==96);
+struct InputActorDisconnectPipe {
+    Handle reader,writer,ready,close_ack;
+    std::vector<unsigned char> attributes;LPPROC_THREAD_ATTRIBUTE_LIST list{};HANDLE inherited{};
+    ~InputActorDisconnectPipe(){if(list)DeleteProcThreadAttributeList(list);}
+    void create(){
+        SECURITY_ATTRIBUTES security{sizeof(security),nullptr,TRUE};HANDLE r{},w{};
+        if(!CreatePipe(&r,&w,&security,4096))throw std::runtime_error("I08_disconnect_CreatePipe_failed");
+        reader.value=r;writer.value=w;
+        if(!SetHandleInformation(reader.value,HANDLE_FLAG_INHERIT,0))throw std::runtime_error("I08_disconnect_read_handle_inheritance_failed");
+        SIZE_T size{};(void)InitializeProcThreadAttributeList(nullptr,1,0,&size);
+        if(!size||size>65536)throw std::runtime_error("I08_disconnect_attribute_size_invalid");
+        attributes.resize(size);auto* proposed=reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attributes.data());
+        if(!InitializeProcThreadAttributeList(proposed,1,0,&size))throw std::runtime_error("I08_disconnect_attribute_init_failed");
+        list=proposed;inherited=writer.value;
+        if(!UpdateProcThreadAttribute(list,0,PROC_THREAD_ATTRIBUTE_HANDLE_LIST,&inherited,sizeof(inherited),nullptr,nullptr))
+            throw std::runtime_error("I08_disconnect_exact_handle_list_failed");
+    }
+};
+bool input_actor_disconnect_cleanup_up(State&,LayoutFixtures&,std::size_t,std::uint64_t,bool&);
+int input_actor_child(int count,LPWSTR* args,bool disconnect=false){
+    if(count!=(disconnect?12:11)||std::wstring_view(args[1])!=(disconnect?L"--input-actor-disconnect-once":L"--input-actor-once"))return 78;
+    const std::wstring run=args[2];
     if(run.size()!=32||!std::all_of(run.begin(),run.end(),[](wchar_t c){return(c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');}))return 78;
     std::array<wchar_t,128> username{};DWORD length=static_cast<DWORD>(username.size());
     if(!GetUserNameW(username.data(),&length)||!equal(username.data(),L"WDAGUtilityAccount"))return 78;
@@ -71,6 +98,19 @@ int input_actor_child(int count,LPWSTR* args){
     if(!debug&&!equal(executable.wstring(),(input/L"panebind-v1-guest-fixture.exe").wstring()))return 78;
     if(debug&&!plain_directory(input/L"Debug"))return 78;const auto image_hash=hash(executable);
     if(image_hash.empty()||image_hash!=hash(parent_name.data()))return 78;
+    Handle disconnect_pipe,disconnect_ready,disconnect_ack;
+    if(disconnect){
+        const auto pipe_value=input_actor_unsigned(args[11]);if(!pipe_value||pipe_value>UINTPTR_MAX)return 78;
+        const auto package=read(input/L"manifest.json",256*1024);const auto files=package.find("\"files\"");
+        if(files==package.npos)return 78;const std::string_view identity(package.data(),files);
+        if(portable_field(identity,"run_id")!=utf8(run)||portable_field(identity,"guest_suite")!="DriverDisconnectOnly"||
+            portable_field(identity,"driver_source_commit")!=PANEBIND_BUILD_SHA||
+            portable_field(identity,debug?"driver_debug_sha256":"driver_release_sha256")!=image_hash)return 78;
+        disconnect_pipe.value=reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(pipe_value));
+        DWORD handle_flags{};
+        if(GetFileType(disconnect_pipe.value)!=FILE_TYPE_PIPE||!GetHandleInformation(disconnect_pipe.value,&handle_flags)||
+            !(handle_flags&HANDLE_FLAG_INHERIT))return 78;
+    }
     const POINT from{input_actor_coordinate(args[7]),input_actor_coordinate(args[8])},target{input_actor_coordinate(args[9]),input_actor_coordinate(args[10])};
     if(static_cast<long long>(target.x)-from.x!=-40||static_cast<long long>(target.y)-from.y!=35)return 78;
     const bool dpi_set=SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)!=FALSE;
@@ -83,6 +123,9 @@ int input_actor_child(int count,LPWSTR* args){
     if(w<2||h<2||target.x<x||target.y<y||static_cast<long long>(target.x)>=static_cast<long long>(x)+w||static_cast<long long>(target.y)>=static_cast<long long>(y)+h)return 78;
     const auto event_name=input_actor_start_event(run,parent_pid,born,GetCurrentProcessId());
     Handle start_ack(OpenEventW(SYNCHRONIZE,FALSE,event_name.c_str()));if(!start_ack.value)return 78;
+    if(disconnect){disconnect_ready.value=OpenEventW(EVENT_MODIFY_STATE,FALSE,(event_name+L".DisconnectReceiptReady").c_str());
+        disconnect_ack.value=OpenEventW(SYNCHRONIZE,FALSE,(event_name+L".DisconnectNow").c_str());
+        if(!disconnect_ready.value||!disconnect_ack.value)return 78;}
     const auto capture_name=event_name+L".CaptureReceipt";
     Handle capture_mapping(OpenFileMappingW(FILE_MAP_READ,FALSE,capture_name.c_str()));if(!capture_mapping.value)return 78;
     InputActorCaptureView capture_view;capture_view.value=MapViewOfFile(capture_mapping.value,FILE_MAP_READ,0,0,sizeof(product::guest::ActorCaptureHandshake));
@@ -238,6 +281,26 @@ int input_actor_child(int count,LPWSTR* args){
         }
     }
     const UINT inserted=down_inserted+threshold_inserted+move_inserted;const DWORD error=down_error?down_error:threshold_error?threshold_error:move_error;
+    bool disconnect_written=false,disconnect_signaled=false,disconnect_closed=false;
+    DWORD disconnect_error{},disconnect_wait=WAIT_FAILED,disconnect_ready_error{},disconnect_close_error{};
+    if(disconnect){
+        const InputActorDisconnectPacket packet{1,parent_pid,born,GetCurrentProcessId(),process_birth(GetCurrentProcess()),hwnd_value,source_tid,
+            capture_receipt.capture.generation,static_cast<std::uint64_t>(before.QuadPart),down_inserted,move_inserted,inserted};
+        DWORD transferred{};SetLastError(ERROR_SUCCESS);
+        disconnect_written=WriteFile(disconnect_pipe.value,&packet,sizeof(packet),&transferred,nullptr)&&transferred==sizeof(packet);
+        disconnect_error=disconnect_written?ERROR_SUCCESS:GetLastError();
+        disconnect_signaled=disconnect_written&&SetEvent(disconnect_ready.value)!=FALSE;
+        disconnect_ready_error=disconnect_written&&!disconnect_signaled?GetLastError():ERROR_SUCCESS;
+        if(disconnect_signaled){
+            // Parent first observes the real exact placement. Its signal is
+            // permission to end THIS test child, never product authority.
+            const std::array<HANDLE,2> peers{disconnect_ack.value,parent.value};
+            disconnect_wait=WaitForMultipleObjects(static_cast<DWORD>(peers.size()),peers.data(),FALSE,5000);
+        }
+        disconnect_closed=CloseHandle(disconnect_pipe.value)!=FALSE;
+        disconnect_close_error=disconnect_closed?ERROR_SUCCESS:GetLastError();
+        if(disconnect_closed)disconnect_pipe.value=nullptr;
+    }
     const auto after_tick=GetTickCount64();
     const std::string text="{\"schema\":\"panebind-v1-test-input-actor/1\",\"source_sha\":\"" PANEBIND_BUILD_SHA "\",\"run_id\":"+quote(utf8(run))+
         ",\"image_sha256\":"+quote(image_hash)+",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"parent_pid\":"+std::to_string(parent_pid)+
@@ -284,24 +347,33 @@ int input_actor_child(int count,LPWSTR* args){
         ",\"actual_cursor\":"+(cursor_known?"["+std::to_string(actual_after.x)+","+std::to_string(actual_after.y)+"]":"null")+
         ",\"actual_cursor_exact\":"+(cursor_exact?"true":"false")+",\"native_MOVE_delivery_not_inferred_from_SendInput\":true"+
         ",\"before_tick\":"+std::to_string(before_tick)+",\"after_tick\":"+std::to_string(after_tick)+",\"before_qpc\":"+std::to_string(before.QuadPart)+
-        ",\"after_qpc\":"+std::to_string(after.QuadPart)+",\"UP_sent\":false,\"product_driver_channel\":false,\"automated_guest_driver\":true}\n";
+        ",\"after_qpc\":"+std::to_string(after.QuadPart)+",\"UP_sent\":false,\"product_driver_channel\":false,\"automated_guest_driver\":true"+
+        (disconnect?",\"disconnect_transport_used\":true,\"pipe_packet_write_completed\":"+std::string(disconnect_written?"true":"false")+
+            ",\"pipe_packet_write_error\":"+std::to_string(disconnect_error)+",\"pipe_ready_signaled\":"+(disconnect_signaled?"true":"false")+
+            ",\"pipe_ready_signal_error\":"+std::to_string(disconnect_ready_error)+
+            ",\"parent_observed_placement_ack_wait\":"+std::to_string(disconnect_wait)+",\"pipe_CloseHandle_return\":"+(disconnect_closed?"true":"false")+
+            ",\"pipe_CloseHandle_error\":"+std::to_string(disconnect_close_error):
+            std::string{})+"}\n";
     DWORD written{};const bool saved=WriteFile(file.value,text.data(),static_cast<DWORD>(text.size()),&written,nullptr)&&written==text.size()&&FlushFileBuffers(file.value);
-    return saved&&down_inserted==1&&ack_result==WAIT_OBJECT_0&&pre_move_context&&move_inserted==1&&cursor_exact?0:1;
+    return saved&&down_inserted==1&&ack_result==WAIT_OBJECT_0&&pre_move_context&&move_inserted==1&&cursor_exact&&
+        (!disconnect||(disconnect_written&&disconnect_signaled&&disconnect_wait==WAIT_OBJECT_0&&disconnect_closed))?0:1;
 }
-void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::uint64_t product_birth){
+void owned_input_actor_exit_transport(State& s,LayoutFixtures& set,DWORD product_pid,std::uint64_t product_birth,bool disconnect){
     namespace v=panebind::core::v1;const HWND source=set.frames[0].hwnd;const auto initial=visible(source);
     if(!set.owns(0)||!initial||s.left||s.control)throw std::runtime_error("I08_actor_initial_exact_source_unavailable");
     const UINT initial_dpi=GetDpiForWindow(source);const HMONITOR initial_monitor=MonitorFromWindow(source,MONITOR_DEFAULTTONULL);
     if(!initial_dpi||!initial_monitor)throw std::runtime_error("I08_actor_initial_monitor_or_DPI_unknown");
     chain_check_product(s,product_pid,product_birth);const auto config=chain_settings(s);
     if(config.magnet_move||config.docking||config.shake||config.drag_transparency)throw std::runtime_error("I08_actor_requires_existing_interruption_configuration");
+    if(disconnect&&s.suite!="DriverDisconnectOnly")throw std::runtime_error("I08_disconnect_exact_suite_required");
     const auto receipt=s.output/(s.run+(s.configuration=="Debug"?L"-debug-input-actor.json":L"-release-input-actor.json"));
     if(fs::exists(receipt))throw std::runtime_error("I08_actor_receipt_already_exists");
     s.log.check("I08_actor_exact_foreground",SetForegroundWindow(source)&&wait([&]{return GetForegroundWindow()==source;}));
     const auto point=layout_hit(set,0,HTCAPTION);if(!point)throw std::runtime_error("I08_actor_real_caption_hit_unavailable");
     cursor(s,*point);const auto hover=GetTickCount64();(void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
     std::array<wchar_t,32768> self{};if(!GetModuleFileNameW(nullptr,self.data(),static_cast<DWORD>(self.size())))throw std::runtime_error("I08_actor_fixture_image_unavailable");
-    std::wstring command=L"\""+std::wstring(self.data())+L"\" --input-actor-once "+s.run+L" "+std::to_wstring(GetCurrentProcessId())+L" "+
+    InputActorDisconnectPipe transport;if(disconnect)transport.create();
+    std::wstring command=L"\""+std::wstring(self.data())+(disconnect?L"\" --input-actor-disconnect-once ":L"\" --input-actor-once ")+s.run+L" "+std::to_wstring(GetCurrentProcessId())+L" "+
         std::to_wstring(process_birth(GetCurrentProcess()))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(source))+L" "+std::to_wstring(set.thread)+L" "+
         std::to_wstring(point->x)+L" "+std::to_wstring(point->y)+L" "+std::to_wstring(point->x-40)+L" "+std::to_wstring(point->y+35);
     std::uint64_t expected_key{};std::string prepared;{std::istringstream rows(product_log_current(s));std::string line;
@@ -310,8 +382,11 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             number(line,"\"root\":")==reinterpret_cast<std::uintptr_t>(source)&&line.find("\"region\":0")!=line.npos){
             expected_key=number(line,"\"key\":");prepared=line;}}
     if(!expected_key)throw std::runtime_error("I08_actor_product_source_key_not_observed");
-    const auto offset=read_product(s).size();STARTUPINFOW startup{sizeof(startup)};PROCESS_INFORMATION child{};
-    if(!CreateProcessW(self.data(),command.data(),nullptr,nullptr,FALSE,CREATE_NO_WINDOW|CREATE_SUSPENDED,nullptr,s.output.c_str(),&startup,&child))throw std::runtime_error("I08_actor_create_failed");
+    if(disconnect)command+=L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(transport.writer.value));
+    const auto offset=read_product(s).size();STARTUPINFOEXW startup{};startup.StartupInfo.cb=disconnect?sizeof(startup):sizeof(STARTUPINFOW);
+    startup.lpAttributeList=disconnect?transport.list:nullptr;PROCESS_INFORMATION child{};
+    const DWORD flags=CREATE_NO_WINDOW|CREATE_SUSPENDED|(disconnect?EXTENDED_STARTUPINFO_PRESENT:0);
+    if(!CreateProcessW(self.data(),command.data(),nullptr,nullptr,disconnect?TRUE:FALSE,flags,nullptr,s.output.c_str(),&startup.StartupInfo,&child))throw std::runtime_error("I08_actor_create_failed");
     Handle child_process(child.hProcess),child_thread(child.hThread);bool test_up=false,actor_stop_attempted=false,actor_send_count_known=false,actor_resumed=false;
     std::uint64_t actor_inserted{};
     const auto child_birth=process_birth(child_process.value);
@@ -331,11 +406,30 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
     product::guest::ActorStartCaptureReceipt capture_receipt{};
     product::guest::ActorNativeThresholdCommand threshold_command{};bool threshold_published=false;
     try{
+        if(disconnect){
+            const bool closed=CloseHandle(transport.writer.value)!=FALSE;
+            if(closed)transport.writer.value=nullptr;
+            s.log.check("I08_disconnect_parent_write_copy_closed_before_child_resume",closed,
+                "\"actor_PID\":"+std::to_string(child.dwProcessId)+",\"actor_birth\":"+std::to_string(child_birth)+
+                ",\"inherited_handle_count\":1,\"actual_input_sender_PID\":"+std::to_string(child.dwProcessId)+
+                ",\"source_owner_PID\":"+std::to_string(GetCurrentProcessId())+",\"product_driver_channel\":false");
+        }
         const auto event_name=input_actor_start_event(s.run,GetCurrentProcessId(),process_birth(GetCurrentProcess()),child.dwProcessId);
         SetLastError(0);start_ack.value=CreateEventW(nullptr,FALSE,FALSE,event_name.c_str());const auto event_error=GetLastError();
         s.log.check("I08_actor_fresh_START_event",start_ack.value&&event_error!=ERROR_ALREADY_EXISTS&&child_birth,
             "\"event\":"+quote(utf8(event_name))+",\"CreateEvent_return\":"+(start_ack.value?"true":"false")+
             ",\"CreateEvent_error\":"+std::to_string(event_error)+",\"auto_reset_two_explicit_phases\":true,\"unknown_existing_event_not_signaled\":true");
+        if(disconnect){
+            SetLastError(ERROR_SUCCESS);transport.ready.value=CreateEventW(nullptr,TRUE,FALSE,(event_name+L".DisconnectReceiptReady").c_str());
+            const DWORD ready_error=GetLastError();
+            s.log.check("I08_disconnect_fresh_child_receipt_event",transport.ready.value&&ready_error!=ERROR_ALREADY_EXISTS,
+                "\"CreateEvent_error\":"+std::to_string(ready_error)+",\"existing_event_not_reused\":true");
+            SetLastError(ERROR_SUCCESS);transport.close_ack.value=CreateEventW(nullptr,TRUE,FALSE,(event_name+L".DisconnectNow").c_str());
+            const DWORD close_error=GetLastError();
+            s.log.check("I08_disconnect_fresh_completion_close_event",transport.close_ack.value&&close_error!=ERROR_ALREADY_EXISTS,
+                "\"CreateEvent_error\":"+std::to_string(close_error)+
+                ",\"independent_from_native_threshold_and_START_event\":true,\"existing_event_not_reused\":true");
+        }
         const auto capture_name=event_name+L".CaptureReceipt";SetLastError(0);
         capture_mapping.value=CreateFileMappingW(INVALID_HANDLE_VALUE,nullptr,PAGE_READWRITE,0,
             static_cast<DWORD>(sizeof(product::guest::ActorCaptureHandshake)),capture_name.c_str());const auto mapping_error=GetLastError();
@@ -467,9 +561,65 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"prepared_source\":"+quote(prepared)+",\"SetEvent_called\":"+(ack_called?"true":"false")+
             ",\"SetEvent_return\":"+(ack_sent?"true":"false")+",\"SetEvent_error\":"+std::to_string(ack_error)+
             ",\"ack_is_test_synchronization_not_product_authority\":true");
+        if(disconnect){
+            const bool announced=wait([&]{return WaitForSingleObject(transport.ready.value,0)==WAIT_OBJECT_0||
+                WaitForSingleObject(child_process.value,0)==WAIT_OBJECT_0;},3500)&&WaitForSingleObject(transport.ready.value,0)==WAIT_OBJECT_0;
+            InputActorDisconnectPacket packet{};DWORD bytes{};BOOL read_ok=FALSE;DWORD read_error{};
+            // SetEvent follows the completed fixed 96-byte write; no other
+            // reader can consume it. Never read an unannounced open pipe.
+            if(announced){SetLastError(ERROR_SUCCESS);read_ok=ReadFile(transport.reader.value,&packet,sizeof(packet),&bytes,nullptr);
+                read_error=read_ok?ERROR_SUCCESS:GetLastError();}
+            const bool bound=announced&&read_ok&&bytes==sizeof(packet)&&packet.version==1&&
+                packet.parent_pid==GetCurrentProcessId()&&packet.parent_birth==process_birth(GetCurrentProcess())&&
+                packet.child_pid==child.dwProcessId&&packet.child_birth==child_birth&&packet.source==reinterpret_cast<std::uintptr_t>(source)&&
+                packet.source_tid==set.thread&&packet.generation==g.generation&&packet.down_qpc&&resume_before.QuadPart>0&&
+                packet.down_qpc>=static_cast<std::uint64_t>(resume_before.QuadPart)&&capture_receipt.down_qpc>=packet.down_qpc&&
+                packet.down_inserted==1&&packet.move_inserted==1&&packet.total_inserted>=2&&packet.total_inserted<=3;
+            const Rect expected=translated(*initial,-40,35);std::string exact;
+            const bool active_exact=bound&&wait([&]{exact=placement(s,offset,g.generation,expected,true);return
+                WaitForSingleObject(child_process.value,0)==WAIT_TIMEOUT&&set.owns(0)&&visible(source)==expected&&
+                GetForegroundWindow()==source&&actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty()&&
+                exact.find("\"authority_after\":true")!=exact.npos;},3000);
+            const auto actual=visible(source);
+            s.log.check("I08_disconnect_real_input_child_active_exact_before_transport_close",active_exact,
+                "\"actor_PID\":"+std::to_string(child.dwProcessId)+",\"actor_birth\":"+std::to_string(child_birth)+
+                ",\"pipe_ReadFile_attempted\":"+(announced?"true":"false")+",\"pipe_ReadFile_return\":"+(read_ok?"true":"false")+
+                ",\"pipe_bytes\":"+std::to_string(bytes)+",\"pipe_read_error\":"+std::to_string(read_error)+
+                ",\"packet_identity_matches\":"+(bound?"true":"false")+",\"actual_sender_PID\":"+std::to_string(packet.child_pid)+
+                ",\"actual_generation\":"+std::to_string(g.generation)+",\"independent_actual_geometry\":"+
+                (actual?rect(*actual):"null")+",\"actual_native_receipt\":"+quote(exact)+
+                ",\"child_UP_calls\":0,\"product_driver_channel\":false");
+            s.log.check("I08_disconnect_actual_exact_Move_ack_then_child_disconnect",SetEvent(transport.close_ack.value)!=FALSE,
+                "\"child_input_already_observed\":true,\"ack_not_new_product_authority\":true");
+        }
         const bool exited=wait([&]{return WaitForSingleObject(child_process.value,0)==WAIT_OBJECT_0;},5000);DWORD code=STILL_ACTIVE;
         if(!exited)(void)stop_test_actor();
         if(exited)GetExitCodeProcess(child_process.value,&code);const auto child_exit_tick=GetTickCount64();
+        if(disconnect){
+            BYTE unused{};DWORD bytes{};BOOL read_ok=FALSE;DWORD error{};
+            // The parent's writer was closed before ResumeThread; after this
+            // held child actually exits there can be no live writer copy.
+            if(exited){SetLastError(ERROR_SUCCESS);read_ok=ReadFile(transport.reader.value,&unused,1,&bytes,nullptr);
+                error=read_ok?ERROR_SUCCESS:GetLastError();}
+            s.log.check("I08_disconnect_actual_pipe_EOF_and_exact_input_actor_exit",exited&&code==0&&!read_ok&&error==ERROR_BROKEN_PIPE&&bytes==0,
+                "\"actor_PID\":"+std::to_string(child.dwProcessId)+",\"actor_birth\":"+std::to_string(child_birth)+
+                ",\"held_process_exit_observed\":"+(exited?"true":"false")+",\"exit_code\":"+std::to_string(code)+
+                ",\"EOF_ReadFile_attempted\":"+(exited?"true":"false")+",\"EOF_ReadFile_return\":"+(read_ok?"true":"false")+
+                ",\"EOF_bytes\":"+std::to_string(bytes)+",\"EOF_last_error\":"+std::to_string(error)+
+                ",\"hard_TerminateProcess_scope\":\"NOT_RUN\",\"actor_exited_with_no_UP\":true,\"normal_orderly_UP_disconnect_scope\":\"NOT_RUN\");
+        }
+        if(disconnect){
+            const bool pipe_closed=CloseHandle(transport.reader.value)!=FALSE;
+            if(pipe_closed)transport.reader.value=nullptr;
+            const bool ready_closed=CloseHandle(transport.ready.value)!=FALSE;
+            if(ready_closed)transport.ready.value=nullptr;
+            const bool close_ack_closed=CloseHandle(transport.close_ack.value)!=FALSE;
+            if(close_ack_closed)transport.close_ack.value=nullptr;
+            s.log.check("I08_disconnect_parent_transport_handles_closed",pipe_closed&&ready_closed&&close_ack_closed,
+                "\"pipe_reader_CloseHandle_return\":"+std::string(pipe_closed?"true":"false")+
+                ",\"ready_event_CloseHandle_return\":"+(ready_closed?"true":"false")+
+                ",\"close_event_CloseHandle_return\":"+(close_ack_closed?"true":"false")+",\"product_resources_not_inferred\":true");
+        }
         const auto actor=read(receipt,8192);
         const bool actor_identity=actor.ends_with("}\n")&&actor.find("\"UP_sent\":false")!=std::string::npos&&
             actor.find("\"source_sha\":\"" PANEBIND_BUILD_SHA "\"")!=std::string::npos&&actor.find("\"SendInput_return\":")!=std::string::npos&&
@@ -523,13 +673,16 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
             ",\"physical_button_held_not_inferred\":true,\"driver_notification_not_fabricated\":true");
         const auto calls=[&]{const auto rows=constraint_generation_placements(s,offset,g.generation);return std::count_if(rows.begin(),rows.end(),[](const auto& row){return row.find("\"native_callsite_claimed\":true")!=std::string::npos;});};
-        const auto baseline=calls();const auto barrier=constraint_last_product_sequence(s);cursor(s,{point->x-11,point->y+47});
+        const auto baseline=calls();const auto barrier=constraint_last_product_sequence(s);
+        if(!disconnect)cursor(s,{point->x-11,point->y+47});
         const auto status_offset=read_product(s).size();
         s.log.check("I08_actor_Deadline_no_new_native_calls",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);})&&
             calls()==baseline&&baseline>0&&visible(source)==moved);
         // This UP is a test cleanup action after actual Deadline, not product
         // NormalUp, a replay, or a product recovery feature.
-        button(s,false);test_up=true;
+        if(disconnect)s.log.check("I08_disconnect_single_supervisor_abort_UP_observed",
+            input_actor_disconnect_cleanup_up(s,set,offset,g.generation,test_up));
+        else{button(s,false);test_up=true;}
         s.log.check("I08_actor_test_UP_sent_and_native_resources_idle",wait([&]{GUITHREADINFO gui{sizeof(gui)};return !s.left&&
             set.owns(0)&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;})&&calls()==baseline&&
             record(s,offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos,
@@ -537,8 +690,9 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"UP_delivery_not_inferred\":true,\"not_NormalUp\":true");
         interruption_idle(s,set,true);chain_check_product(s,product_pid,product_birth);interruption_recovery(s,set,g.generation);
         chain_check_product(s,product_pid,product_birth);
-        s.log.emit("I08_input_actor_exit_scope","\"status\":\"INPUT_ACTOR_EXIT_DEADLINE_AND_RECOVERY_OBSERVED\",\"source_destroyed\":false,\"product_driver_channel\":false," 
-            "\"actual_main_fixture_test_UP\":true,\"same_product_new_Move_Resize\":true,\"whole_I08_PASS\":false,\"human_uat\":\"NOT_RUN\"");
+        s.log.emit("I08_input_actor_exit_scope","\"status\":\"INPUT_ACTOR_EXIT_DEADLINE_AND_RECOVERY_OBSERVED\",\"source_destroyed\":false,\"product_driver_channel\":false,"
+            "\"actual_main_fixture_test_UP\":true,\"same_product_new_Move_Resize\":true,\"whole_I08_PASS\":false,\"human_uat\":\"NOT_RUN\""+
+            std::string(disconnect?",\"actual_input_child_pipe_disconnect_observed\":true,\"recovery_input_sender\":\"original_supervisor\",\"new_input_actor_Move_Resize\":\"NOT_RUN\"":""));
     }catch(...){
         // The child has only the bounded START acknowledgement/readback waits.
         // Keep desktop exposure bounded
@@ -564,7 +718,11 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
                 observed_down.find("\"kind\":\"DOWN\"")!=observed_down.npos&&down_qpc>s.left_down_send_qpc&&down_qpc>s.left_up_send_qpc&&!s.left){
                 s.left_up_attempted=false;s.left=true;s.left_down_send_qpc=down_qpc;}
             const bool actor_down_possible=actor_resumed&&(s.left||!actor_send_count_known||actor_inserted>=1);
-            if(!test_up&&actor_down_possible){
+            if(disconnect&&!test_up&&actor_down_possible){
+                const bool observed=input_actor_disconnect_cleanup_up(s,set,offset,generation,test_up);
+                s.log.emit("I08_disconnect_failed_scope_cleanup","\"single_test_UP_attempted\":"+std::string(test_up?"true":"false")+
+                    ",\"actual_abort_UP_observed\":"+(observed?"true":"false")+",\"functional_PASS\":false");
+            }else if(!disconnect&&!test_up&&actor_down_possible){
                 // A failed receipt may leave only UNKNOWN partial insertion.
                 // This actor's local fence permits ONE guest-only cleanup UP,
                 // not a reset/retry of an UP already attempted for this actor.
@@ -583,4 +741,7 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
                 (actor_send_count_known?std::to_string(actor_inserted):"null")+",\"actual_START_observed\":"+
                 (number(started,"\"generation\":")?"true":"false")+",\"input_delivery_not_inferred\":true,\"functional_PASS\":false");}catch(...){}throw;
     }
+}
+void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::uint64_t product_birth){
+    owned_input_actor_exit_transport(s,set,product_pid,product_birth,false);
 }

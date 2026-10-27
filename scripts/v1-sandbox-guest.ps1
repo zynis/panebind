@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
       [ValidateSet('DebugAndRelease','Debug','Release')][string]$Configurations='DebugAndRelease',
-      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','CurrentCoreChainOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','FixedSizeResizeOnly','MappingRemainderOnly','HotkeyRemainderOnly','MotionGuardOnly','CornerInputOnly','PortableEntryOnly','RemainingMoveContractsOnly','RecoveryContractsOnly','RemainingNativeContractsOnly','ModifierLockOnly','SettingsValidationOnly','SettingsControlsRemainderOnly','FeedbackRemainderOnly','GroupRemainderOnly','GroupHeightOnly','LCornerOnly','DockRemainderOnly','RestoreRemainderOnly','CommandsRemainderOnly','ArbitrationRemainderOnly','ArbitrationRecoveryOnly','CommandsGeometryOnly','LowerFactsOnly','LifecycleRemainderOnly','HighContrastOnly','NativeTopDropOnly','SessionInterruptionOnly','QueueFailureOnly','CallbackOwnerStopOnly','TransparencyRemainderOnly','SystemShakeCoexistenceOnly','RulesPathOnly','MediumDesktopEnvironmentOnly','MediumDesktopUiOnly','MediumDesktopNativeOnly','MediumDesktopNativeClientOnly')][string]$Suite='Full',
+      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','CurrentCoreChainOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','FixedSizeResizeOnly','MappingRemainderOnly','TimingBoundaryOnly','ConfigurationChainOnly','DriverDisconnectOnly','HotkeyRemainderOnly','MotionGuardOnly','CornerInputOnly','PortableEntryOnly','RemainingMoveContractsOnly','RecoveryContractsOnly','RemainingNativeContractsOnly','ModifierLockOnly','SettingsValidationOnly','SettingsControlsRemainderOnly','FeedbackRemainderOnly','GroupRemainderOnly','GroupHeightOnly','LCornerOnly','DockRemainderOnly','RestoreRemainderOnly','CommandsRemainderOnly','ArbitrationRemainderOnly','ArbitrationRecoveryOnly','CommandsGeometryOnly','LowerFactsOnly','LifecycleRemainderOnly','HighContrastOnly','NativeTopDropOnly','SessionInterruptionOnly','QueueFailureOnly','CallbackOwnerStopOnly','TransparencyRemainderOnly','SystemShakeCoexistenceOnly','RulesPathOnly','MediumDesktopEnvironmentOnly','MediumDesktopUiOnly','MediumDesktopNativeOnly','MediumDesktopNativeClientOnly')][string]$Suite='Full',
       [ValidateRange(30,1800)][int]$StageTimeoutSeconds=1800)
 $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'
@@ -1174,7 +1174,11 @@ public static class PaneBindV1MediumGuest {
         # This one-use system-theme observation must not occupy the shared
         # disposable Sandbox for the Full suite's 30-minute budget. A forced
         # job cleanup is still failure/unknown, never product cleanup PASS.
-        $actualStageTimeout=if($Suite -ceq 'HighContrastOnly'){[Math]::Min($StageTimeoutSeconds,120)}else{$StageTimeoutSeconds}
+        $actualStageTimeout=if($Suite -ceq 'HighContrastOnly'){[Math]::Min($StageTimeoutSeconds,120)}
+            elseif($Suite -ceq 'TimingBoundaryOnly'){[Math]::Min($StageTimeoutSeconds,180)}
+            elseif($Suite -ceq 'ConfigurationChainOnly'){[Math]::Min($StageTimeoutSeconds,300)}
+            elseif($Suite -ceq 'DriverDisconnectOnly'){[Math]::Min($StageTimeoutSeconds,120)}
+            else{$StageTimeoutSeconds}
         $stage['actual_timeout_seconds']=$actualStageTimeout
         $stage.actual_result=[PaneBindV1MediumGuest]::Run($fixture,$arguments,[uint32]$actualStageTimeout)
         if($stage.actual_result.ContainsKey('fixture_exit_code')){
