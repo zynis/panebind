@@ -1098,7 +1098,7 @@ function Assert-V1MappingRemainderWiring([string]$Fixture,[string]$Mapping,[stri
        -not $hotkeyScope.Value.Contains('cleanup(s);') -or -not $hotkeyScope.Value.Contains('hotkey_remainder_only_summary') -or
        $hotkeyScope.Value.Contains('owned_mapping_regions_case') -or $hotkeyScope.Value.Contains('owned_mapping_modifier_double_case') -or
        -not $drive.Contains('s.suite=="HotkeyRemainderOnly"') -or -not $gate.Contains('s.suite!="HotkeyRemainderOnly"') -or
-       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly"||s.suite=="NativeConstraintOnly"||s.suite=="VisualLifecycleChainOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
+       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="TimingBoundaryOnly"||s.suite=="ConfigurationChainOnly"||s.suite=="DriverDisconnectOnly"||s.suite=="NativeConstraintOnly"||s.suite=="BatchFailureOnly"||s.suite=="VisualLifecycleChainOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
        -not $Mapping.Contains('s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"')){
         throw 'Hotkey-only continuation must reach only its actual remaining phase with the same released-input guest gate and cleanup.'
     }
@@ -2265,7 +2265,7 @@ function Assert-V1NativeConstraintOnlyWiring([string]$Fixture,[string]$Resize,[s
        -not $Fixture.Contains('else if(value==L"NativeConstraintOnly")s.suite="NativeConstraintOnly";') -or
        [regex]::Matches($Fixture,'s\.suite!="NativeConstraintOnly"').Count -ne 2 -or
        -not $Prepare.Contains("'NativeConstraintOnly'") -or -not $Guest.Contains("'NativeConstraintOnly'") -or
-       -not $Guest.Contains("elseif(`$Suite -ceq 'NativeConstraintOnly' -or `$Suite -ceq 'VisualLifecycleChainOnly'){[Math]::Min(`$StageTimeoutSeconds,120)}")){
+       -not $Guest.Contains("elseif(`$Suite -ceq 'NativeConstraintOnly' -or `$Suite -ceq 'VisualLifecycleChainOnly' -or `$Suite -ceq 'BatchFailureOnly'){[Math]::Min(`$StageTimeoutSeconds,120)}")){
         throw 'Narrow constraints must share the actual old geometry helpers and exact guest parser/package/finite timeout gates.'
     }
     foreach($value in @('const LayoutLimit bounded{120,100,450,work.height()}',
@@ -2318,7 +2318,7 @@ function Assert-V1VisualLifecycleOnlyWiring([string]$Fixture,[string]$Visual,[st
        -not $Fixture.Contains('else if(value==L"VisualLifecycleChainOnly")s.suite="VisualLifecycleChainOnly";') -or
        [regex]::Matches($Fixture,'s\.suite!="VisualLifecycleChainOnly"').Count -ne 2 -or
        -not $Prepare.Contains("'VisualLifecycleChainOnly'") -or -not $Guest.Contains("'VisualLifecycleChainOnly'") -or
-       -not $Guest.Contains("elseif(`$Suite -ceq 'NativeConstraintOnly' -or `$Suite -ceq 'VisualLifecycleChainOnly'){[Math]::Min(`$StageTimeoutSeconds,120)}")){
+       -not $Guest.Contains("elseif(`$Suite -ceq 'NativeConstraintOnly' -or `$Suite -ceq 'VisualLifecycleChainOnly' -or `$Suite -ceq 'BatchFailureOnly'){[Math]::Min(`$StageTimeoutSeconds,120)}")){
         throw 'Visual lifecycle must run the existing real core once, observe its same-process final resources/tuple and preserve all other phase/default callers.'
     }
 }
@@ -2329,4 +2329,28 @@ Check $true 'static one visual lifecycle phase ends its actual original product 
 Reject {Assert-V1VisualLifecycleOnlyWiring ($fixtureSource.Replace('owned_visual_lifecycle_chain_case,true);','owned_visual_lifecycle_chain_case);')) $visualLifecycleOnly $visualLifecycleChains $lifecyclePrepare $lifecycleGuest} 'static final Exit cannot fall through the default live-product after gate'
 Reject {Assert-V1VisualLifecycleOnlyWiring ($fixtureSource.Replace('visual_lifecycle_chain_terminal_observed(s,mark);','true;')) $visualLifecycleOnly $visualLifecycleChains $lifecyclePrepare $lifecycleGuest} 'static a terminal flag cannot replace actual current-phase Exit observations'
 Reject {Assert-V1VisualLifecycleOnlyWiring $fixtureSource ($visualLifecycleOnly.Replace('callback_sequence>exit_sequence&&complete_sequence>callback_sequence','callback_sequence&&complete_sequence')) $visualLifecycleChains $lifecyclePrepare $lifecycleGuest} 'static visual final Exit must precede its callback-complete and final completion records'
+function Assert-V1BatchFailureOnlyWiring([string]$Fixture,[string]$Wrapper,[string]$Prepare,[string]$Guest){
+    $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
+    $branch=[regex]::Match($entry,'(?s)if\(s\.suite=="BatchFailureOnly"\)\{(?<body>.*?)return;\s*\}')
+    if(-not $branch.Success -or [regex]::Matches($branch.Value,'\bphase\s*\(').Count -ne 1 -or
+       -not $branch.Value.Contains('phase("actual_second_member_native_loss_and_survivor_recovery",owned_batch_failure_only_case);') -or
+       -not $branch.Value.Contains('cleanup(s);') -or
+       -not $Fixture.Contains('else if(value==L"BatchFailureOnly")s.suite="BatchFailureOnly";') -or
+       [regex]::Matches($Fixture,'s\.suite!="BatchFailureOnly"').Count -ne 2 -or
+       -not $Prepare.Contains("'BatchFailureOnly'") -or -not $Guest.Contains("'BatchFailureOnly'")){
+        throw 'Batch failure requires its exact one-phase guest/package/parse route and actual cleanup.'
+    }
+    $body=Get-V1FixtureFunctionText $Wrapper 'owned_batch_failure_only_case'
+    foreach($fact in @('s.suite!="BatchFailureOnly"','chain_check_product(s,pid,birth);',
+        'owned_second_member_native_failure_case(s);','!s.left&&!s.control&&hash(s.product)==binary',
+        'const auto restored=chain_gui_save(s,original);','restored==expected')){
+        if(-not $body.Contains($fact)){throw ('Batch failure lost actual shared helper or exact product/config fact: '+$fact)}
+    }
+    if([regex]::Matches($body,'\bowned_second_member_native_failure_case\s*\(').Count -ne 1){throw 'Run the existing actual native failure helper exactly once.'}
+}
+$batchFailureOnly=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_batch_failure_only_case.h'),[Text.Encoding]::UTF8)
+Assert-V1BatchFailureOnlyWiring $fixtureSource $batchFailureOnly $lifecyclePrepare $lifecycleGuest
+Check $true 'static narrow batch entry calls the actual second-member failure and survivor recovery once'
+Reject {Assert-V1BatchFailureOnlyWiring $fixtureSource ($batchFailureOnly.Replace('owned_second_member_native_failure_case(s);','')) $lifecyclePrepare $lifecycleGuest} 'static a summary cannot replace the actual batch failure helper'
+Reject {Assert-V1BatchFailureOnlyWiring $fixtureSource ($batchFailureOnly.Replace('!s.left&&!s.control&&hash(s.product)==binary','true')) $lifecyclePrepare $lifecycleGuest} 'static batch success cannot bypass released input and unchanged actual product'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
