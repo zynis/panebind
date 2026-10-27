@@ -3,17 +3,42 @@
   "record_date": "2026-10-27",
   "current_round_targeted_followup": {
     "path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
-    "sha256": "0A94D7B64897B3A3612843E446D8064530182C1463DB9444DB28F9B84192BD1D",
+    "sha256": "99DEAD93AE9C28156E9A789997B6294D8F93BF6FD4768B79A4054398BA378F6B",
     "literal_excerpt_path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
-    "literal_excerpt_sha256": "BEA7F211E293C82558A2232E6923DCA25E05F2D82D098799F4ED107BB166C996",
+    "literal_excerpt_sha256": "B7C1F536390905DD2BA0FA28A377054EA1D927D235F2F076AEAF6F65DD188C74",
     "historical_initial_product_source_sha": "936aeb9e3be25021ef7c6f7f0953de4eb3944fcf",
-    "product_source_sha": "aacd1ee87598bfe3eaddded6542639147e212c90",
-    "current_scoped_results": "12cc D32/D33, f20a I07, 2bb I06 and 234bd max/grid retain their scope/identity. Added 94a real actor/packet/exit0 then early FocusLost and unsent cleanupUP; 00c early FocusLost again, with actual single abort cleanupUP verified but no Deadline/successor/I08 PASS. 12c7 true936/47ff ordinary ZIP entry and b4b same-PID two owned core rounds scoped PASS; b4b final NF02 p95 bucket99999us/missing34 does not meet the full budget. Initial/CreatePipe/bd941 failures and all historical bytes retained; no new feature/B score, tray or whole-version PASS. a127/936+4f02366 retains first exact, second API TRUE/identity lost, third zero, true release/detach/Gone, but fresh LL-UP remains old while new Raw is g0: actual cleanup-UP and survivor successor not proven, reason UNKNOWN, no I10 PASS. AACD D/R each8 offline PASS and two full-argv hostExit78 are build-only; field NOT_RUN. Latest AACD/9e:6271 two same-PID owned core rounds scoped PASS, final callback453/p99bucket999/max1063us/native122/missing34/p95bucket99999/max144091us still NF02 FAIL;63a4 actual second-member partial loss+unique matched abort-UP+same-instance Move/contact/Ctrl recovery scoped PASS (suite wholeI10false retained);91bc actual AACD/6af ordinary ZIP entry/settings effect/two NormalUP/exit scoped PASS. Earlier fourteen runs retain all source/hash/verdict identities; canonical contract-combination adjudication is separate.",
-    "next_product_source_sha": "aacd1ee87598bfe3eaddded6542639147e212c90",
-    "next_product_build_receipt": "uat/v1-control/build-sizing-aacd1ee-395104238f5245d49b6949832e8f6648/receipt.json",
-    "next_product_build_receipt_sha256": "B9F7D56ACACA1F1E410D785CD4050E21D6C639F3C34F952B7E36CA6067DB16F3",
-    "next_product_field_status": "ACTUAL_SCOPED_RUNTIME_PASSES_NF02_FAIL",
-    "latest_ordinary_portable_runtime": {"package_id":"6af574185d5b4cc1b81745bd12a593ec","run_id":"91bc71e42f7e41d29d5655094aa8a71b","product_source_sha":"aacd1ee87598bfe3eaddded6542639147e212c90","scope":"ORDINARY_ENTRY_SETTINGS_EFFECT_TWO_NORMALUP_AND_EXIT_NOT_WHOLE_I12_OR_HOST_UAT"},
+    "product_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+    "historical_aacd_build_ref": "20261027-targeted-followup-review.json#latest_product_candidate",
+    "latest_controls_followup": {
+      "run_id": "627a00ce603b4525be04b688331d3fba",
+      "product_driver_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+      "packaging_test_source_sha": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94",
+      "build_and_guard_ref": "20261027-targeted-followup-review.json#prepared_continuation_followup_build",
+      "scope": "145D/88P same-qualified-root Move/NormalUp and real native Tab/Button/Edit/Menu zero-enhancement component PASS. D93/D102 early UP_count0 remains original; D110 same-owner popup393998/PID6240/TID6268 ready and D114 native menu command observed. Prior6b/2353 identities/verdicts retained; no matrix/module/whole-version award."
+    },
+    "latest_core_followup": {
+      "run_id": "21328cc2190b4e3aa02079921b88bf9b",
+      "result": "TWO_SAME_INSTANCE_OWNED_CORE_ROUNDS_SCOPED_PASS_WHOLE_NF02_NOT_AWARDED_HERE",
+      "scope": "2197D; physical product retained1589..1986 plus1987..2001 only, earlier original receipts remain in complete driver, not new physical logs or complete first-round fourLL proof. D1118/D2136 samePID6572/productnotrestarted; D709/D1727 mapped doubleclick origin/exact; discrete corner Paused/resource retirement then actualUP is not NormalUp. P2000 callback453/p99bucket999/max1045us, native122valid+34missing/p95bucket49999/max120405us/unfinished0/unknownfalse retained. D2187/P2001 product exit0/resources and D2192 client delivery; no900/idle60/apps/Full or automatic wholeNF02 verdict."
+    },
+    "historical_0c_core_failure": {
+      "run_id": "91b5de42e1774bf9a24d998bacd575a3",
+      "result": "FAIL_SECOND_DOWN_PREPARED_EMPTY_NOT_ROUTE_EVALUATED",
+      "scope": "729D; physical P.1 seq1..410 plus current411..714 both pinned/combined continuous. Four actual LL706..709, secondDOWN708 Prepared.presentfalse/candidate_eligibletrue/gatefalse/route not evaluated; no fabricated NormalUp. Original Core two-rounds false/FAIL retained. Native53 includes46 origins/p95bucket20000us/max18037us plus7missing=6public+1legacy dock; callback148/max2091us. Prefix-only evidence, no whole NF02 PASS. Product stop/exit0 and poststop client delivery independently observed, then exact guest cleanup."
+    },
+    "historical_0ad_profile_followup": {
+      "run_ids": ["15692b7e724f4575872a9748d63a20e1", "6b2b359c3a0d4921b1f6b02f0c46d693", "a451193b2a0e4d44a1e018c08a23257e"],
+      "driver_source_sha": "3bebc0507ff1b07a71d446f3aa6ebbbca5d93fe0",
+      "build_and_guard_ref": "20261027-targeted-followup-review.json#limited_profile_followup_build",
+      "scope": "1569 single Corner geometry PASS, endpoint sample100368us/missing1 still NF02 FAIL;6b2b same-qualified-root Tab/Button/Edit real notifications and zero enhancement PASS but menu cursor[3,3]/fresh popup gate FAIL, original rect UNKNOWN, no M04-F01 PASS;a451 actor exit+96B immutable packet and abort-UP+same-instance supervisor Move/Resize recovery observed, original18718ms FocusLost/default30s FAIL and wholeI08false preserved. Three original wrapper/stop/guest-cleanup scopes remain independent; no new feature/B or whole-version PASS."
+    },
+    "historical_scoped_results_through_AACD": "12cc D32/D33, f20a I07, 2bb I06 and 234bd max/grid retain their scope/identity. Added 94a real actor/packet/exit0 then early FocusLost and unsent cleanupUP; 00c early FocusLost again, with actual single abort cleanupUP verified but no Deadline/successor/I08 PASS. 12c7 true936/47ff ordinary ZIP entry and b4b same-PID two owned core rounds scoped PASS; b4b final NF02 p95 bucket99999us/missing34 does not meet the full budget. Initial/CreatePipe/bd941 failures and all historical bytes retained; no new feature/B score, tray or whole-version PASS. a127/936+4f02366 retains first exact, second API TRUE/identity lost, third zero, true release/detach/Gone, but fresh LL-UP remains old while new Raw is g0: actual cleanup-UP and survivor successor not proven, reason UNKNOWN, no I10 PASS. AACD D/R each8 offline PASS and two full-argv hostExit78 are build-only; field NOT_RUN. Latest AACD/9e:6271 two same-PID owned core rounds scoped PASS, final callback453/p99bucket999/max1063us/native122/missing34/p95bucket99999/max144091us still NF02 FAIL;63a4 actual second-member partial loss+unique matched abort-UP+same-instance Move/contact/Ctrl recovery scoped PASS (suite wholeI10false retained);91bc actual AACD/6af ordinary ZIP entry/settings effect/two NormalUP/exit scoped PASS. Earlier fourteen runs retain all source/hash/verdict identities; canonical contract-combination adjudication is separate.",
+    "current_scoped_results": "Prior23 runs retain source/hash/verdicts including0c91b5 Prepared-empty FAIL and2f8b ordinary entry. New7a/1a40:2132 same-instance two owned core rounds,627a native controls impact and17b6 actualcaed ordinary ZIP entry/settings effect/two NormalUp/exit scopes PASS. Extreme tails/missing origins, first-round physical-log retention and discrete-corner UP boundaries retained; no automatic whole NF02/tray/matrix/host/whole-version award here.",
+    "next_product_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+    "next_product_build_receipt": "uat/v1-control/resume-test-scope-7a4760e-e41ae84b9da64bb98e89930f4baab2f0/receipt.json",
+    "next_product_build_receipt_sha256": "D3D0B5D7E55C18C29C5BFBB9237E8DD9C688D79C59B835018831C9CDFC5736CF",
+    "next_product_field_status": "ACTUAL_TWO_OWNED_CORE_ROUNDS_NATIVE_CONTROLS_AND_CAED_ORDINARY_ENTRY_SCOPED_PASS_NOT_WHOLE_NF_OR_VERSION",
+    "latest_ordinary_portable_runtime": {"package_id":"caed6f4502e74ed79251c9dc4f1829f3","run_id":"17b634cf38514271a89d52627df0b8c2","product_source_sha":"7a4760e099367ed28731df9eef2975f8a8442179","packaging_test_source_sha":"1a40bdb4c73c1ee9a724fd88eef294ad39d50f94","scope":"ORDINARY_ENTRY_SETTINGS_EFFECT_TWO_NORMALUP_AND_EXIT_NOT_WHOLE_I12_OR_HOST_UAT"},
     "whole_version": "PARTIAL"
   },
   "current_round_restored_connection_environment": {

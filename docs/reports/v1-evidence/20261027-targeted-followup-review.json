@@ -1,7 +1,7 @@
 {
   "schema": "panebind-v1-targeted-followup-review/1",
   "record_date": "2026-10-27",
-  "scope": "保留首九Run原身份；追加94a与00c真实actor退出后提前FocusLost（两次cleanup结果分别保留）、12c7普通47ff入口限定PASS、b4b同实例两轮owned core与最终NF02未达预算。不是新任务书、验收表或功能计分器。",
+  "scope": "原17Run/490行literal及0ad/0c六批全部保原身份；新增7a/1a40的2132同实例两轮owned Core、627a原生控件影响复验、17b6真正caed普通ZIP入口限定PASS。物理轮转范围与driver内嵌原回执分清，原0c Prepared空FAIL及全部慢值/缺起点保留，wholeNF/功能组合由独立canonical另裁；不是新任务书或计分器。",
   "historical_initial_scope": "首三批936产品/d12独立驱动真实失败封存；不是新任务书、验收表或功能计分器。",
   "latest_product_candidate": {
     "source_sha": "aacd1ee87598bfe3eaddded6542639147e212c90",
@@ -72,6 +72,293 @@
     "ordinary_portable_runtime": "SCOPED_PASS_91BC_SAME_AACD_BINARY",
     "actual_followup_run_ids": ["6271e3d570b14df8807b2f56eafde095", "63a4fc64c4aa4416b024878a7067f33a", "91bc71e42f7e41d29d5655094aa8a71b"],
     "current_field_runtime_status": "SCOPED_RUNTIME_PASSES_NF02_FAIL_NOT_WHOLE_VERSION"
+  },
+  "prepared_continuation_followup_build": {
+    "receipt": {
+      "path": "uat/v1-control/resume-test-scope-7a4760e-e41ae84b9da64bb98e89930f4baab2f0/receipt.json",
+      "bytes": 3826,
+      "sha256": "D3D0B5D7E55C18C29C5BFBB9237E8DD9C688D79C59B835018831C9CDFC5736CF"
+    },
+    "runtime_product_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+    "driver_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+    "test_scope_base": "7a4760e099367ed28731df9eef2975f8a8442179",
+    "later_test_commit": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94",
+    "test_file": "tests/core/v1_input_route_tests.cpp",
+    "test_file_sha256": "335B008A3EFD2F9E255A00B144A866E97EDC54FF80B19D350B5BC3DA56070390",
+    "current_test_file_matches_receipt": true,
+    "existing_Debug_product_unchanged": true,
+    "test_only_delta": "two local block braces isolating new counterexample variables",
+    "original_failed_Debug_build_log": {
+      "path": "uat/v1-control/build-sizing-7a4760e-74db2d6529f84bd0963c4209a39b9bc5/Debug-build.txt",
+      "bytes": 93488,
+      "sha256": "642CBCEAA5A635DC7CCFF1DF768732F7917E0E4F5256D9A92005257141F8E3BF"
+    },
+    "configurations": [
+      {
+        "configuration": "Debug",
+        "binaries": [
+          {
+            "path": "out/v1-app-sizing-7a4760e/src/platform/windows/Debug/panebind.exe",
+            "sha256": "3457CE4C0181314C9222B216EA38D67D6E68D3EDFDB691F6243CB6FA3F545664",
+            "bytes": 4359168
+          },
+          {
+            "path": "out/v1-app-sizing-7a4760e/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
+            "sha256": "8792486A4C3E11FBA339E837BA441E3388BE44F2755EAC7C9E12CE5AB2F16332",
+            "bytes": 11238912
+          }
+        ],
+        "ctest_original_log": {
+          "path": "uat/v1-control/resume-test-scope-7a4760e-e41ae84b9da64bb98e89930f4baab2f0/Debug-offline-ctest.txt",
+          "bytes": 1018,
+          "sha256": "D33923569514C771C849D1965AE878662900283AD4B2AA855DD33B56F2C80772"
+        },
+        "offline_passed": 8,
+        "offline_proc_seconds": 2.83,
+        "offline_wall_seconds": 2.87
+      },
+      {
+        "configuration": "Release",
+        "binaries": [
+          {
+            "path": "out/v1-app-sizing-7a4760e/src/platform/windows/Release/panebind.exe",
+            "sha256": "F1B49FACA9F1D32AB8F88910DBF1A67A18164F942A7038C2207504F0EDB2BA61",
+            "bytes": 1253888
+          },
+          {
+            "path": "out/v1-app-sizing-7a4760e/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+            "sha256": "041B690AD2B337AAA0AD6D5D728ABBB8000DF26E8060C8A4BE3DF56D240FFA42",
+            "bytes": 4728320
+          }
+        ],
+        "ctest_original_log": {
+          "path": "uat/v1-control/resume-test-scope-7a4760e-e41ae84b9da64bb98e89930f4baab2f0/Release-offline-ctest.txt",
+          "bytes": 1018,
+          "sha256": "59E784EDDF72A1C7A89DB12A3CD1FDB170E2437455CF11F1FC0F45A134AF917E"
+        },
+        "offline_passed": 8,
+        "offline_proc_seconds": 1.26,
+        "offline_wall_seconds": 2.17
+      }
+    ],
+    "host_guard": {
+      "receipt": {
+        "path": "uat/v1-host-guard/fe098bb6d0c14bef811230e46fed043c/receipt.json",
+        "bytes": 18538,
+        "sha256": "79F4BEFDE0349743FFF195F7A05DDB2CF468AEA7BE6378B2A8674E7C80F6623C"
+      },
+      "actual_exit78_count": 6,
+      "synthetic_input": 0
+    },
+    "actual_completed_run_ids": [
+      "21328cc2190b4e3aa02079921b88bf9b",
+      "627a00ce603b4525be04b688331d3fba",
+      "17b634cf38514271a89d52627df0b8c2"
+    ],
+    "field_scope": "SAME_INSTANCE_TWO_OWNED_CORE_ROUNDS_STANDARD_CONTROLS_AND_CAED_ORDINARY_ENTRY_SCOPED_PASS_NOT_WHOLE_NF_OR_VERSION",
+    "identity_scope_note": "Product/driver二进制实际selfsource均7a；首Debug只是新增test局部变量重名而编译失败，原日志保留。两block braces只改变测试作用域；7a同HEAD恢复构建并保Debug EXE，D/R8offline真实通过。后继1a40纯test/packaging提交的受测文件SHA与receipt一致，不是重建或改绑产品为1a40。本复核只读pin/hash，不运行cmake/EXE或Git。"
+  },
+  "full_profile_followup_build": {
+    "source_sha": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+    "receipt": {
+      "path": "uat/v1-control/build-sizing-0c0b730-d6188baf66284601abe5fa712aca7b68/receipt.json",
+      "bytes": 3607,
+      "sha256": "F1D06C31ACB3AF529D19085B32C5E37876F00478FE219353C979795655E16403"
+    },
+    "build_directory": "out/v1-app-sizing-0c0b730",
+    "compiler_flags": "/DWIN32 /D_WINDOWS /EHsc /bigobj",
+    "exception_handling": "Sync",
+    "configurations": [
+      {
+        "configuration": "Debug",
+        "product": {
+          "path": "out/v1-app-sizing-0c0b730/src/platform/windows/Debug/panebind.exe",
+          "sha256": "AF66D7378D05C9B5C7F17DA4D5EA1A30642211773C4ACA8CF0E9B2820275EBC3",
+          "bytes": 4326912
+        },
+        "driver": {
+          "path": "out/v1-app-sizing-0c0b730/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
+          "sha256": "516B0D8254CA3D37B9214DDA02B02C81C9828B1D6966A0D9E0C8E595B4858980",
+          "bytes": 11238912
+        },
+        "ctest_original_log": {
+          "path": "uat/v1-control/build-sizing-0c0b730-d6188baf66284601abe5fa712aca7b68/Debug-offline-ctest.txt",
+          "bytes": 1018,
+          "sha256": "BB3A0CC7F28F27448DAF928D523D419DBBDB3CB41EC090ED40CE85BA73F2957D"
+        },
+        "offline_passed": 8,
+        "offline_proc_seconds": 3.48,
+        "offline_wall_seconds": 4.62
+      },
+      {
+        "configuration": "Release",
+        "product": {
+          "path": "out/v1-app-sizing-0c0b730/src/platform/windows/Release/panebind.exe",
+          "sha256": "16AC17285E7D3045F66EBAB8AB77A6990B179AA5396B651AC2F59C1DC0C66983",
+          "bytes": 1246208
+        },
+        "driver": {
+          "path": "out/v1-app-sizing-0c0b730/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+          "sha256": "C82A3C791E2CC7BDEA978C56608BFF2D0729AD87A8BCA9BA3540CB71E8C350DE",
+          "bytes": 4728320
+        },
+        "ctest_original_log": {
+          "path": "uat/v1-control/build-sizing-0c0b730-d6188baf66284601abe5fa712aca7b68/Release-offline-ctest.txt",
+          "bytes": 1018,
+          "sha256": "FDF395D8C5BE106DCE84B2DED3B0D36662C66F3EED630E6D08D5060DD8571C5E"
+        },
+        "offline_passed": 8,
+        "offline_proc_seconds": 1.35,
+        "offline_wall_seconds": 2.26
+      }
+    ],
+    "host_guards": [
+      {
+        "receipt": {
+          "path": "uat/v1-host-guard/8c24350a2ae6453aad801344d09e229f/receipt.json",
+          "bytes": 11729,
+          "sha256": "DEADB1CE17662FAF90192198BBD989F01D8EB76B92BD84FF704A6C50D6131681"
+        },
+        "actual_exit78_count": 2,
+        "synthetic_input": 0,
+        "suites": [
+          "StandardControlsOnly"
+        ]
+      },
+      {
+        "receipt": {
+          "path": "uat/v1-host-guard/36810e4fa83b4087986a88361c3470d0/receipt.json",
+          "bytes": 15150,
+          "sha256": "336F47EFA3A4C4355663BD6535A9285BE3E927B1299C9E882B04ABEDF31FBF59"
+        },
+        "actual_exit78_count": 4,
+        "synthetic_input": 0,
+        "suites": [
+          "CurrentCoreChainOnly",
+          "PortableEntryOnly"
+        ]
+      }
+    ],
+    "build_checkpoint_interactive_cases_run": false,
+    "actual_completed_run_ids": [
+      "2353fd69af7d4f32944264465d8e69aa",
+      "91b5de42e1774bf9a24d998bacd575a3",
+      "056b2b1e63734d7cb78c337d8c969a48"
+    ],
+    "current_field_scope": "CONTROLS_COMPONENT_PASS_CORE_PREPARED_EMPTY_ACTUAL_FAIL_ORDINARY_2F8B_ENTRY_SCOPED_PASS_NOT_WHOLE_VERSION",
+    "scope": "生产只改变此前调查中的有限日志计数/输出开关，不把0ad慢值或6b原菜单FAIL换绑0c；新源D/R实际构建/8offline及6次host78各自原件可追溯。"
+  },
+  "limited_profile_followup_build": {
+    "product": {
+      "receipt": {
+        "path": "uat/v1-control/context-profile-0adfd0d-cea8563c242c41e6b6a5523340546ca1/receipt.json",
+        "bytes": 2188,
+        "sha256": "59473662EACCD86B8AF0908138C1FBB5FFC750A771B8C626D1CA84F38C6D6FB1"
+      },
+      "source_sha": "0adfd0d9aa95ab77d4d8f9d3d25e33800a4ae57c",
+      "results": [
+        {
+          "configuration": "Release",
+          "binary": {
+            "path": "out/v1-context-profile-0adfd0d/src/platform/windows/Release/panebind.exe",
+            "bytes": 1245696,
+            "sha256": "8D3C15631AF9872FC11FB0475BC3E123FD923B2672C67060150872545C2B8155"
+          },
+          "ctest_original_log": {
+            "path": "uat/v1-control/context-profile-0adfd0d-cea8563c242c41e6b6a5523340546ca1/Release-offline-ctest.txt",
+            "bytes": 1023,
+            "sha256": "6F78633EF31DB9DB4FF9545EBC269D567198F9CF9C8C81C72A22706A65ABC8B1"
+          },
+          "passed": 8,
+          "offline_proc_seconds": 2.49,
+          "offline_wall_seconds": 3.72
+        },
+        {
+          "configuration": "Debug",
+          "binary": {
+            "path": "out/v1-context-profile-0adfd0d/src/platform/windows/Debug/panebind.exe",
+            "bytes": 4326400,
+            "sha256": "5FE18D07F75804F4395F4F69A1061C3A5F3B1154214F189D5A400D51E892030A"
+          },
+          "ctest_original_log": {
+            "path": "uat/v1-control/context-profile-0adfd0d-cea8563c242c41e6b6a5523340546ca1/Debug-offline-ctest.txt",
+            "bytes": 1023,
+            "sha256": "DC2448893920999E8431A17A273A33158526C8E63539A0699383C32B69CECB61"
+          },
+          "passed": 8,
+          "offline_proc_seconds": 3.78,
+          "offline_wall_seconds": 3.83
+        }
+      ]
+    },
+    "driver": {
+      "receipt": {
+        "path": "uat/v1-control/profile-driver-3bebc05-56f0500b85c644878f0f602a1c024fbe/receipt.json",
+        "bytes": 2510,
+        "sha256": "69FFBF9C5C3F3F59BD73E8AE72ABE4940FCF72B8397CDC142FCF663F66185B5B"
+      },
+      "source_sha": "3bebc0507ff1b07a71d446f3aa6ebbbca5d93fe0",
+      "results": [
+        {
+          "configuration": "Release",
+          "binary": {
+            "path": "out/v1-context-profile-0adfd0d/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+            "bytes": 4717056,
+            "sha256": "6A9FA5101CA11A55517F7AAC1C3A296EC4D890AC85F9C43D037432758E504A6C"
+          },
+          "ctest_original_log": {
+            "path": "uat/v1-control/profile-driver-3bebc05-56f0500b85c644878f0f602a1c024fbe/Release-offline-ctest.txt",
+            "bytes": 412,
+            "sha256": "F07EDDC92D8B2D6B11CD090ACB3CDCF5FEA599CC447B25FD3D4A98AB87ABD94E"
+          },
+          "passed": 2,
+          "offline_proc_seconds": 0.15,
+          "offline_wall_seconds": 0.19
+        },
+        {
+          "configuration": "Debug",
+          "binary": {
+            "path": "out/v1-context-profile-0adfd0d/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
+            "bytes": 11220992,
+            "sha256": "25A25D1BE518F57063FBCA771A85F96E2119BC2D450256C9B9B0103709EEACCC"
+          },
+          "ctest_original_log": {
+            "path": "uat/v1-control/profile-driver-3bebc05-56f0500b85c644878f0f602a1c024fbe/Debug-offline-ctest.txt",
+            "bytes": 412,
+            "sha256": "38D698CFA050F111096FEB076B9A8380D7648B082E29581CAAD852795BE95C8E"
+          },
+          "passed": 2,
+          "offline_proc_seconds": 0.14,
+          "offline_wall_seconds": 0.16
+        }
+      ]
+    },
+    "host_guard": {
+      "receipt": {
+        "path": "uat/v1-host-guard/791ad94a62724315855861981e58cce6/receipt.json",
+        "bytes": 18642,
+        "sha256": "250FE3E6E7F54630AD12260BE7B21A5CC6A779E86B2E1F0996DFE863CC0E47B3"
+      },
+      "actual_exit78_count": 6,
+      "synthetic_input": 0,
+      "ordinary_product_launches": 0,
+      "configurations": [
+        "Debug",
+        "Release"
+      ],
+      "suites": [
+        "CornerInputOnly",
+        "DriverDisconnectOnly",
+        "StandardControlsOnly"
+      ]
+    },
+    "actual_run_ids": [
+      "15692b7e724f4575872a9748d63a20e1",
+      "6b2b359c3a0d4921b1f6b02f0c46d693",
+      "a451193b2a0e4d44a1e018c08a23257e"
+    ],
+    "field_status": "ACTUAL_BOUNDED_RELEASE_SCOPES_WITH_ORIGINAL_FAILURES_NOT_WHOLE_VERSION",
+    "preserved_history": "上方AACD对象仍是其原构建/实测历史；本对象只绑定0ad产品/3beb驱动的三个新Run，不将旧936/AACD/便携PASS换绑。后继menu-ready及产品Log修订不在本批运行身份。"
   },
   "latest_driver_candidate": {
     "source_sha": "23e9da1a764d4bfd35446d31e76744ce36f1d19f",
@@ -196,9 +483,9 @@
   },
   "literal_excerpt": {
     "path": "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
-    "bytes": 473144,
-    "sha256": "BEA7F211E293C82558A2232E6923DCA25E05F2D82D098799F4ED107BB166C996",
-    "rows": 490
+    "bytes": 670393,
+    "sha256": "B7C1F536390905DD2BA0FA28A377054EA1D927D235F2F076AEAF6F65DD188C74",
+    "rows": 747
   },
   "environment_receipt": {
     "path": "docs/reports/v1-evidence/20261027-restored-ssh-environment.json",
@@ -5120,8 +5407,2228 @@
         "actual_entry_scope_result": "PASS",
         "package_checkpoint_metadata_not_rewritten": true
       }
+    },
+    {
+      "run_id": "15692b7e724f4575872a9748d63a20e1",
+      "suite": "CornerInputOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "0adfd0d9aa95ab77d4d8f9d3d25e33800a4ae57c",
+        "product_exe_sha256": "8D3C15631AF9872FC11FB0475BC3E123FD923B2672C67060150872545C2B8155",
+        "driver_source_sha": "3bebc0507ff1b07a71d446f3aa6ebbbca5d93fe0",
+        "driver_exe_sha256": "6A9FA5101CA11A55517F7AAC1C3A296EC4D890AC85F9C43D037432758E504A6C",
+        "packaging_head": "3bebc0507ff1b07a71d446f3aa6ebbbca5d93fe0",
+        "fixture_pid": 7160,
+        "fixture_birth_filetime_decimal": "134375607293026573",
+        "product_pid": 3952,
+        "product_birth_filetime_decimal": "134375607297790358",
+        "all_raw_rows_source_identity_match": true
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/15692b7e724f4575872a9748d63a20e1/package-receipt.json",
+          "bytes": 13534,
+          "sha256": "75399246968E4CB6E67B2C11F6FF50D87956D00BCB93EED29861782A3D2D237C"
+        },
+        "zip_path": "uat/v1-sandbox/15692b7e724f4575872a9748d63a20e1/15692b7e724f4575872a9748d63a20e1.zip",
+        "zip_sha256": "FCFBA1906164E2F1C181442CFEC1E86A3AF3708144066F847CD1BEC71A16AAD1",
+        "manifest_path": "uat/v1-sandbox/15692b7e724f4575872a9748d63a20e1/input/manifest.json",
+        "manifest_sha256": "123D431F5DFFC8D570E8AB673C3DD51980332D7BBF6BBD5E00E28245C7E046C8",
+        "wsb_path": "uat/v1-sandbox/15692b7e724f4575872a9748d63a20e1/PaneBindV1.wsb",
+        "wsb_sha256": "3DAE3DAD3C8F5D0E4D7996778115696FB88B1CA4D541D45AF731E37E3E614C4B",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/15692b7e724f4575872a9748d63a20e1/collection-20261027T074529803Z-adbea1d3e8014dd58831ddb6f3e2c6bc/15692b7e724f4575872a9748d63a20e1-release-fixture.jsonl",
+          "bytes": 142473,
+          "sha256": "2E901795473DC3BC0B71613F0560A02C70534F0AB23B1D59DB38D674C07F2694",
+          "rows": 212,
+          "first_sequence": 1,
+          "last_sequence": 212,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/15692b7e724f4575872a9748d63a20e1/collection-20261027T074529803Z-adbea1d3e8014dd58831ddb6f3e2c6bc/15692b7e724f4575872a9748d63a20e1-product-Release/panebind.log.jsonl",
+          "bytes": 122648,
+          "sha256": "6637F495F11ED5F20B396E2E26DB20E5F1C0BCA46F79A47884270355141982F3",
+          "rows": 93,
+          "first_sequence": 1,
+          "last_sequence": 93,
+          "contiguous": true
+        }
+      ],
+      "collection_receipt": {
+        "path": "uat/v1-control/15692b7e724f4575872a9748d63a20e1/collection-20261027T074529803Z-adbea1d3e8014dd58831ddb6f3e2c6bc/collection-receipt.json",
+        "bytes": 8909,
+        "sha256": "206D3B4C2636A464CD5AB9ECF8956884BD85E28F08DEC74882FF0AC3CF769D0B"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 8,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/15692b7e724f4575872a9748d63a20e1/collection-20261027T074529803Z-adbea1d3e8014dd58831ddb6f3e2c6bc/15692b7e724f4575872a9748d63a20e1-release-fixture.jsonl",
+          "excerpt_first_line": 491,
+          "excerpt_last_line": 501,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            122,
+            125,
+            127,
+            133,
+            189,
+            200,
+            208,
+            212
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/15692b7e724f4575872a9748d63a20e1/collection-20261027T074529803Z-adbea1d3e8014dd58831ddb6f3e2c6bc/15692b7e724f4575872a9748d63a20e1-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 502,
+          "excerpt_last_line": 509,
+          "source_sequences": [
+            43,
+            54,
+            55,
+            56,
+            65,
+            70,
+            92,
+            93
+          ]
+        }
+      ],
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/15692b7e724f4575872a9748d63a20e1/collection-20261027T074529803Z-adbea1d3e8014dd58831ddb6f3e2c6bc/15692b7e724f4575872a9748d63a20e1-guest-summary.json",
+          "bytes": 20853,
+          "sha256": "E6B1206C225792741B5B2CD36210F8ED22870D55C5BFAC5D51DD65F4C5C2ED7F"
+        },
+        "status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "token": {
+          "rid": 8192,
+          "elevated": false,
+          "restricted": false,
+          "session": 1
+        },
+        "product_cleanup_pass_interpretation": "原始false为wrapper未评估初始化值，保留；逐项产品资源退出与精确guest清理分别以原件判，不据此授整链cleanup。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/15692b7e724f4575872a9748d63a20e1/cleanup-receipt.json",
+          "bytes": 10014,
+          "sha256": "E58F6C1B799DFE6134576854A4D795BD4BE9031F51040A89F358A815E70C8C98"
+        },
+        "utc": "2026-10-27T07:47:52.5838431Z",
+        "pid": 74032,
+        "parent_pid": 74704,
+        "session_id": 1,
+        "start_ticks_decimal": "639286839163820339",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "findings": {
+        "result": "SINGLE_ORIGINAL_I05_CORNER_GEOMETRY_SCOPE_PASS_FULL_ENDPOINT_SLOW_SAMPLE_RETAINED",
+        "observed": [
+          "D122首击为实际LL-UP native透传，不是NormalUp；D125/D127第二击实际HTBOTTOMRIGHT17、单BR stretch几何[1300,180,3050,1596]exact。P54/55为g2真实double_click_stretch/native call1；P56 end4/normal_up=false，不能以两次SendInput UP构造两次真实正常UP或整I05。",
+          "P55完整QPC端点hook334697671→post335701342（freq1e7），软件差100367.1us；最终P92按原统计上整maximum100368us、native samples1/discarded1/missing_clock1/p95桶200000us。P70另一次Undo为g0且hook起点0；不能将native API段或无起点Undo冒充完整延迟，NF02仍FAIL，单样本不作分布或唯一根因结论。",
+          "D133真实Undo、D189原配置与窗口/产品保留；D200/P93实际publicquit、product exit0和own资源退出，D208/D212是CornerInputOnly限定PASS，不授完整命令链、真人或整版。"
+        ],
+        "corner_placement_sequence": 55,
+        "software_timing_qpc": {
+          "frequency": 10000000,
+          "hook": 334697671,
+          "preflight_started": 335554783,
+          "native_before": 335562104,
+          "native_after": 335680655,
+          "geometry_observed": 335701170,
+          "post_observed": 335701342
+        },
+        "not_awarded": [
+          "two_actual_NormalUp",
+          "whole_I05",
+          "whole_NF02",
+          "application_matrix",
+          "whole_version"
+        ],
+        "next_action": "保留原Corner几何限定PASS及100.368ms慢样本；后继生产日志/数据流改动须以其新EXE另行验证，不改本Run。",
+        "timing_summary": {
+          "product_sequence": 92,
+          "after_native_writer_stop_and_final_drain": true,
+          "native_worker_exited": true,
+          "completion_unknown": false,
+          "mouse_callback": {
+            "samples": 29,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 999,
+            "maximum_us": 538,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 1,
+            "discarded": 1,
+            "missing_clock": 1,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 200000,
+            "maximum_us": 100368,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          }
+        },
+        "product_stop": {
+          "fixture_sequence": 200,
+          "quit_command_completed": true,
+          "process_exit_observed": true,
+          "product_exit_code": 0,
+          "product_shutdown_sequence": 93,
+          "own_resource_shutdown_flags_true": true,
+          "issued_native_completion_unknown": false
+        }
+      }
+    },
+    {
+      "run_id": "6b2b359c3a0d4921b1f6b02f0c46d693",
+      "suite": "StandardControlsOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "0adfd0d9aa95ab77d4d8f9d3d25e33800a4ae57c",
+        "product_exe_sha256": "8D3C15631AF9872FC11FB0475BC3E123FD923B2672C67060150872545C2B8155",
+        "driver_source_sha": "3bebc0507ff1b07a71d446f3aa6ebbbca5d93fe0",
+        "driver_exe_sha256": "6A9FA5101CA11A55517F7AAC1C3A296EC4D890AC85F9C43D037432758E504A6C",
+        "packaging_head": "3bebc0507ff1b07a71d446f3aa6ebbbca5d93fe0",
+        "fixture_pid": 6096,
+        "fixture_birth_filetime_decimal": "134375608965564785",
+        "product_pid": 6440,
+        "product_birth_filetime_decimal": "134375608967843132",
+        "all_raw_rows_source_identity_match": true
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/6b2b359c3a0d4921b1f6b02f0c46d693/package-receipt.json",
+          "bytes": 13539,
+          "sha256": "2E4D4B1E5C67825F7B99A3B828946407F41204564BD822198A95A07A8BAD4CC0"
+        },
+        "zip_path": "uat/v1-sandbox/6b2b359c3a0d4921b1f6b02f0c46d693/6b2b359c3a0d4921b1f6b02f0c46d693.zip",
+        "zip_sha256": "719379634C89AC645909BEFC74FE11C56D9ADC720D571244F6EFA61468DCAEF0",
+        "manifest_path": "uat/v1-sandbox/6b2b359c3a0d4921b1f6b02f0c46d693/input/manifest.json",
+        "manifest_sha256": "B41B96407731A5015EA01A294B1A5685237E45283121C82E9A969DF065E18E70",
+        "wsb_path": "uat/v1-sandbox/6b2b359c3a0d4921b1f6b02f0c46d693/PaneBindV1.wsb",
+        "wsb_sha256": "20045B226F6A021C211D8305882AB4A20E157EAC7D0D3BA70AA0454045334E5D",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/6b2b359c3a0d4921b1f6b02f0c46d693/collection-20261027T074949486Z-2fc8986d4b5b40568bc714ac652c949c/6b2b359c3a0d4921b1f6b02f0c46d693-release-fixture.jsonl",
+          "bytes": 76628,
+          "sha256": "5E6ABF99AE07EE44A19C56224F3F5FB312813FF5E47839F1820998F3FD5BAF4A",
+          "rows": 136,
+          "first_sequence": 1,
+          "last_sequence": 136,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/6b2b359c3a0d4921b1f6b02f0c46d693/collection-20261027T074949486Z-2fc8986d4b5b40568bc714ac652c949c/6b2b359c3a0d4921b1f6b02f0c46d693-product-Release/panebind.log.jsonl",
+          "bytes": 103051,
+          "sha256": "11CD4F36C42D84C1D7BFB65E3F6A0CDB0A21CCE4F00BB02792B3D509E7DF26CA",
+          "rows": 79,
+          "first_sequence": 1,
+          "last_sequence": 79,
+          "contiguous": true
+        }
+      ],
+      "collection_receipt": {
+        "path": "uat/v1-control/6b2b359c3a0d4921b1f6b02f0c46d693/collection-20261027T074949486Z-2fc8986d4b5b40568bc714ac652c949c/collection-receipt.json",
+        "bytes": 8907,
+        "sha256": "293442B8A4C0598CC1A71813CD5CE168C601E555954EFFF977AE9BA608286ADD"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 8,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/6b2b359c3a0d4921b1f6b02f0c46d693/collection-20261027T074949486Z-2fc8986d4b5b40568bc714ac652c949c/6b2b359c3a0d4921b1f6b02f0c46d693-release-fixture.jsonl",
+          "excerpt_first_line": 510,
+          "excerpt_last_line": 529,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            73,
+            85,
+            86,
+            89,
+            93,
+            94,
+            97,
+            102,
+            103,
+            106,
+            108,
+            109,
+            110,
+            113,
+            124,
+            131,
+            132
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/6b2b359c3a0d4921b1f6b02f0c46d693/collection-20261027T074949486Z-2fc8986d4b5b40568bc714ac652c949c/6b2b359c3a0d4921b1f6b02f0c46d693-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 530,
+          "excerpt_last_line": 533,
+          "source_sequences": [
+            40,
+            52,
+            74,
+            79
+          ]
+        }
+      ],
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/6b2b359c3a0d4921b1f6b02f0c46d693/collection-20261027T074949486Z-2fc8986d4b5b40568bc714ac652c949c/6b2b359c3a0d4921b1f6b02f0c46d693-guest-summary.json",
+          "bytes": 20915,
+          "sha256": "D7ADC00C4EDDC23765D7FB8D93BB95656EA9110B21DE70E5C4533A1E5D7EC6C1"
+        },
+        "status": "BLOCKED_OR_FAILED",
+        "wait_result": 0,
+        "fixture_exit_code": 1,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "token": {
+          "rid": 8192,
+          "elevated": false,
+          "restricted": false,
+          "session": 1
+        },
+        "product_cleanup_pass_interpretation": "原始false为wrapper未评估初始化值，保留；逐项产品资源退出与精确guest清理分别以原件判，不据此授整链cleanup。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/6b2b359c3a0d4921b1f6b02f0c46d693/cleanup-receipt.json",
+          "bytes": 10012,
+          "sha256": "06ABF70DF0085736C299C3C19EC859A92D78B95EC6EC05500CCAAAEBB2B2E272"
+        },
+        "utc": "2026-10-27T07:52:21.2267235Z",
+        "pid": 72584,
+        "parent_pid": 65884,
+        "session_id": 1,
+        "start_ticks_decimal": "639286840836502848",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "findings": {
+        "result": "STANDARD_CONTROLS_TAB_BUTTON_EDIT_SCOPE_PASS_MENU_TEST_GATE_FAIL_UNKNOWN_ORIGINAL_RECT",
+        "observed": [
+          "同一个exact owned root先有D73实际增强标题Move及P40 native exact/P52真实NormalUp，故后续零增强不是整个根不合格的假PASS。D85/93/102分别有真实child DOWN/UP；D86 TCN_SELCHANGE、D94 BN_CLICKED、D103 Edit真实拖选[0,3]，D89/97/106各自原生操作后零新增gesture/native claim且原几何保留。",
+          "D108/109真实菜单栏DOWN/UP后，D110请求及实际cursor均[3,3]；D113以standard_controls_fresh_owned_popup_identity_changed拒绝，菜单命令未证。原D/P没有记录此次菜单项矩形或实际popup身份，不能断言[0,0,6,6]、具体布局时点、系统原因或产品菜单故障。",
+          "P74在[3,3]报告shell_desktop；原Run FAIL保留，不授M04-F01。D124/P79产品publicquit/exit0/own资源退出，D131实际poststop客户投递PASS，D132/D136仍整体FAIL。后继菜单cursor前只读ready门是TEST修正、未在本批运行。"
+        ],
+        "tab_notification_sequence": 86,
+        "button_notification_sequence": 94,
+        "edit_selection_sequence": 103,
+        "failed_menu_cursor_sequence": 110,
+        "failed_phase_sequence": 113,
+        "original_menu_item_rect": "NOT_RECORDED",
+        "not_awarded": [
+          "native_menu_WM_COMMAND",
+          "M04_F01",
+          "whole_version"
+        ],
+        "next_action": "后继TEST在任何cursor(item)之前有界只读核exact HMENU/GUI menuOwner、实际中心命中同PID/TID的可见#32768及两fresh矩形一致；不重点击、不猜旧rect或改本FAIL。",
+        "timing_summary": {
+          "product_sequence": 78,
+          "after_native_writer_stop_and_final_drain": true,
+          "native_worker_exited": true,
+          "completion_unknown": false,
+          "mouse_callback": {
+            "samples": 25,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 500,
+            "maximum_us": 456,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 1,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 10000,
+            "maximum_us": 5520,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          }
+        },
+        "product_stop": {
+          "fixture_sequence": 124,
+          "quit_command_completed": true,
+          "process_exit_observed": true,
+          "product_exit_code": 0,
+          "product_shutdown_sequence": 79,
+          "own_resource_shutdown_flags_true": true,
+          "issued_native_completion_unknown": false
+        }
+      }
+    },
+    {
+      "run_id": "a451193b2a0e4d44a1e018c08a23257e",
+      "suite": "DriverDisconnectOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "0adfd0d9aa95ab77d4d8f9d3d25e33800a4ae57c",
+        "product_exe_sha256": "8D3C15631AF9872FC11FB0475BC3E123FD923B2672C67060150872545C2B8155",
+        "driver_source_sha": "3bebc0507ff1b07a71d446f3aa6ebbbca5d93fe0",
+        "driver_exe_sha256": "6A9FA5101CA11A55517F7AAC1C3A296EC4D890AC85F9C43D037432758E504A6C",
+        "packaging_head": "3bebc0507ff1b07a71d446f3aa6ebbbca5d93fe0",
+        "fixture_pid": 6280,
+        "fixture_birth_filetime_decimal": "134375611588694173",
+        "product_pid": 6668,
+        "product_birth_filetime_decimal": "134375611590717754",
+        "all_raw_rows_source_identity_match": true
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/a451193b2a0e4d44a1e018c08a23257e/package-receipt.json",
+          "bytes": 13539,
+          "sha256": "7203027C6B5B6C9F9831172779F13B6741433149F4B59E1C2DF193070ABA5C71"
+        },
+        "zip_path": "uat/v1-sandbox/a451193b2a0e4d44a1e018c08a23257e/a451193b2a0e4d44a1e018c08a23257e.zip",
+        "zip_sha256": "EF0A2E9458B212D7856A1DF0BACC8D0BF4D3EDBF65D45C839CF6F149EB8A5CBA",
+        "manifest_path": "uat/v1-sandbox/a451193b2a0e4d44a1e018c08a23257e/input/manifest.json",
+        "manifest_sha256": "DCC6B90BA21311201DB655473F3583CB9427A79939FA6BB906F10137CF3A4F26",
+        "wsb_path": "uat/v1-sandbox/a451193b2a0e4d44a1e018c08a23257e/PaneBindV1.wsb",
+        "wsb_sha256": "6CD03D6893431C931A444064EB83B7316E23F26AD58D662F226076AC787A7767",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/a451193b2a0e4d44a1e018c08a23257e/collection-20261027T075359121Z-a90d73145f3b4085b907949a10f04b82/a451193b2a0e4d44a1e018c08a23257e-release-fixture.jsonl",
+          "bytes": 153062,
+          "sha256": "A01D24349986B93C5758267F542EAF88F02FCA34D5967050CE32D53682F12692",
+          "rows": 247,
+          "first_sequence": 1,
+          "last_sequence": 247,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/a451193b2a0e4d44a1e018c08a23257e/collection-20261027T075359121Z-a90d73145f3b4085b907949a10f04b82/a451193b2a0e4d44a1e018c08a23257e-product-Release/panebind.log.jsonl",
+          "bytes": 202403,
+          "sha256": "170D37B4CA7676E1EF3C617FF3E57D2C2C84D35144B4420FB318104A8DCE165D",
+          "rows": 152,
+          "first_sequence": 1,
+          "last_sequence": 152,
+          "contiguous": true
+        }
+      ],
+      "collection_receipt": {
+        "path": "uat/v1-control/a451193b2a0e4d44a1e018c08a23257e/collection-20261027T075359121Z-a90d73145f3b4085b907949a10f04b82/collection-receipt.json",
+        "bytes": 10837,
+        "sha256": "11BE557DF39D2C0CE27003753586E5B4F0EEFBCFBDF348AF14E24DAAAD59F955"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 10,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/a451193b2a0e4d44a1e018c08a23257e/collection-20261027T075359121Z-a90d73145f3b4085b907949a10f04b82/a451193b2a0e4d44a1e018c08a23257e-release-fixture.jsonl",
+          "excerpt_first_line": 534,
+          "excerpt_last_line": 551,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            130,
+            131,
+            138,
+            143,
+            147,
+            160,
+            164,
+            171,
+            175,
+            181,
+            236,
+            239,
+            241,
+            243,
+            247
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/a451193b2a0e4d44a1e018c08a23257e/collection-20261027T075359121Z-a90d73145f3b4085b907949a10f04b82/a451193b2a0e4d44a1e018c08a23257e-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 552,
+          "excerpt_last_line": 561,
+          "source_sequences": [
+            55,
+            56,
+            57,
+            64,
+            87,
+            100,
+            117,
+            131,
+            151,
+            152
+          ]
+        }
+      ],
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/a451193b2a0e4d44a1e018c08a23257e/collection-20261027T075359121Z-a90d73145f3b4085b907949a10f04b82/a451193b2a0e4d44a1e018c08a23257e-guest-summary.json",
+          "bytes": 20914,
+          "sha256": "FC0A5F8859707E84920DBEFEA7F150DC7DF8660C36F9150A6DF1661CB3841B5F"
+        },
+        "status": "BLOCKED_OR_FAILED",
+        "wait_result": 0,
+        "fixture_exit_code": 1,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "token": {
+          "rid": 8192,
+          "elevated": false,
+          "restricted": false,
+          "session": 1
+        },
+        "product_cleanup_pass_interpretation": "原始false为wrapper未评估初始化值，保留；逐项产品资源退出与精确guest清理分别以原件判，不据此授整链cleanup。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/a451193b2a0e4d44a1e018c08a23257e/cleanup-receipt.json",
+          "bytes": 11750,
+          "sha256": "292C454CDA2387C6B9D17F330443D1AD490394255225353997D008C7C2811047"
+        },
+        "utc": "2026-10-27T07:57:18.3837355Z",
+        "pid": 41324,
+        "parent_pid": 68096,
+        "session_id": 1,
+        "start_ticks_decimal": "639286843464586436",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "findings": {
+        "result": "ACTOR_EXIT_EARLY_FOCUS_LOST_FAIL_WITH_SAME_INSTANCE_SUPERVISOR_MOVE_RESIZE_RECOVERY_SCOPE_PASS",
+        "observed": [
+          "D130实际exact Move后ACK，D131 held actor已exit0，96B同一held packet前后SHA0238853397685D5D110BF8C254BBBAC380B7C5572F64BCE442D1424AD808A995不变；不是EOF推断或产品DriverDisconnected通知。",
+          "D138真实actor开始33000→g1 end51718，elapsed18718ms，P56 winevent_foreground/FG131892/source197420，P57 end2 FocusLost/normal_up=false。观察不能证明激活发起者或系统根因，也不是30s Deadline/NormalUp。D143撤权后无新native，D147真实唯一supervisor abort-UP已观察；P64 Gone的release_attempted/completed/succeeded原值均false、detach/destroy/hotkey退出为true，不能改写为执行了ReleaseCapture或整cleanup PASS。",
+          "同一产品PID6668/birth原值不变；D160/164新g2 Move exact/实际matchingUP、D171/175新g3 Resize exact/实际matchingUP，P100/P131分别真实NormalUp，D165/176几何与capture后验通过。D181记录actor提前FocusLost+abortUP+原supervisor后继恢复，保留original_failure_preserved=true/default_30s_Deadline_observed=false；新actor后继NOT_RUN，整I08未通过。",
+          "D236/D239/D243/D247保留本Run原FAIL/非零退出。D241/P152产品正常publicquit exit0/own资源退出与精确guest清理分别成立；未追加额外poststop客户点击。"
+        ],
+        "configured_deadline_ms": 30000,
+        "actual_elapsed_ms": 18718,
+        "abort_generation": 1,
+        "abort_origin": "winevent_foreground",
+        "abort_foreground": 131892,
+        "recovery_product_pid": 6668,
+        "recovery_product_birth_filetime_decimal": "134375611590717754",
+        "recovery_Move": {
+          "generation": 2,
+          "fixture_geometry_sequence": 160,
+          "fixture_actual_UP_sequence": 164,
+          "product_NormalUp_sequence": 100
+        },
+        "recovery_Resize": {
+          "generation": 3,
+          "fixture_geometry_sequence": 171,
+          "fixture_actual_UP_sequence": 175,
+          "product_NormalUp_sequence": 131
+        },
+        "not_awarded": [
+          "default_30s_Deadline",
+          "NormalUp_for_aborted_g1",
+          "new_input_actor_successor",
+          "whole_I08",
+          "whole_cleanup",
+          "whole_version"
+        ],
+        "next_action": "复用同实例supervisor后继Move/Resize实际恢复；原FocusLost/Deadline失败保留，不以未知FG为权限或系统根因，不再无变量重复该Deadline路线。",
+        "timing_summary": {
+          "product_sequence": 151,
+          "after_native_writer_stop_and_final_drain": true,
+          "native_worker_exited": true,
+          "completion_unknown": false,
+          "mouse_callback": {
+            "samples": 39,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 999,
+            "maximum_us": 510,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 3,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 10000,
+            "maximum_us": 8566,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          }
+        },
+        "product_stop": {
+          "fixture_sequence": 241,
+          "quit_command_completed": true,
+          "process_exit_observed": true,
+          "product_exit_code": 0,
+          "product_shutdown_sequence": 152,
+          "own_resource_shutdown_flags_true": true,
+          "issued_native_completion_unknown": false
+        }
+      }
+    },
+    {
+      "run_id": "2353fd69af7d4f32944264465d8e69aa",
+      "suite": "StandardControlsOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "product_exe_sha256": "16AC17285E7D3045F66EBAB8AB77A6990B179AA5396B651AC2F59C1DC0C66983",
+        "driver_source_sha": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "driver_exe_sha256": "C82A3C791E2CC7BDEA978C56608BFF2D0729AD87A8BCA9BA3540CB71E8C350DE",
+        "packaging_head": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "fixture_pid": 4024,
+        "fixture_birth_filetime_decimal": "134375626100033126",
+        "product_pid": 3960,
+        "product_birth_filetime_decimal": "134375626102013257",
+        "all_raw_rows_source_identity_match": true
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/2353fd69af7d4f32944264465d8e69aa/package-receipt.json",
+          "bytes": 13539,
+          "sha256": "B483C8C87C3592F511E9DA47F37E2AFF6FBB7D61D0420FC0EA8DC6FAD0105CA1"
+        },
+        "zip_path": "uat/v1-sandbox/2353fd69af7d4f32944264465d8e69aa/2353fd69af7d4f32944264465d8e69aa.zip",
+        "zip_sha256": "3A6651D6A09E1D8A1E697C3CD4B04E57040967478A84B2907021301F662B36C0",
+        "manifest_path": "uat/v1-sandbox/2353fd69af7d4f32944264465d8e69aa/input/manifest.json",
+        "manifest_sha256": "C147296D14949C7149A676C161F797C4C77A8E6B189FC9B2EDBE9701C49EA0FA",
+        "wsb_path": "uat/v1-sandbox/2353fd69af7d4f32944264465d8e69aa/PaneBindV1.wsb",
+        "wsb_sha256": "7402FC65F0D099BD1474C819F4EA122B90C56698679F6D13DA581393BAA87AB8",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/2353fd69af7d4f32944264465d8e69aa/collection-20261027T081656548Z-c67f4428236b43b9900aa68e1a4851db/2353fd69af7d4f32944264465d8e69aa-release-fixture.jsonl",
+          "bytes": 81314,
+          "sha256": "3BEC8BB41D784FB7FB2700E07B12CB63226EE96FCB048F7BBA8D4D7A77FA0EFA",
+          "rows": 145,
+          "first_sequence": 1,
+          "last_sequence": 145,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/2353fd69af7d4f32944264465d8e69aa/collection-20261027T081656548Z-c67f4428236b43b9900aa68e1a4851db/2353fd69af7d4f32944264465d8e69aa-product-Release/panebind.log.jsonl",
+          "bytes": 116089,
+          "sha256": "16F01AFDF2775A787B2EDA0099464472124F4E4CDB27A029A707B11A3487B8B9",
+          "rows": 90,
+          "first_sequence": 1,
+          "last_sequence": 90,
+          "contiguous": true
+        }
+      ],
+      "collection_receipt": {
+        "path": "uat/v1-control/2353fd69af7d4f32944264465d8e69aa/collection-20261027T081656548Z-c67f4428236b43b9900aa68e1a4851db/collection-receipt.json",
+        "bytes": 8907,
+        "sha256": "6945420691C222A62F7F2FEFCD69AE2A912E117D31CED37B5DB9EB5FB63B82C7"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 8,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/2353fd69af7d4f32944264465d8e69aa/collection-20261027T081656548Z-c67f4428236b43b9900aa68e1a4851db/2353fd69af7d4f32944264465d8e69aa-guest-summary.json",
+          "bytes": 20873,
+          "sha256": "78057B09E6AB0798ABE478F683B107825856BACCCEA86C4A5FA691C55C966C5E"
+        },
+        "status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "product_cleanup_pass_interpretation": "原始false保留；产品own资源退出、原生输入投递与host精确guest清理独立核验，不靠guest销毁补PASS。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/2353fd69af7d4f32944264465d8e69aa/cleanup-receipt.json",
+          "bytes": 10012,
+          "sha256": "6D8386ED395A6FE65478C7AB9DAFB9407FBD69BC18634BAF1CA284C40EB84508"
+        },
+        "utc": "2026-10-27T08:18:31.5258127Z",
+        "pid": 74372,
+        "parent_pid": 65600,
+        "session_id": 1,
+        "start_ticks_decimal": "639286857970114795",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/2353fd69af7d4f32944264465d8e69aa/collection-20261027T081656548Z-c67f4428236b43b9900aa68e1a4851db/2353fd69af7d4f32944264465d8e69aa-release-fixture.jsonl",
+          "excerpt_first_line": 562,
+          "excerpt_last_line": 590,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            73,
+            77,
+            85,
+            86,
+            89,
+            93,
+            94,
+            97,
+            102,
+            103,
+            106,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114,
+            117,
+            118,
+            119,
+            122,
+            123,
+            133,
+            141,
+            145
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/2353fd69af7d4f32944264465d8e69aa/collection-20261027T081656548Z-c67f4428236b43b9900aa68e1a4851db/2353fd69af7d4f32944264465d8e69aa-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 591,
+          "excerpt_last_line": 594,
+          "source_sequences": [
+            40,
+            51,
+            89,
+            90
+          ]
+        }
+      ],
+      "findings": {
+        "result": "SAME_QUALIFIED_OWNED_ROOT_NATIVE_TAB_BUTTON_EDIT_AND_MENU_COMPONENT_PASS",
+        "observed": [
+          "D73/P40同一exact root先真实增强标题Move及P51 NormalUp，排除整根不合格造成零写假PASS。D85/86 Tab真实DOWN/UP+TCN_SELCHANGE；D93/94 Button实际BN_CLICKED；D102/103 Edit真实鼠标拖选[0,3]；各自D89/97/106零新增强、claim仍1/几何保留。",
+          "D93/D102原actual_UP_count=0逐字保留。这些附加字段可在Log::check另一个wait实参之前求值；case PASS的实际有界谓词要求本子窗UP增1，Button/selection另有原生效果回执。不能将早求值0改成1，也不以SendInput返回当投递证明。",
+          "D110在任何菜单项cursor前实际ready=true，两fresh rect[169,234,369,269]相等，centre[269,251]实际命中popup590590/PID4024/TID6492，GUI menuOwner197408；D111–113才实际移动及唯一DOWN/UP，D114原生menu WM_COMMAND ID21004、D117零新增强。旧6b2b rect未记/FAIL保持，不用本批倒推旧[0,0,6,6]或布局根因。",
+          "D118子控件/menu实际销毁，D119原配置/同产品保留，D122 owned root关闭；D123 component PASS保原whole_M04_F01_PASS_inferred=false。D133/P90产品publicquit/exit0/own资源，D141只是suite summary，D145才最终driver_shutdown PASS；功能完整组合由canonical另裁，不在这里授矩阵/模块/整版。"
+        ],
+        "menu_ready_sequence": 110,
+        "actual_menu_command_sequence": 114,
+        "component_sequence": 123,
+        "summary_sequence": 141,
+        "driver_shutdown_sequence": 145,
+        "early_argument_counters_preserved": [
+          {
+            "fixture_sequence": 93,
+            "actual_UP_count": 0
+          },
+          {
+            "fixture_sequence": 102,
+            "actual_UP_count": 0
+          }
+        ],
+        "timing_summary": {
+          "product_sequence": 89,
+          "after_native_writer_stop_and_final_drain": true,
+          "mouse_callback": {
+            "samples": 27,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 500,
+            "maximum_us": 442,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 1,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 10000,
+            "maximum_us": 5325,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          }
+        },
+        "not_awarded": [
+          "whole_M04_F01_by_this_component",
+          "five_application_matrix",
+          "whole_NF02",
+          "module",
+          "whole_version"
+        ],
+        "next_action": "保留same-qualified-root原生控件/菜单实测限定PASS，完整M04-F01只按既有标题/八方向/双击历史及本批组合另裁；后续Core/Portable使用其各自Run实际身份。"
+      }
+    },
+    {
+      "run_id": "91b5de42e1774bf9a24d998bacd575a3",
+      "suite": "CurrentCoreChainOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "product_exe_sha256": "16AC17285E7D3045F66EBAB8AB77A6990B179AA5396B651AC2F59C1DC0C66983",
+        "driver_source_sha": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "driver_exe_sha256": "C82A3C791E2CC7BDEA978C56608BFF2D0729AD87A8BCA9BA3540CB71E8C350DE",
+        "packaging_head": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "fixture_pid": 6208,
+        "fixture_birth_filetime_decimal": "134375628094410365",
+        "product_pid": 6556,
+        "product_birth_filetime_decimal": "134375628096654714",
+        "all_raw_rows_source_identity_match": true
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/91b5de42e1774bf9a24d998bacd575a3/package-receipt.json",
+          "bytes": 13539,
+          "sha256": "71CA86108B2FCFE2A222ED0E38ABF6DF2264D974208D0C950B63FE051882D88F"
+        },
+        "zip_path": "uat/v1-sandbox/91b5de42e1774bf9a24d998bacd575a3/91b5de42e1774bf9a24d998bacd575a3.zip",
+        "zip_sha256": "235A1B3BE290B57205575D4EAD300F0F48954E6CD6F9D4A1D230B57FA6CC8584",
+        "manifest_path": "uat/v1-sandbox/91b5de42e1774bf9a24d998bacd575a3/input/manifest.json",
+        "manifest_sha256": "0FA81EB07F506903C4F838474ED137E4AEAB587EBE4C108E2E7D2C9C7F62E3A8",
+        "wsb_path": "uat/v1-sandbox/91b5de42e1774bf9a24d998bacd575a3/PaneBindV1.wsb",
+        "wsb_sha256": "6D49C524C9878866AEF2A49C00FB85BD6AE91ED4BE02016231EE2E74E3569FB6",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/collection-20261027T082049518Z-3459f72ad00045eba364b623e8cc38c4/91b5de42e1774bf9a24d998bacd575a3-release-fixture.jsonl",
+          "bytes": 530169,
+          "sha256": "7DDF61E7AD3ACD660096EF06E9E236DB1836BE92B8250BC4565D3F99F5A1DEC1",
+          "rows": 729,
+          "first_sequence": 1,
+          "last_sequence": 729,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/collection-20261027T082049518Z-3459f72ad00045eba364b623e8cc38c4/91b5de42e1774bf9a24d998bacd575a3-product-Release/panebind.log.jsonl.1",
+          "bytes": 525101,
+          "sha256": "6004EB17469B36508184D77845DF5B71FA8174F2E2CAA02C843D425040149F78",
+          "rows": 410,
+          "first_sequence": 1,
+          "last_sequence": 410,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/collection-20261027T082049518Z-3459f72ad00045eba364b623e8cc38c4/91b5de42e1774bf9a24d998bacd575a3-product-Release/panebind.log.jsonl",
+          "bytes": 407160,
+          "sha256": "E760A95112EA01D78D122E1B8E68588E3F1F86267EB8F1E68E6F2EDF052A6B4D",
+          "rows": 304,
+          "first_sequence": 411,
+          "last_sequence": 714,
+          "contiguous": true
+        }
+      ],
+      "collection_receipt": {
+        "path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/collection-20261027T082049518Z-3459f72ad00045eba364b623e8cc38c4/collection-receipt.json",
+        "bytes": 9905,
+        "sha256": "A29879D79FDFA9DEC5DE03F8FFB4276852BD36AA78CD6188A490E6B3B482A10A"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 9,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/collection-20261027T082049518Z-3459f72ad00045eba364b623e8cc38c4/91b5de42e1774bf9a24d998bacd575a3-guest-summary.json",
+          "bytes": 20915,
+          "sha256": "281147B701F132F7142FD0A22FC230D935A57F6A751A778E2E5121C7159BF9B6"
+        },
+        "status": "BLOCKED_OR_FAILED",
+        "wait_result": 0,
+        "fixture_exit_code": 1,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "product_cleanup_pass_interpretation": "原始false为wrapper未评估初始化值，逐项产品资源退出/原生客户投递与精确guest销毁分开，不由wrapper常量授PASS。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/cleanup-receipt.json",
+          "bytes": 10914,
+          "sha256": "177C3647A457CA5ED28CFCA29EF4D608536418E3F7EDBE23E14AED5789B9997D"
+        },
+        "utc": "2026-10-27T08:22:32.2921487Z",
+        "pid": 49664,
+        "parent_pid": 73064,
+        "session_id": 1,
+        "start_ticks_decimal": "639286859965119662",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "product_physical_rotation": {
+        "retained_file_sequence": [
+          1,
+          410
+        ],
+        "current_file_sequence": [
+          411,
+          714
+        ],
+        "combined_sequence": [
+          1,
+          714
+        ],
+        "combined_contiguous": true
+      },
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/collection-20261027T082049518Z-3459f72ad00045eba364b623e8cc38c4/91b5de42e1774bf9a24d998bacd575a3-release-fixture.jsonl",
+          "excerpt_first_line": 595,
+          "excerpt_last_line": 615,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            435,
+            512,
+            520,
+            587,
+            592,
+            700,
+            701,
+            702,
+            703,
+            704,
+            705,
+            710,
+            711,
+            715,
+            717,
+            724,
+            725,
+            729
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/collection-20261027T082049518Z-3459f72ad00045eba364b623e8cc38c4/91b5de42e1774bf9a24d998bacd575a3-product-Release/panebind.log.jsonl.1",
+          "excerpt_first_line": 616,
+          "excerpt_last_line": 619,
+          "source_sequences": [
+            43,
+            44,
+            60,
+            394
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/91b5de42e1774bf9a24d998bacd575a3/collection-20261027T082049518Z-3459f72ad00045eba364b623e8cc38c4/91b5de42e1774bf9a24d998bacd575a3-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 620,
+          "excerpt_last_line": 632,
+          "source_sequences": [
+            582,
+            616,
+            619,
+            679,
+            682,
+            692,
+            695,
+            706,
+            707,
+            708,
+            709,
+            713,
+            714
+          ]
+        }
+      ],
+      "findings": {
+        "result": "CURRENT_CORE_CHAIN_ACTUAL_FAIL_SECOND_DOWN_PREPARED_EMPTY_NOT_TWO_ROUNDS_OR_NF02_PASS",
+        "observed": [
+          "D729全fixture连续；产品.1是P1..410、current是P411..714，分别保物理文件哈希，合并连续，不把current声称为1..714。已跑owned操作和I04前段（D435/D512/D520/D587等原子PASS）只保各自原scope；D711 smart-stretch失败、D725两轮completed=false，后续整链/代表NF范围未完成。",
+          "D701实际光标[1291,326]，D702/703第一对真实DOWN/UP，D704实际LL native passthrough release；D705第二DOWN及D710唯一后继UP均真实发送。产品P706/P707/P708/P709是相应四个真实LL回调，不能记缺LL-UP或未发第二DOWN。P708 click_candidate_eligible=true，却DOWN_branch_prepared.present=false，prepared_gate_passed=false、route_evaluated=false、action=null、own_consume_decision=false；这是原件实际Prepared空/未route，不补造增强动作或NormalUp。",
+          "D706另有Console前台观察、D708随后owned root观察；原件不证明激活发起者，不能从这些日志顺序定Prepared空根因。根后继拟修生产Prepared数据流；不是把失败改为TEST成功，不把0cCore绑定后继EXE。",
+          "P713 after-final-drain真实callback148/p99桶999/max2091us；native53实际调用中46有起点/p95桶20000/max18037us，另7 missing明确为P616/619/679/682/692/695六次public command及P582一legacy normal_up_dock。不能只择46通过样本授whole NF02，也不能把未跑后半代表场景当PASS。",
+          "D717/P714实际publicquit/exit0/own资源退出，D724真实poststop客户投递[0,0]→[1,1]，与D725/D729原FAIL及精确guest销毁分别保留。"
+        ],
+        "failed_case_sequence": 711,
+        "failed_phase_sequence": 715,
+        "summary_sequence": 725,
+        "driver_shutdown_sequence": 729,
+        "second_DOWN_admission_sequence": 708,
+        "actual_four_LL_sequences": [
+          706,
+          707,
+          708,
+          709
+        ],
+        "Prepared_empty_observed": true,
+        "Prepared_empty_root_cause": "UNKNOWN_FROM_THIS_RAW",
+        "normal_UP_for_failed_second_click": false,
+        "native_placement_count": 53,
+        "missing_origins": [
+          {
+            "product_sequence": 582,
+            "generation": 15,
+            "intent_reason": "normal_up_dock",
+            "call_id": 44,
+            "hook_observed_qpc": 0
+          },
+          {
+            "product_sequence": 616,
+            "generation": 0,
+            "intent_reason": "command",
+            "call_id": 46,
+            "hook_observed_qpc": 0
+          },
+          {
+            "product_sequence": 619,
+            "generation": 0,
+            "intent_reason": "command",
+            "call_id": 47,
+            "hook_observed_qpc": 0
+          },
+          {
+            "product_sequence": 679,
+            "generation": 0,
+            "intent_reason": "command",
+            "call_id": 50,
+            "hook_observed_qpc": 0
+          },
+          {
+            "product_sequence": 682,
+            "generation": 0,
+            "intent_reason": "command",
+            "call_id": 51,
+            "hook_observed_qpc": 0
+          },
+          {
+            "product_sequence": 692,
+            "generation": 0,
+            "intent_reason": "command",
+            "call_id": 52,
+            "hook_observed_qpc": 0
+          },
+          {
+            "product_sequence": 695,
+            "generation": 0,
+            "intent_reason": "command",
+            "call_id": 53,
+            "hook_observed_qpc": 0
+          }
+        ],
+        "timing_summary": {
+          "product_sequence": 713,
+          "after_native_writer_stop_and_final_drain": true,
+          "mouse_callback": {
+            "samples": 148,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 999,
+            "maximum_us": 2091,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 46,
+            "discarded": 7,
+            "missing_clock": 7,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 20000,
+            "maximum_us": 18037,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          }
+        },
+        "product_stop": {
+          "fixture_sequence": 717,
+          "product_shutdown_sequence": 714,
+          "product_exit_code": 0,
+          "own_resource_shutdown_flags_true": true,
+          "post_stop_actual_client_sequence": 724
+        },
+        "not_awarded": [
+          "CurrentCoreChainOnly",
+          "two_rounds",
+          "whole_I05",
+          "whole_NF02",
+          "whole_version"
+        ],
+        "next_action": "后继生产Prepared可用性修复必须绑定新source/EXE并定向验证第二DOWN真实route；保留0c原FAIL/四LL/缺起点分类，不用无变量重跑或工具调整倒填。"
+      }
+    },
+    {
+      "run_id": "056b2b1e63734d7cb78c337d8c969a48",
+      "suite": "PortableEntryOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "product_exe_sha256": "16AC17285E7D3045F66EBAB8AB77A6990B179AA5396B651AC2F59C1DC0C66983",
+        "driver_source_sha": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "driver_exe_sha256": "C82A3C791E2CC7BDEA978C56608BFF2D0729AD87A8BCA9BA3540CB71E8C350DE",
+        "packaging_head": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "fixture_pid": 6048,
+        "fixture_birth_filetime_decimal": "134375630022857714",
+        "product_pid": 6964,
+        "product_birth_filetime_decimal": "134375630041042221",
+        "all_raw_rows_source_identity_match": true
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/056b2b1e63734d7cb78c337d8c969a48/package-receipt.json",
+          "bytes": 13536,
+          "sha256": "C21C07D8AF4E489EBD7F663BA727FCDDF49F238F1D585F053BD6F070558AF70F"
+        },
+        "zip_path": "uat/v1-sandbox/056b2b1e63734d7cb78c337d8c969a48/056b2b1e63734d7cb78c337d8c969a48.zip",
+        "zip_sha256": "989DA6EC2C7F64E31FFA1DA7FCBAD8FAD9104AAD430FAAFB558CE0DDD3CEBB32",
+        "manifest_path": "uat/v1-sandbox/056b2b1e63734d7cb78c337d8c969a48/input/manifest.json",
+        "manifest_sha256": "1135E4BCA318EE1CC3D1869548E32341319F40D9B12DD457084E774F17F828A8",
+        "wsb_path": "uat/v1-sandbox/056b2b1e63734d7cb78c337d8c969a48/PaneBindV1.wsb",
+        "wsb_sha256": "ECA8F997BD2AF7232437AB93C93420CD86DC2315EA5C3F77576F629E1AFEA8D0",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/056b2b1e63734d7cb78c337d8c969a48-release-fixture.jsonl",
+          "bytes": 132654,
+          "sha256": "0AD9285FCF82D850A9CA83E5006B7B35A935FC90FBF77161E029E06C83C1DC72",
+          "rows": 188,
+          "first_sequence": 1,
+          "last_sequence": 188,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/056b2b1e63734d7cb78c337d8c969a48-product-Release/panebind.log.jsonl",
+          "bytes": 24197,
+          "sha256": "BF3747375096860E4163A09ACE0B763EC263F1F56FB495C6EDC4A8DC7B13A14E",
+          "rows": 24,
+          "first_sequence": 1,
+          "last_sequence": 24,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/056b2b1e63734d7cb78c337d8c969a48-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+          "bytes": 75704,
+          "sha256": "18293A4B7E30D703992570CF9003268AC11E14DDB2C8D1576A9BFBD631FAEFEB",
+          "rows": 62,
+          "first_sequence": 1,
+          "last_sequence": 62,
+          "contiguous": true
+        }
+      ],
+      "collection_receipt": {
+        "path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/collection-receipt.json",
+        "bytes": 19163,
+        "sha256": "9D3EF2BAF0A318A8BE24B38A791A6539711C2E10F108A07AD64351B6AB1E02FB"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 18,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/056b2b1e63734d7cb78c337d8c969a48-guest-summary.json",
+          "bytes": 21733,
+          "sha256": "4D37FD42B5C4B43D3EBC678201E855045563EFC216644F5D6F399C59F48B0682"
+        },
+        "status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "product_cleanup_pass_interpretation": "原始false为wrapper未评估初始化值，逐项产品资源退出/原生客户投递与精确guest销毁分开，不由wrapper常量授PASS。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/cleanup-receipt.json",
+          "bytes": 19308,
+          "sha256": "65D72660DF46481C7F5877620E53C97AF0008488674778D117C2D187E1DF8BA6"
+        },
+        "utc": "2026-10-27T08:29:45.3995066Z",
+        "pid": 70612,
+        "parent_pid": 74020,
+        "session_id": 1,
+        "start_ticks_decimal": "639286861890389188",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "setup_product_identity": {
+        "process_id": 3936,
+        "birth_filetime_decimal": "134375630025096968",
+        "physical_log_path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/056b2b1e63734d7cb78c337d8c969a48-product-Release/panebind.log.jsonl",
+        "not_the_ordinary_ZIP_instance": true
+      },
+      "ordinary_portable": {
+        "package_id": "2f8b21967cf04c4ab3085eaf31985d75",
+        "receipt": {
+          "path": "uat/v1-portable/2f8b21967cf04c4ab3085eaf31985d75/package-receipt.json",
+          "bytes": 3652,
+          "sha256": "AD5DACB5951072566F61BF88161F623311A1B305086A398A874D161FA91F5C13"
+        },
+        "product_source_sha": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "packaging_head": "0c0b730e864b37dc3281747ffa6d9bc17e26de02",
+        "zip_path": "uat/v1-portable/2f8b21967cf04c4ab3085eaf31985d75/PaneBindV1-Release-2f8b21967cf04c4ab3085eaf31985d75.zip",
+        "zip_sha256": "941F3DE72768B58FC10ED0052DAA3285A433B1A2CADACB3C9DEDFA5F673D6E2C",
+        "manifest_sha256": "C693CCE4420BB14AD3BDDDF4D43FA9C9A1190CB1DC5FAEE285B60A4980F949AC",
+        "binary_sha256": "16AC17285E7D3045F66EBAB8AB77A6990B179AA5396B651AC2F59C1DC0C66983",
+        "seven_archived_files_hashes_rechecked_in_guest_collection": true,
+        "archived_files": [
+          {
+            "relative_path": "panebind.exe",
+            "bytes": 1246208,
+            "sha256": "16AC17285E7D3045F66EBAB8AB77A6990B179AA5396B651AC2F59C1DC0C66983"
+          },
+          {
+            "relative_path": "portable.flag",
+            "bytes": 31,
+            "sha256": "E34DC6330A1F436DCAA38AD7E33E33C6993CEB4BCB9DB3BC43AE83B1BC8D6E97"
+          },
+          {
+            "relative_path": "LICENSE",
+            "bytes": 1099,
+            "sha256": "F024AABB093CF44DC8A93EC30E22A7A43BB208E5CEDC06448E5262CD657C899C"
+          },
+          {
+            "relative_path": "中文快速入门.md",
+            "bytes": 13845,
+            "sha256": "DF9D169812D3A4202AB39D19B828B455BB560A6CA4325879AECCCB05AAB6C748"
+          },
+          {
+            "relative_path": "配置说明.md",
+            "bytes": 3063,
+            "sha256": "2791AF1C4A92139BC68492D8546C5CE90D61B54FBB776A6C44714053628275CA"
+          },
+          {
+            "relative_path": "已知问题.md",
+            "bytes": 6705,
+            "sha256": "6FB4378799DD4A139DC4A0A72D9B6F74D304B41833F330EE6FA8AAE53C4DD419"
+          },
+          {
+            "relative_path": "manifest.json",
+            "bytes": 5510,
+            "sha256": "C693CCE4420BB14AD3BDDDF4D43FA9C9A1190CB1DC5FAEE285B60A4980F949AC"
+          }
+        ],
+        "package_checkpoint_gui_started": false,
+        "package_checkpoint_validation": "NOT_RUN",
+        "actual_entry_scope_result": "PASS",
+        "package_checkpoint_metadata_not_rewritten": true
+      },
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/056b2b1e63734d7cb78c337d8c969a48-release-fixture.jsonl",
+          "excerpt_first_line": 633,
+          "excerpt_last_line": 651,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            63,
+            74,
+            75,
+            79,
+            84,
+            96,
+            123,
+            130,
+            153,
+            165,
+            172,
+            174,
+            180,
+            181,
+            184,
+            188
+          ]
+        },
+        {
+          "producer": "setup_product",
+          "source_path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/056b2b1e63734d7cb78c337d8c969a48-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 652,
+          "excerpt_last_line": 652,
+          "source_sequences": [
+            24
+          ]
+        },
+        {
+          "producer": "ordinary_ZIP_product",
+          "source_path": "uat/v1-control/056b2b1e63734d7cb78c337d8c969a48/collection-20261027T082655577Z-9c076a2f7c194ab0b4e94ff30b0e60ab/056b2b1e63734d7cb78c337d8c969a48-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+          "excerpt_first_line": 653,
+          "excerpt_last_line": 660,
+          "source_sequences": [
+            2,
+            23,
+            25,
+            32,
+            50,
+            52,
+            59,
+            62
+          ]
+        }
+      ],
+      "findings": {
+        "result": "ACTUAL_0C_2F8B_ORDINARY_ZIP_ENTRY_SETTINGS_EFFECT_TWO_NORMAL_UP_AND_EXIT_SCOPE_PASS",
+        "observed": [
+          "D63真实2f8b ZIP七文件核验，中文空格目录；D75严格空arguments/diagnostic=false、D79真实唯一可见中文GUI，D84空参二启仍同一exact PID/birth。setup PID3936与真正ZIP PID6964/两FILETIME/两物理日志分开，不将setup或封包NOT_RUN元数据冒充实际入口。",
+          "D96实际Save/Cancel中文说明，D123默认10DIP下实际Move[140,80,540,440]；GUI只改解包settings.ini保存0后D165实际free Move[134,83,534,443]。ZIP P23/25/32及P50/52/59两代Raw/legacy真实NormalUp，D130/172实际capture0/资源退出/无晚几何，不伪称普通模式逐call诊断已记录。",
+          "D174/P62产品publicquit/exit0/own资源退出，D180实际输入恢复，D181七个delivered原文/字节保留且无profile，D184/D188 scoped PASS。wrapper元数据product_cleanup_pass原false保留，按实际逐项证据与精确guest清理分别判断；不授wholeI12、托盘、宿主、五应用或真人。"
+        ],
+        "ordinary_arguments": "",
+        "ordinary_diagnostic_enabled": false,
+        "ordinary_GUI_sequence": 79,
+        "ordinary_product_pid": 6964,
+        "ordinary_product_birth_filetime_decimal": "134375630041042221",
+        "effects": [
+          {
+            "generation": 1,
+            "fixture_geometry_sequence": 123,
+            "actual": [
+              140,
+              80,
+              540,
+              440
+            ],
+            "raw_UP_sequence": 23,
+            "legacy_UP_sequence": 25,
+            "NormalUp_sequence": 32
+          },
+          {
+            "generation": 2,
+            "fixture_geometry_sequence": 165,
+            "actual": [
+              134,
+              83,
+              534,
+              443
+            ],
+            "raw_UP_sequence": 50,
+            "legacy_UP_sequence": 52,
+            "NormalUp_sequence": 59
+          }
+        ],
+        "product_stop": {
+          "fixture_sequence": 174,
+          "product_shutdown_sequence": 62,
+          "product_exit_code": 0,
+          "own_resource_shutdown_flags_true": true,
+          "post_stop_input_recovery_sequence": 180,
+          "delivered_bytes_unchanged_sequence": 181,
+          "owned_windows_destroyed": true,
+          "product_process_closed": true
+        },
+        "not_awarded": [
+          "whole_I12",
+          "tray",
+          "host_trial",
+          "application_matrix",
+          "whole_version",
+          "human_UAT"
+        ],
+        "next_action": "复用本0c/2f8b/056b实际普通ZIP入口范围；新Prepared生产修复将成为新EXE，不能以本包入口或旧AACD/6af证据改绑。"
+      }
+    },
+    {
+      "run_id": "21328cc2190b4e3aa02079921b88bf9b",
+      "suite": "CurrentCoreChainOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+        "product_exe_sha256": "F1B49FACA9F1D32AB8F88910DBF1A67A18164F942A7038C2207504F0EDB2BA61",
+        "driver_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+        "driver_exe_sha256": "041B690AD2B337AAA0AD6D5D728ABBB8000DF26E8060C8A4BE3DF56D240FFA42",
+        "packaging_head": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94",
+        "test_scope_source_sha": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94",
+        "fixture_pid": 4020,
+        "fixture_birth_filetime_decimal": "134375661461408939",
+        "product_pid": 6572,
+        "product_birth_filetime_decimal": "134375661463651737",
+        "all_raw_rows_source_identity_match": true
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/21328cc2190b4e3aa02079921b88bf9b/package-receipt.json",
+          "bytes": 13539,
+          "sha256": "ED115A4A701C52E5FF2A6B8487DEA0EA9B7F777EA989D9163C72300FE95F0ECC"
+        },
+        "zip_sha256": "1CAF85A4BF982185CBBEF1EA169C91AC54751405AD4AB02230D76CF5EDB741AC",
+        "manifest_sha256": "C2368EE63F221F566A4911B1E43CFEE8C1FFE7DC9393B0DE5B7629B0F4F15F65",
+        "wsb_sha256": "A7FEE8C220C5693258C1A4020BCEEF2E716E636EBDEF11EF27C03C24201A54A3",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/collection-20261027T091655122Z-3a57221ce7fb4105a61413d01578e441/21328cc2190b4e3aa02079921b88bf9b-release-fixture.jsonl",
+          "bytes": 1580874,
+          "sha256": "A4600868DDD9966BCD705EE358B55272F7C9E48BD0561C937EF81803BE788116",
+          "rows": 2197,
+          "first_sequence": 1,
+          "last_sequence": 2197,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/collection-20261027T091655122Z-3a57221ce7fb4105a61413d01578e441/21328cc2190b4e3aa02079921b88bf9b-product-Release/panebind.log.jsonl.1",
+          "bytes": 525377,
+          "sha256": "8C6E12993E36E8ADA921BF4B7D63965F94EB7C27DD7942645B8EED210DB71480",
+          "rows": 398,
+          "first_sequence": 1589,
+          "last_sequence": 1986,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/collection-20261027T091655122Z-3a57221ce7fb4105a61413d01578e441/21328cc2190b4e3aa02079921b88bf9b-product-Release/panebind.log.jsonl",
+          "bytes": 15198,
+          "sha256": "CC58430C9F772F2CA1853CB97649F74E65FB9B3BAF230E9C607694F607CBA752",
+          "rows": 15,
+          "first_sequence": 1987,
+          "last_sequence": 2001,
+          "contiguous": true
+        }
+      ],
+      "product_physical_rotation": {
+        "retained_file_sequence": [
+          1589,
+          1986
+        ],
+        "current_file_sequence": [
+          1987,
+          2001
+        ],
+        "combined_retained_sequence": [
+          1589,
+          2001
+        ],
+        "combined_retained_contiguous": true,
+        "product_sequences_before_1589_not_physically_retained": true,
+        "earlier_original_driver_embedded_receipts_are_not_new_physical_product_rows": true
+      },
+      "collection_receipt": {
+        "path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/collection-20261027T091655122Z-3a57221ce7fb4105a61413d01578e441/collection-receipt.json",
+        "bytes": 9905,
+        "sha256": "AA17C25B1FF373068BEDC8367D5738C634D559831B3404717C9C8F8B884D98FB"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 9,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/collection-20261027T091655122Z-3a57221ce7fb4105a61413d01578e441/21328cc2190b4e3aa02079921b88bf9b-guest-summary.json",
+          "bytes": 20873,
+          "sha256": "B72FEC5A7AC120B7B56AFF246336A9F0972FA31F12AB5435E51A14AEC6705061"
+        },
+        "status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "product_cleanup_pass_interpretation": "原false常量保留，正常产品资源stop和实际poststop客户投递按原D/P独立判断，不由guest销毁补PASS。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/cleanup-receipt.json",
+          "bytes": 10914,
+          "sha256": "71C8C7C2389BC338C0F05A25E1E171E24D5B573F6F9B4022F46CD10F8F44D45D"
+        },
+        "utc": "2026-10-27T09:19:13.6031648Z",
+        "pid": 74196,
+        "parent_pid": 59860,
+        "session_id": 1,
+        "start_ticks_decimal": "639286893325688398",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "findings": {
+        "result": "CURRENT_CORE_CHAIN_TWO_SAME_INSTANCE_OWNED_ROUNDS_SCOPED_PASS",
+        "observed": [
+          "D1118与D2136两轮完成均为PID6572/product_restarted=false，scope明确owned_core_I02_I03_I04_I05_I06；D2193/D2197限定PASS，未运行900秒、idle60、Explorer/五应用或Full。",
+          "旧0c第二DOWN Prepared空失败保留不改。新7a第一轮D709嵌套原P708真实mapped StretchLeft/second_click_continuation/hook524075187及P709 exact；早期物理产品行已轮转，不把driver内原始嵌套回执伪称新物理文件。第二轮D1727与实际保留P1694/1695对应mapped StretchLeft/g45/call138 exact，原输入起点831892448不为计数造时钟。",
+          "当前产品只保留.1 P1589..1986及current1987..2001，合计413行连续；完整D1..2197包含两轮实际操作/配置恢复与原产品嵌套回执。不能写产品P1..2001全程物理原件保留。首轮部分LL-UP物理行已轮转，driver固定real_DOWN_UP_DOWN_UP字段不当作齐全四LL证据；corner离散动作在Paused/end4资源退出后观察实际UP，不构造NormalUp。",
+          "P2000 after_native_writer_stop_and_final_drain=true：callback453/p99桶999/max1045us；完整端点native122有效+34 missing/p95桶49999/max120405us、unfinished0/issued_completion_unknown=false。原极值/缺起点不删除或四舍五入；百分位预算及wholeNF02合同交独立复核，本proof不自行授wholeNF或性能全场景PASS。",
+          "D2187/P2001产品publicquit/exit0/own资源退出，D2192真实poststop客户[0,0]→[1,1]；wrapper原product_cleanup_pass=false常量保留，精确guest清理另有receipt，不由销guest补产品退出。"
+        ],
+        "rounds": [
+          {
+            "fixture_sequence": 1118,
+            "round": 1,
+            "product_pid": 6572,
+            "product_restarted": false
+          },
+          {
+            "fixture_sequence": 2136,
+            "round": 2,
+            "product_pid": 6572,
+            "product_restarted": false
+          }
+        ],
+        "mapped_continuation_proofs": [
+          {
+            "fixture_sequence": 709,
+            "source_kind": "original_embedded_product_receipt",
+            "input_sequence": 708,
+            "placement_sequence": 709,
+            "generation": 19,
+            "action": "StretchLeft",
+            "actual_hook_qpc": 524075187
+          },
+          {
+            "fixture_sequence": 1727,
+            "source_kind": "retained_physical_product_file_and_driver_receipt",
+            "input_sequence": 1694,
+            "placement_sequence": 1695,
+            "generation": 45,
+            "action": "StretchLeft",
+            "actual_hook_qpc": 831892448
+          }
+        ],
+        "timing_summary": {
+          "product_sequence": 2000,
+          "after_native_writer_stop_and_final_drain": true,
+          "mouse_callback": {
+            "samples": 453,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 999,
+            "maximum_us": 1045,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 122,
+            "discarded": 34,
+            "missing_clock": 34,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 49999,
+            "maximum_us": 120405,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          },
+          "whole_NF02_awarded_by_this_review": false
+        },
+        "product_stop": {
+          "fixture_sequence": 2187,
+          "product_shutdown_sequence": 2001,
+          "product_exit_code": 0,
+          "own_resource_shutdown_flags_true": true,
+          "post_stop_actual_client_sequence": 2192,
+          "post_stop_counts_before": [
+            0,
+            0
+          ],
+          "post_stop_counts_after": [
+            1,
+            1
+          ]
+        },
+        "not_awarded": [
+          "whole_NF02",
+          "I11_900_seconds",
+          "mixed_application_matrix",
+          "cross_screen",
+          "Full_suite",
+          "whole_version"
+        ],
+        "next_action": "保留同一7a候选两轮owned核心影响回归；普通包/控件用各自新Run独立绑定，NF完整合同仍按独立复核及真实尾部范围决定，不把旧0c FAIL倒填。"
+      },
+      "build_ref": "prepared_continuation_followup_build",
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/collection-20261027T091655122Z-3a57221ce7fb4105a61413d01578e441/21328cc2190b4e3aa02079921b88bf9b-release-fixture.jsonl",
+          "excerpt_first_line": 661,
+          "excerpt_last_line": 677,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            259,
+            272,
+            304,
+            309,
+            342,
+            359,
+            709,
+            1118,
+            1727,
+            2136,
+            2187,
+            2192,
+            2193,
+            2197
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/collection-20261027T091655122Z-3a57221ce7fb4105a61413d01578e441/21328cc2190b4e3aa02079921b88bf9b-product-Release/panebind.log.jsonl.1",
+          "excerpt_first_line": 678,
+          "excerpt_last_line": 681,
+          "source_sequences": [
+            1694,
+            1695,
+            1972,
+            1973
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/21328cc2190b4e3aa02079921b88bf9b/collection-20261027T091655122Z-3a57221ce7fb4105a61413d01578e441/21328cc2190b4e3aa02079921b88bf9b-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 682,
+          "excerpt_last_line": 683,
+          "source_sequences": [
+            2000,
+            2001
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": "627a00ce603b4525be04b688331d3fba",
+      "suite": "StandardControlsOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+        "product_exe_sha256": "F1B49FACA9F1D32AB8F88910DBF1A67A18164F942A7038C2207504F0EDB2BA61",
+        "driver_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+        "driver_exe_sha256": "041B690AD2B337AAA0AD6D5D728ABBB8000DF26E8060C8A4BE3DF56D240FFA42",
+        "packaging_head": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94",
+        "fixture_pid": 6240,
+        "fixture_birth_filetime_decimal": "134375664227029729",
+        "product_pid": 6644,
+        "product_birth_filetime_decimal": "134375664229264208",
+        "all_raw_rows_source_identity_match": true,
+        "test_scope_source_sha": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94"
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/627a00ce603b4525be04b688331d3fba/package-receipt.json",
+          "bytes": 13539,
+          "sha256": "43BBF77F4B8FB44BE9DE9589EE0DB2364444CDF2F8F3EBAC73BE42471D205D31"
+        },
+        "zip_path": "uat/v1-sandbox/627a00ce603b4525be04b688331d3fba/627a00ce603b4525be04b688331d3fba.zip",
+        "zip_sha256": "3EB9E87BD0B2B54EF6FB0A9771B7C0DE076BC28638173C61CD3FA531A9A6A055",
+        "manifest_path": "uat/v1-sandbox/627a00ce603b4525be04b688331d3fba/input/manifest.json",
+        "manifest_sha256": "4302B4D8783D9F888C9314D89B94D22CACEAAACEB1DD0E0CF5B439CFC6B7DFD0",
+        "wsb_path": "uat/v1-sandbox/627a00ce603b4525be04b688331d3fba/PaneBindV1.wsb",
+        "wsb_sha256": "D9FECD26C1BAA53FAF684F5B1AA71A1EDF0B83B5277EA26A2A29C922D7E264F4",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/627a00ce603b4525be04b688331d3fba/collection-20261027T092137886Z-3ba6dfc81fe14b79aaf3b3dc36f1d7e6/627a00ce603b4525be04b688331d3fba-release-fixture.jsonl",
+          "bytes": 81305,
+          "sha256": "EEF3B81D911D86E31E534F83EA08D87F78B6B8D6CD0C83A5B1EC2BA93D69626B",
+          "rows": 145,
+          "first_sequence": 1,
+          "last_sequence": 145,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/627a00ce603b4525be04b688331d3fba/collection-20261027T092137886Z-3ba6dfc81fe14b79aaf3b3dc36f1d7e6/627a00ce603b4525be04b688331d3fba-product-Release/panebind.log.jsonl",
+          "bytes": 115161,
+          "sha256": "EDCC68B01248098086B0E780AA63EE9EDDF3BFD8DDE225497C58C173C6B81C40",
+          "rows": 88,
+          "first_sequence": 1,
+          "last_sequence": 88,
+          "contiguous": true
+        }
+      ],
+      "collection_receipt": {
+        "path": "uat/v1-control/627a00ce603b4525be04b688331d3fba/collection-20261027T092137886Z-3ba6dfc81fe14b79aaf3b3dc36f1d7e6/collection-receipt.json",
+        "bytes": 8907,
+        "sha256": "89418977BDAF9A18768A75C339706B3290803F649AD12DF71549E574B9577C8E"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 8,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/627a00ce603b4525be04b688331d3fba/collection-20261027T092137886Z-3ba6dfc81fe14b79aaf3b3dc36f1d7e6/627a00ce603b4525be04b688331d3fba-guest-summary.json",
+          "bytes": 20873,
+          "sha256": "AE7B43FEB2CD0A8904DB5E48FD9EA319FCC39B61EFB9C8C41CAB39A4E75372D1"
+        },
+        "status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "product_cleanup_pass_interpretation": "原始false保留；产品own资源退出、原生输入投递与host精确guest清理独立核验，不靠guest销毁补PASS。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/627a00ce603b4525be04b688331d3fba/cleanup-receipt.json",
+          "bytes": 10012,
+          "sha256": "79A6C6694077CA5B18BE13F83B0BB2273A4744BFB4019AD960CA5E610889D645"
+        },
+        "utc": "2026-10-27T09:23:01.4589017Z",
+        "pid": 37264,
+        "parent_pid": 74652,
+        "session_id": 1,
+        "start_ticks_decimal": "639286896093167113",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "findings": {
+        "result": "SAME_7A_PRODUCT_QUALIFIED_ROOT_NATIVE_STANDARD_CONTROLS_COMPONENT_PASS",
+        "observed": [
+          "145D/88P全合法连续，exact同root先真实标题增强Move/NormalUp；随后真实Tab/Button/Edit子窗DOWN/UP等待、TCN_SELCHANGE/BN_CLICKED/Edit拖选[0,3]与各自零新增强，D123限定component PASS，不把零增强归于根本未合格。",
+          "D93/D102实际附加字段UP_count=0仍逐字保留，不能改1；Log::check实参早求值不替代有界真实UP谓词与独立原生效果。D110在菜单项cursor之前两actual rect[169,234,369,269]一致，popup393998/PID6240/TID6268、GUI owner197422，随后唯一pair触发D114真实menu WM_COMMAND并由D117核零增强。",
+          "D118/119/122核实际菜单/控件销毁、同配置/产品保留与owned root关闭。D133/P88实际publicquit/exit0/own资源退出，D141 summary/D145 shutdown PASS；仍不是五应用、宿主、模块或整版通过。"
+        ],
+        "menu_ready_sequence": 110,
+        "menu_ready": {
+          "schema": "panebind-v1-owned-driver/1",
+          "source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+          "sequence": 110,
+          "tick": 33656,
+          "automated_guest_driver": true,
+          "type": "standard_controls_native_popup_ready",
+          "ready": true,
+          "reason": "ready",
+          "read_count": 3,
+          "wait_cap_ms": 1000,
+          "first_rect": [
+            169,
+            234,
+            369,
+            269
+          ],
+          "second_rect": [
+            169,
+            234,
+            369,
+            269
+          ],
+          "centre": [
+            269,
+            251
+          ],
+          "popup_HWND": 393998,
+          "popup_PID": 6240,
+          "popup_TID": 6268,
+          "GUI_menu_owner": 197422,
+          "two_fresh_rects_equal": true,
+          "cursor_not_moved_by_observation": true
+        },
+        "early_UP_counts_preserved": [
+          {
+            "fixture_sequence": 93,
+            "actual_UP_count": 0
+          },
+          {
+            "fixture_sequence": 102,
+            "actual_UP_count": 0
+          }
+        ],
+        "component_sequence": 123,
+        "product_stop": {
+          "fixture_sequence": 133,
+          "product_shutdown_sequence": 88,
+          "product_exit_code": 0,
+          "own_resource_shutdown_flags_true": true
+        },
+        "timing_summary": {
+          "product_sequence": 87,
+          "mouse_callback": {
+            "samples": 27,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 999,
+            "maximum_us": 915,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 1,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 10000,
+            "maximum_us": 5908,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          },
+          "whole_NF02_awarded_by_this_review": false
+        },
+        "not_awarded": [
+          "five_application_matrix",
+          "whole_NF02",
+          "host_trial",
+          "module",
+          "whole_version"
+        ],
+        "next_action": "作为7a生产Prepared修复后的标准控件影响复验；保留6b原FAIL和2353原0c身份，完整功能组合仍由canonical裁定。"
+      },
+      "build_ref": "prepared_continuation_followup_build",
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/627a00ce603b4525be04b688331d3fba/collection-20261027T092137886Z-3ba6dfc81fe14b79aaf3b3dc36f1d7e6/627a00ce603b4525be04b688331d3fba-release-fixture.jsonl",
+          "excerpt_first_line": 684,
+          "excerpt_last_line": 712,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            73,
+            77,
+            85,
+            86,
+            89,
+            93,
+            94,
+            97,
+            102,
+            103,
+            106,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114,
+            117,
+            118,
+            119,
+            122,
+            123,
+            133,
+            141,
+            145
+          ]
+        },
+        {
+          "producer": "product",
+          "source_path": "uat/v1-control/627a00ce603b4525be04b688331d3fba/collection-20261027T092137886Z-3ba6dfc81fe14b79aaf3b3dc36f1d7e6/627a00ce603b4525be04b688331d3fba-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 713,
+          "excerpt_last_line": 716,
+          "source_sequences": [
+            40,
+            51,
+            87,
+            88
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": "17b634cf38514271a89d52627df0b8c2",
+      "suite": "PortableEntryOnly",
+      "configuration": "Release",
+      "identity": {
+        "product_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+        "product_exe_sha256": "F1B49FACA9F1D32AB8F88910DBF1A67A18164F942A7038C2207504F0EDB2BA61",
+        "driver_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+        "driver_exe_sha256": "041B690AD2B337AAA0AD6D5D728ABBB8000DF26E8060C8A4BE3DF56D240FFA42",
+        "packaging_head": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94",
+        "test_scope_source_sha": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94",
+        "fixture_pid": 6368,
+        "fixture_birth_filetime_decimal": "134375666273594772",
+        "product_pid": 6132,
+        "product_birth_filetime_decimal": "134375666291479754",
+        "all_raw_rows_source_identity_match": true
+      },
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/17b634cf38514271a89d52627df0b8c2/package-receipt.json",
+          "bytes": 13536,
+          "sha256": "46937721FA93EA38038BB5D2B4071F94EDCF0F9B2E6A41362CDF1D3954F7328C"
+        },
+        "zip_sha256": "452BFC90539FF56F2A7A0F7D4B4892C2BE671D75704AE5A91C61164E263C173E",
+        "manifest_sha256": "B6943D935D8C11FD7A6D62DDE2BB690EE004330C390AB46D79FAD69124A877C8",
+        "wsb_sha256": "CF7BB87FDEBB1CD440BBE4086459770602FEA6B3BA7EFE378DDEE2527B6F1F48",
+        "local_zip_manifest_wsb_product_hashes_rechecked": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/17b634cf38514271a89d52627df0b8c2-release-fixture.jsonl",
+          "bytes": 132654,
+          "sha256": "6C2B8F823459D41AA29D00D73933BB8C471AC8DB07CBCF113BBCAD78C82D9077",
+          "rows": 188,
+          "first_sequence": 1,
+          "last_sequence": 188,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/17b634cf38514271a89d52627df0b8c2-product-Release/panebind.log.jsonl",
+          "bytes": 24346,
+          "sha256": "679CEEE8C8BBDB1DE61B6666A579F5360CFC75F20D845F50412AF6B543B25C44",
+          "rows": 24,
+          "first_sequence": 1,
+          "last_sequence": 24,
+          "contiguous": true
+        },
+        {
+          "path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/17b634cf38514271a89d52627df0b8c2-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+          "bytes": 75703,
+          "sha256": "B83285F737B02EDE5A5AE5DE3F709AC8A0E60FAB15625487A62ED6B2FB2735DE",
+          "rows": 62,
+          "first_sequence": 1,
+          "last_sequence": 62,
+          "contiguous": true
+        }
+      ],
+      "collection_receipt": {
+        "path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/collection-receipt.json",
+        "bytes": 19163,
+        "sha256": "0E6E44216BA1027FE2449BD701FA02572E6A441AD114226EA1DA9B9440969E07"
+      },
+      "collection_audit": {
+        "output_unchanged": true,
+        "artifact_count": 18,
+        "all_artifact_size_and_sha256_match": true
+      },
+      "wrapper": {
+        "summary": {
+          "path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/17b634cf38514271a89d52627df0b8c2-guest-summary.json",
+          "bytes": 21733,
+          "sha256": "AF2F4783E2CEA4DDF6869008ED7B32086C6B2A3832E75CDB729FB30BC11AF86A"
+        },
+        "status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "product_cleanup_pass_interpretation": "保留wrapper原false常量，按实际产品stop/client恢复各原件判，不由guest销毁推PASS。"
+      },
+      "own_guest_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/cleanup-receipt.json",
+          "bytes": 19308,
+          "sha256": "E0D21C0D1E3933990F25F0383313C6A94F6746A54835E2DEC70F6292DD5FC92A"
+        },
+        "utc": "2026-10-27T09:32:38.8450419Z",
+        "pid": 70808,
+        "parent_pid": 55888,
+        "session_id": 1,
+        "start_ticks_decimal": "639286898136388194",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false
+      },
+      "setup_product_identity": {
+        "process_id": 6728,
+        "birth_filetime_decimal": "134375666275838277",
+        "physical_log_path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/17b634cf38514271a89d52627df0b8c2-product-Release/panebind.log.jsonl",
+        "not_the_ordinary_ZIP_instance": true
+      },
+      "ordinary_portable": {
+        "package_id": "caed6f4502e74ed79251c9dc4f1829f3",
+        "receipt": {
+          "path": "uat/v1-portable/caed6f4502e74ed79251c9dc4f1829f3/package-receipt.json",
+          "bytes": 3652,
+          "sha256": "55631C7E648FDDBC8D6AA84000CD341187497A2CA6CBB7FC43E65C66F3DFF231"
+        },
+        "product_source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
+        "packaging_head": "1a40bdb4c73c1ee9a724fd88eef294ad39d50f94",
+        "zip_path": "uat/v1-portable/caed6f4502e74ed79251c9dc4f1829f3/PaneBindV1-Release-caed6f4502e74ed79251c9dc4f1829f3.zip",
+        "zip_sha256": "16A6325E5B727E20B9927DA7D88B5349F740FF6BB5BA66D0DD8D9A8D2B014D7B",
+        "manifest_sha256": "558E948EDCB1B45969BF4404923D02A9720D4DCA3E9F376720782F48E6839DB2",
+        "binary_sha256": "F1B49FACA9F1D32AB8F88910DBF1A67A18164F942A7038C2207504F0EDB2BA61",
+        "seven_archived_files_hashes_rechecked_in_guest_collection": true,
+        "archived_files": [
+          {
+            "relative_path": "panebind.exe",
+            "bytes": 1253888,
+            "sha256": "F1B49FACA9F1D32AB8F88910DBF1A67A18164F942A7038C2207504F0EDB2BA61"
+          },
+          {
+            "relative_path": "portable.flag",
+            "bytes": 31,
+            "sha256": "E34DC6330A1F436DCAA38AD7E33E33C6993CEB4BCB9DB3BC43AE83B1BC8D6E97"
+          },
+          {
+            "relative_path": "LICENSE",
+            "bytes": 1099,
+            "sha256": "F024AABB093CF44DC8A93EC30E22A7A43BB208E5CEDC06448E5262CD657C899C"
+          },
+          {
+            "relative_path": "中文快速入门.md",
+            "bytes": 13845,
+            "sha256": "206F7B8801017E44FE30B07DDA25102FC71A4CFD420373FA521B9DBB1F98173F"
+          },
+          {
+            "relative_path": "配置说明.md",
+            "bytes": 3063,
+            "sha256": "2791AF1C4A92139BC68492D8546C5CE90D61B54FBB776A6C44714053628275CA"
+          },
+          {
+            "relative_path": "已知问题.md",
+            "bytes": 6705,
+            "sha256": "D79A8C9CB840D053282334373D583E79C458E89F0878D0A64CF125398AB9305C"
+          },
+          {
+            "relative_path": "manifest.json",
+            "bytes": 5597,
+            "sha256": "558E948EDCB1B45969BF4404923D02A9720D4DCA3E9F376720782F48E6839DB2"
+          }
+        ],
+        "package_checkpoint_gui_started": false,
+        "package_checkpoint_validation": "NOT_RUN",
+        "actual_entry_scope_result": "PASS",
+        "package_checkpoint_metadata_not_rewritten": true
+      },
+      "build_ref": "prepared_continuation_followup_build",
+      "excerpt_segments": [
+        {
+          "producer": "fixture",
+          "source_path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/17b634cf38514271a89d52627df0b8c2-release-fixture.jsonl",
+          "excerpt_first_line": 717,
+          "excerpt_last_line": 738,
+          "source_sequences": [
+            13,
+            17,
+            24,
+            63,
+            74,
+            75,
+            79,
+            84,
+            96,
+            123,
+            130,
+            153,
+            165,
+            172,
+            174,
+            179,
+            180,
+            181,
+            182,
+            183,
+            184,
+            188
+          ]
+        },
+        {
+          "producer": "setup_product",
+          "source_path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/17b634cf38514271a89d52627df0b8c2-product-Release/panebind.log.jsonl",
+          "excerpt_first_line": 739,
+          "excerpt_last_line": 739,
+          "source_sequences": [
+            24
+          ]
+        },
+        {
+          "producer": "ordinary_ZIP_product",
+          "source_path": "uat/v1-control/17b634cf38514271a89d52627df0b8c2/collection-20261027T092456520Z-dd3364c3734f4de3baada823afb462cd/17b634cf38514271a89d52627df0b8c2-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+          "excerpt_first_line": 740,
+          "excerpt_last_line": 747,
+          "source_sequences": [
+            2,
+            23,
+            25,
+            32,
+            50,
+            52,
+            59,
+            62
+          ]
+        }
+      ],
+      "findings": {
+        "result": "ACTUAL_7A_CAED_ORDINARY_ZIP_ENTRY_SETTINGS_EFFECT_TWO_NORMALUP_AND_EXIT_SCOPED_PASS",
+        "observed": [
+          "D63实际caed七文件ZIP匹配，未预种config，真正中文空格目录无参启动D75/79可见GUI、D84空参二启保持exact实例。setup PID6728与真正ZIP PID6132/birth134375666291479754、P1..24和ZIP P1..62分别保留，不将setup、封包元数据gui_started=false/NOT_RUN或driver状态替代实际普通入口。",
+          "D96真实Save/Cancel指导，D123默认10DIP实际Move[140,80,540,440]，GUI保存0仅改解包settings.ini后D165实际free Move[134,83,534,443]；ZIP P23/25/32及P50/52/59两代真实Raw/legacy/NormalUp，D130/172核资源退出/capture0/无晚几何。普通模式不伪称已记录逐call native诊断。",
+          "D174/P62真实publicquit/exit0/全部own资源stop且completion_unknown=false；D179真客户DOWN/UP counts[1,1]→[2,2]恢复、D180 normal exit PASS、D181原七字节/无profile、D182/184/188限定入口/driver PASS。D183另一个重复poststop记录原check_requested=false/executed=false/false投递及原reason照录，不把未请求重做的检查误算真实失败。",
+          "精确own guest70808及专属任务清理/evidenceunchanged另有回执，不以销guest授产品PASS。本批不授托盘、完整I12、宿主、五应用或真人；旧2f8b/0c和0c91b5 FAIL保原身份。"
+        ],
+        "ordinary_arguments": "",
+        "ordinary_diagnostic_enabled": false,
+        "actual_GUI_sequence": 79,
+        "ordinary_product_pid": 6132,
+        "ordinary_product_birth_filetime_decimal": "134375666291479754",
+        "effects": [
+          {
+            "generation": 1,
+            "fixture_geometry_sequence": 123,
+            "actual": [
+              140,
+              80,
+              540,
+              440
+            ],
+            "raw_UP_sequence": 23,
+            "legacy_UP_sequence": 25,
+            "NormalUp_sequence": 32
+          },
+          {
+            "generation": 2,
+            "fixture_geometry_sequence": 165,
+            "actual": [
+              134,
+              83,
+              534,
+              443
+            ],
+            "raw_UP_sequence": 50,
+            "legacy_UP_sequence": 52,
+            "NormalUp_sequence": 59
+          }
+        ],
+        "product_stop": {
+          "fixture_sequence": 174,
+          "product_shutdown_sequence": 62,
+          "product_exit_code": 0,
+          "own_resource_shutdown_flags_true": true,
+          "completion_unknown": false,
+          "actual_post_stop_client_sequence": 179,
+          "counts_before": [
+            1,
+            1
+          ],
+          "counts_after": [
+            2,
+            2
+          ],
+          "normal_exit_case_sequence": 180,
+          "delivered_bytes_unchanged_sequence": 181
+        },
+        "duplicate_poststop_record": {
+          "fixture_sequence": 183,
+          "check_requested": false,
+          "executed": false,
+          "actual_down_up_delivered": false,
+          "raw_reason": "current_product_stop_not_confirmed",
+          "not_a_failed_repeated_delivery_test": true
+        },
+        "not_awarded": [
+          "whole_I12",
+          "tray",
+          "host_trial",
+          "application_matrix",
+          "whole_version",
+          "human_UAT"
+        ],
+        "next_action": "复用此7a/caed实际普通ZIP入口范围；保留完整桌面/托盘/应用/显示与NF剩余合同，不把旧包或新source重绑已验Run。"
+      }
     }
   ],
+  "latest_followup_next_action": "7a/1a40两轮owned Core、标准控件与caed普通ZIP入口各自原件已完成/精确清理，旧0c Prepared空FAIL和旧包保原身份。P2000原122valid+34missing/p95桶49999/max120405及callback453/max1045不删尾；已测范围百分位与整体NF合同分开，由独立复核裁定，不自行授wholeNF02/整版。下方next_driver_note仅保早期AACD快照语义。",
   "historical_initial_next_driver_note": "后继驱动与新Run由root单独构建/运行/追加。本快照仅封存以上3Run，不预判后继结果。",
   "next_driver_note": "12cc/f20a/2bb与234bd保原范围；94a提前FocusLost且旧pre-UP目的判据使清理UP未发送，00c新判据已真实发送并核实一次abort清理UP，但仍提前FocusLost/非Deadline，未完成supervisor后继，整I08不授PASS；同类未知FG反复打断后停止本路线。12c7普通47ff入口、b4b两轮owned core分别有实际证据；b4b最终p95桶99999及missing34仍不授NF02，不授整版。 最新AACD/9e：6271两轮owned核心scopePASS但NF02最终FAIL，63a4部分native失败/实际abort-UP/同实例survivor恢复scopePASS，91bc真正6af普通ZIP入口/设置effect/两NormalUp/exit scopePASS；suite原wholeI10false/I12字段按原范围保留，组合裁定另在canonical。后继新源码/计时诊断未运行不能换绑这些原件。",
   "followup_review_effect": {
