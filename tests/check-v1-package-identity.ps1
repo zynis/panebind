@@ -2890,4 +2890,51 @@ Reject {Assert-V1NativeClickContinuation ($queueFailureHeader.Replace('return sl
 Reject {Assert-V1NativeClickContinuation $queueFailureHeader ($queueFailureService.Replace('if(!capture_request_generation_current(pending.generation,generation_))continue;','')) $liveResizeApplication} 'static a retired first-click capture message cannot abort a newer second click'
 Reject {Assert-V1NativeClickContinuation $queueFailureHeader $queueFailureService ($liveResizeApplication.Replace('const bool fresh=continuation_fresh(e);','const bool fresh=true;'))} 'static real identity/geometry/native-hit freshness cannot be replaced by the continuation hint'
 Reject {Assert-V1NativeClickContinuation $queueFailureHeader $queueFailureService ($liveResizeApplication.Replace('e.second_click_continuation?e.generation:0','0'))} 'static continuation mapped writes cannot fall back to public generation-zero authority'
+function Assert-V1FinalReleaseRecheckObservation([string]$Fixture){
+    $start=$Fixture.IndexOf('void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){',[StringComparison]::Ordinal)
+    $end=$Fixture.IndexOf('std::optional<POINT> hit_point(',$start,[StringComparison]::Ordinal)
+    if($start -lt 0 -or $end -le $start){throw 'Actual final release helper body missing.'}
+    $release=$Fixture.Substring($start,$end-$start)
+    foreach($fact in @(
+        'const DWORD fresh_source_tid=GetWindowThreadProcessId(h,&fresh_source_pid);',
+        'const bool current_source=fresh_source_tid==capture.source_tid&&fresh_source_pid==capture.source_pid&&fresh_context.known();',
+        'fresh_capture_pid==s.product_pid&&fresh_owner_known&&',
+        'fresh_source.hwndCapture==expected_capture&&fresh_owner.hwndCapture==expected_capture&&',
+        '!fresh_source.hwndMoveSize&&!fresh_source.hwndMenuOwner&&!fresh_owner.hwndMoveSize&&!fresh_owner.hwndMenuOwner:',
+        'current_source&&(!fresh_source.hwndCapture||fresh_source.hwndCapture==h);',
+        'const bool fresh_authorized=authorized_source(s,h);const HWND fresh_foreground=GetForegroundWindow();',
+        'const bool fresh_point_known=GetCursorPos(&fresh_point)!=FALSE;',
+        'const HWND fresh_hit=fresh_point_known?GetAncestor(WindowFromPoint(fresh_point),GA_ROOT):nullptr;',
+        'const bool same_point=fresh_point_known&&fresh_point.x==point.x&&fresh_point.y==point.y;',
+        'const bool same_hit=fresh_point_known&&fresh_hit==expected_hit;',
+        'const unsigned failure_bits=(!current_source?1u:0u)|(!current_capture?2u:0u)|(!fresh_authorized?4u:0u)|',
+        '(fresh_foreground!=h?8u:0u)|(!fresh_point_known?16u:0u)|(!same_point?32u:0u)|(!same_hit?64u:0u);',
+        's.log.emit("normal_release_route_rejected_before_UP"',
+        'throw std::runtime_error("normal_release_route_changed_after_observation_before_UP");',
+        'fresh_context.known()?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_source.hwndCapture)):"null"',
+        'fresh_owner_known?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_owner.hwndCapture)):"null"')){
+        if(-not $release.Contains($fact)){throw ('Final UP observation must retain actual independent gates and unknown GUI evidence: '+$fact)}
+    }
+    $gate=$release.IndexOf('if(failure_bits){',[StringComparison]::Ordinal)
+    $rejected=$release.IndexOf('s.log.emit("normal_release_route_rejected_before_UP"',[StringComparison]::Ordinal)
+    $throw=$release.IndexOf('throw std::runtime_error("normal_release_route_changed_after_observation_before_UP");',[StringComparison]::Ordinal)
+    $ledger=$release.IndexOf('s.left_up_attempted=true;s.left_up_send_qpc=',[StringComparison]::Ordinal)
+    $send=$release.IndexOf('const UINT inserted=SendInput(',[StringComparison]::Ordinal)
+    if($gate -lt 0 -or $rejected -le $gate -or $throw -le $rejected -or $ledger -le $throw -or $send -le $ledger){
+        throw 'Failure observation must precede refusal, and the one UP ledger/insertion must remain after successful recheck.'
+    }
+    $failure=$release.Substring($gate,$throw-$gate)
+    if($failure -match '\b(SendInput|SetForegroundWindow|SetFocus|SetCapture|ReleaseCapture|Sleep|wait)\s*\(' -or
+       $release.Substring($throw+$release.Substring($throw).IndexOf(';')+1,$ledger-($throw+$release.Substring($throw).IndexOf(';')+1)).Contains('s.log.emit(')){
+        throw 'Failure diagnosis cannot send input, alter focus/capture, retry, or add success-path disk IO after the fresh check.'
+    }
+}
+Assert-V1FinalReleaseRecheckObservation $fixtureSource
+Check $true 'static final planned UP records the failed actual recheck branch without changing its routing/identity/hit/capture gates'
+Reject {Assert-V1FinalReleaseRecheckObservation ($fixtureSource.Replace('const bool current_source=fresh_source_tid==capture.source_tid&&fresh_source_pid==capture.source_pid&&fresh_context.known();','const bool current_source=true;'))} 'static final UP cannot replace actual source PID/TID/GUI identity with permission'
+Reject {Assert-V1FinalReleaseRecheckObservation ($fixtureSource.Replace('(fresh_foreground!=h?8u:0u)|',''))} 'static final UP cannot waive the actual foreground check'
+Reject {Assert-V1FinalReleaseRecheckObservation ($fixtureSource.Replace('(!same_hit?64u:0u);','0u;'))} 'static final UP cannot waive actual hit identity'
+Reject {Assert-V1FinalReleaseRecheckObservation ($fixtureSource.Replace('if(failure_bits){','if(false){'))} 'static failed final UP observations still have to refuse insertion'
+Reject {Assert-V1FinalReleaseRecheckObservation ($fixtureSource.Replace('s.log.emit("normal_release_route_rejected_before_UP"','s.log.emit("unrelated_observation"'))} 'static an earlier route sample cannot substitute for the actual final failure evidence'
+Reject {Assert-V1FinalReleaseRecheckObservation ($fixtureSource.Replace('fresh_owner_known?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_owner.hwndCapture)):"null"','std::to_string(reinterpret_cast<std::uintptr_t>(fresh_owner.hwndCapture))'))} 'static unknown capture-owner GUI cannot masquerade as known zero capture'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

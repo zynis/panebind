@@ -828,19 +828,60 @@ void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
     packets[1].mi.dwFlags=MOUSEEVENTF_LEFTUP;
     // The route-observation log is disk IO, not a lease on its earlier facts.
     // Recheck actual hit/capture/identity once immediately before insertion.
-    POINT fresh_point{};GUITHREADINFO fresh_owner{sizeof(fresh_owner)};DWORD fresh_pid{};
+    POINT fresh_point{};GUITHREADINFO fresh_owner{sizeof(fresh_owner)};DWORD fresh_source_pid{},fresh_capture_pid{};
     const HWND expected_hit=hit;const HWND expected_capture=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(capture.overlay));
+    LARGE_INTEGER recheck_begin{},recheck_end{};QueryPerformanceCounter(&recheck_begin);
     std::string fresh_context_reason;
     const auto fresh_context=release_source_gui_context(s,h,fresh_context_reason);const auto& fresh_source=fresh_context.actual;
-    const bool current_source=GetWindowThreadProcessId(h,&fresh_pid)==capture.source_tid&&fresh_pid==capture.source_pid&&fresh_context.known();
-    const bool current_capture=captured_route?current_source&&GetWindowThreadProcessId(expected_capture,&fresh_pid)==capture.overlay_tid&&
-        fresh_pid==s.product_pid&&GetGUIThreadInfo(static_cast<DWORD>(capture.overlay_tid),&fresh_owner)&&
+    const DWORD fresh_source_tid=GetWindowThreadProcessId(h,&fresh_source_pid);
+    const DWORD fresh_capture_tid=captured_route?GetWindowThreadProcessId(expected_capture,&fresh_capture_pid):0;
+    const bool fresh_owner_known=captured_route&&capture.overlay_tid&&GetGUIThreadInfo(static_cast<DWORD>(capture.overlay_tid),&fresh_owner)!=FALSE;
+    const bool current_source=fresh_source_tid==capture.source_tid&&fresh_source_pid==capture.source_pid&&fresh_context.known();
+    const bool current_capture=captured_route?current_source&&fresh_capture_tid==capture.overlay_tid&&
+        fresh_capture_pid==s.product_pid&&fresh_owner_known&&
         fresh_source.hwndCapture==expected_capture&&fresh_owner.hwndCapture==expected_capture&&
         !fresh_source.hwndMoveSize&&!fresh_source.hwndMenuOwner&&!fresh_owner.hwndMoveSize&&!fresh_owner.hwndMenuOwner:
         current_source&&(!fresh_source.hwndCapture||fresh_source.hwndCapture==h);
-    if(!current_capture||!authorized_source(s,h)||GetForegroundWindow()!=h||!GetCursorPos(&fresh_point)||
-       fresh_point.x!=point.x||fresh_point.y!=point.y||GetAncestor(WindowFromPoint(fresh_point),GA_ROOT)!=expected_hit)
+    // Observe every existing gate independently. The old short circuit hid
+    // which fact changed, and the earlier disk record was not this final
+    // sample. No disk IO is added to the successful recheck-to-insertion path.
+    const bool fresh_authorized=authorized_source(s,h);const HWND fresh_foreground=GetForegroundWindow();
+    const bool fresh_point_known=GetCursorPos(&fresh_point)!=FALSE;
+    const HWND fresh_hit=fresh_point_known?GetAncestor(WindowFromPoint(fresh_point),GA_ROOT):nullptr;
+    const bool same_point=fresh_point_known&&fresh_point.x==point.x&&fresh_point.y==point.y;
+    const bool same_hit=fresh_point_known&&fresh_hit==expected_hit;
+    QueryPerformanceCounter(&recheck_end);
+    const unsigned failure_bits=(!current_source?1u:0u)|(!current_capture?2u:0u)|(!fresh_authorized?4u:0u)|
+        (fresh_foreground!=h?8u:0u)|(!fresh_point_known?16u:0u)|(!same_point?32u:0u)|(!same_hit?64u:0u);
+    if(failure_bits){
+        s.log.emit("normal_release_route_rejected_before_UP","\"failure_bits\":"+std::to_string(failure_bits)+
+            ",\"failure_bit_names\":\"1=source_identity_or_GUI,2=capture_route,4=authorization,8=foreground,16=cursor_unknown,32=cursor_changed_or_unknown,64=hit_changed_or_unknown\""+
+            ",\"recheck_begin_qpc\":"+std::to_string(recheck_begin.QuadPart)+",\"recheck_end_qpc\":"+std::to_string(recheck_end.QuadPart)+
+            ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"expected_source_pid\":"+std::to_string(capture.source_pid)+
+            ",\"expected_source_tid\":"+std::to_string(capture.source_tid)+",\"actual_source_pid\":"+std::to_string(fresh_source_pid)+
+            ",\"actual_source_tid\":"+std::to_string(fresh_source_tid)+",\"source_GUI_known\":"+(fresh_context.known()?"true":"false")+
+            ",\"source_GUI_mode\":"+quote(product::gui_context_mode_name(fresh_context.mode))+",\"source_GUI_identity_reason\":"+quote(fresh_context_reason)+
+            ",\"source_GUI_owner_error\":"+std::to_string(fresh_context.owner_error)+",\"source_GUI_foreground_error\":"+std::to_string(fresh_context.foreground_error)+
+            ",\"captured_route\":"+(captured_route?"true":"false")+",\"expected_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(expected_capture))+
+            ",\"expected_capture_tid\":"+std::to_string(capture.overlay_tid)+",\"actual_capture_pid\":"+(captured_route?std::to_string(fresh_capture_pid):"null")+
+            ",\"actual_capture_tid\":"+(captured_route?std::to_string(fresh_capture_tid):"null")+",\"capture_owner_GUI_known\":"+(fresh_owner_known?"true":"false")+
+            ",\"source_capture\":"+(fresh_context.known()?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_source.hwndCapture)):"null")+
+            ",\"source_move_size\":"+(fresh_context.known()?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_source.hwndMoveSize)):"null")+
+            ",\"source_menu_owner\":"+(fresh_context.known()?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_source.hwndMenuOwner)):"null")+
+            ",\"source_GUI_flags\":"+(fresh_context.known()?std::to_string(fresh_source.flags):"null")+
+            ",\"capture_owner_capture\":"+(fresh_owner_known?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_owner.hwndCapture)):"null")+
+            ",\"capture_owner_move_size\":"+(fresh_owner_known?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_owner.hwndMoveSize)):"null")+
+            ",\"capture_owner_menu_owner\":"+(fresh_owner_known?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_owner.hwndMenuOwner)):"null")+
+            ",\"capture_owner_GUI_flags\":"+(fresh_owner_known?std::to_string(fresh_owner.flags):"null")+
+            ",\"current_source\":"+(current_source?"true":"false")+",\"current_capture\":"+(current_capture?"true":"false")+
+            ",\"fresh_authorized\":"+(fresh_authorized?"true":"false")+",\"actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(fresh_foreground))+
+            ",\"expected_cursor\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"actual_cursor\":"+
+            (fresh_point_known?"["+std::to_string(fresh_point.x)+","+std::to_string(fresh_point.y)+"]":"null")+
+            ",\"expected_hit_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(expected_hit))+",\"actual_hit_root\":"+
+            (fresh_point_known?std::to_string(reinterpret_cast<std::uintptr_t>(fresh_hit)):"null")+
+            ",\"UP_SendInput_not_yet_called\":true,\"no_retry_or_activation\":true,\"failed_sample_not_a_release_lease\":true");
         throw std::runtime_error("normal_release_route_changed_after_observation_before_UP");
+    }
     LARGE_INTEGER before{},finished{};QueryPerformanceCounter(&before);
     // Even a partial insertion must never result in an automatic second UP.
     s.left_up_attempted=true;s.left_up_send_qpc=before.QuadPart>0?before.QuadPart:0;
