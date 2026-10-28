@@ -191,6 +191,25 @@ deterministic and platform-independent.
   third-party applications merely to complete UAT.
 - Treat unsaved Notepad tabs and equivalent application state as user data.
 
+## Local build and evidence retention
+
+- After a batch is finished, keep disk use bounded by cleaning only confirmed
+  regenerable historical intermediates and exact archived input copies. Recheck
+  actual processes, current artifacts and next-run dependencies first; old SHA
+  labels alone are not a dependency check. Keep current incremental builds intact.
+- Preserve tracked files, `.git`, unknown inputs, original ZIPs/manifests/WSBs and
+  package/deploy/collection receipts, raw and rotated evidence, evidence indexes,
+  unique binaries and their required symbols. Ignored/untracked is not disposable.
+- Before deleting expanded input payloads, verify the original ZIP against its
+  original receipt and compare each existing input file's path, size and SHA-256
+  with its ZIP entry. Preserve metadata; skip incomplete, ambiguous or unarchived
+  inputs. Record exact deleted paths and ZIP-entry restoration instructions.
+- Limit historical build cleanup to reviewed regenerable files; retain any
+  object/compiler-PDB dependency needed by historical symbols. Do not blanket
+  delete final PDBs, use `git clean -fdx`, follow reparse points, cross the approved
+  repository root, or stop user processes. Keep a small actual-deletion receipt;
+  do not create a general cleanup service or duplicate the repository as backup.
+
 ## Git discipline
 
 - Do not develop directly on `main`.

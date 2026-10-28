@@ -1,6 +1,13 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-27",
+  "local_disk_cleanup_20261029_files": [
+    {
+      "path": "docs/reports/v1-evidence/20261029-disk-cleanup.json",
+      "sha256": "88569CC2BA22919E5A19CC102466662D8E73AEF2A419E5F14EEEE4353E13A71E",
+      "bytes": 780386
+    }
+  ],
   "bounded_legacy_and_environment_20261029_files": [
     {
       "path": "docs/reports/v1-evidence/20261029-nf02-legacy-stage-review.json",
