@@ -1,6 +1,18 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-27",
+  "bounded_legacy_and_environment_20261029_files": [
+    {
+      "path": "docs/reports/v1-evidence/20261029-nf02-legacy-stage-review.json",
+      "sha256": "65CF622A19EFC836A8FE1F3D8304C20313D877F769E8EF89A10F3AE0015F3CD8",
+      "bytes": 15332
+    },
+    {
+      "path": "docs/reports/v1-evidence/20261029-environment-readonly-supplement.json",
+      "sha256": "156AD3DDFE9342529C55A7DC7D9E2B329F9E05D795DB324C5C8F7DD6C28DEC2A",
+      "bytes": 11409
+    }
+  ],
   "input_followup_20261028_files": [
     {
       "path": "docs/reports/v1-evidence/20261028-input-followup-review.json",

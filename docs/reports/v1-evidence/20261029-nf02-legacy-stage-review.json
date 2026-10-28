@@ -1,0 +1,219 @@
+{
+  "schema": "panebind-v1-bounded-evidence-review/1",
+  "review_date": "2026-10-29",
+  "review_timezone": "Asia/Shanghai",
+  "review_base_sha": "4348ae5f8f904d45f684c290ecb118397dcdb10b",
+  "scope": "仅复核已保存 c4f2 两条 legacy-UP 停靠的 QPC 边界和冻结产品源码；不新增采样、不修改产品、驱动或原件。",
+  "new_field_run_performed": false,
+  "product_rebuilt": false,
+  "acceptance_verdict_changed": false,
+  "historical_boundaries": {
+    "original_122_hook_samples": "保持原运行及原构建身份，不混入本文件的两条 legacy 时钟样本。",
+    "c4f2_whole_run": "FAIL",
+    "c4f2_I07_fresh_UP_guard_root_cause": "UNKNOWN；本次分析不改变原 FAIL 或 UNKNOWN。",
+    "new_overall_NF02_PASS_awarded": false,
+    "new_maximum_latency_hard_gate_added": false,
+    "human_UAT": "PENDING",
+    "REA": "NOT_STARTED"
+  },
+  "identity": {
+    "run_id": "c4f226a180dc4c87acb9a5c03c5421f1",
+    "suite": "InputFollowupOnly",
+    "configuration": "Release",
+    "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+    "driver_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+    "packaging_head": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+    "product_process_id": 3948,
+    "raw_collection_root": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206",
+    "remote_run_root": "I:\\PaneBindMVP1Runs\\c4f226a180dc4c87acb9a5c03c5421f1",
+    "raw_pins": [
+      {
+        "id": "rotated_product_log",
+        "relative_to_collection": "c4f226a180dc4c87acb9a5c03c5421f1-product-Release/panebind.log.jsonl.1",
+        "bytes": 524911,
+        "lines": 376,
+        "sha256": "46C26A2BD5705E5364BBD4B52008385D84FD6954D47A00F0078148292296C4C3"
+      },
+      {
+        "id": "final_product_log",
+        "relative_to_collection": "c4f226a180dc4c87acb9a5c03c5421f1-product-Release/panebind.log.jsonl",
+        "bytes": 45561,
+        "sha256": "4AB4349A9007173BB0FFFEC5736751FDDD68D4C73BB80393C018FCEED698DA89"
+      },
+      {
+        "id": "product_exe",
+        "relative_to_collection": "c4f226a180dc4c87acb9a5c03c5421f1-product-Release/panebind.exe",
+        "bytes": 1258496,
+        "sha256": "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB"
+      },
+      {
+        "id": "collection_receipt",
+        "relative_to_collection": "collection-receipt.json",
+        "bytes": 9903,
+        "sha256": "1CA05F562F90B9476691C860CFF989593B83E65CD8F8A08EE60959DD435B71BB"
+      }
+    ],
+    "package_pins": [
+      {
+        "path": "uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/c4f226a180dc4c87acb9a5c03c5421f1.zip",
+        "bytes": 6384038,
+        "sha256": "7DBA2A3378E8FEE59E5E9FD943A28E329A11892076A6222538C24D0130E4954D"
+      },
+      {
+        "path": "uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/input/manifest.json",
+        "bytes": 17165,
+        "sha256": "C4AD70CB751BB0B4496411B0213735A15942AD3700930742CFE95D4E0AD7C343"
+      }
+    ]
+  },
+  "clock": {
+    "frequency_hz": 10000000,
+    "frequency_evidence": { "raw_pin_id": "final_product_log", "line": 30, "sequence": 406, "field": "qpc_frequency" },
+    "scope": "same_machine_QPC_software_observation_cross_thread_one_tick_quantization",
+    "delta_formula": "delta_qpc = to.value - from.value; milliseconds = delta_qpc * 1000 / frequency_hz",
+    "tick_resolution_ms": 0.0001,
+    "not_physical_display_latency": true,
+    "legacy_is_not_hook_origin": true,
+    "dispatch_location": {
+      "path": "src/platform/windows/operations/gesture_input_shield.cpp",
+      "line": 658,
+      "fact": "在 overlay procedure 的 WM_LBUTTONUP 分支内 native_qpc()；此前已经处理并 emit OverlayMouseRoute。因此它不是 WndProc 最早入口，不是 hook 起点，也不是物理 UP 发生时刻。"
+    },
+    "release_and_detach_span_caveat": "before/after 区间还含已有身份检查、begin 回执投递及同步消息等，不报告成纯 ReleaseCapture 或纯 AttachThreadInput API 耗时。",
+    "log_order_caveat": "原件行号只用于定位；跨线程先后仅依据可比较的原 QPC 和实际调用链，不把 JSONL 行顺序当成原生全序。"
+  },
+  "samples": [
+    {
+      "generation": 1,
+      "source_key": 4,
+      "source_HWND": 197400,
+      "source_PID": 4296,
+      "source_TID": 4292,
+      "overlay_HWND": 328474,
+      "raw_pin_id": "rotated_product_log",
+      "endpoints": [
+        { "id": "legacy_dispatch", "value": 391528434, "line": 68, "sequence": 68, "field": "legacy_up_dispatch_qpc" },
+        { "id": "release_before", "value": 391529531, "line": 71, "sequence": 71, "field": "release_before_qpc" },
+        { "id": "release_after", "value": 391531931, "line": 71, "sequence": 71, "field": "release_after_qpc" },
+        { "id": "detach_before", "value": 391532174, "line": 73, "sequence": 73, "field": "detach_before_qpc" },
+        { "id": "detach_after", "value": 391533710, "line": 73, "sequence": 73, "field": "detach_after_qpc" },
+        { "id": "gone_receipt", "value": 391558326, "line": 74, "sequence": 74, "field": "resource_observed_qpc" },
+        { "id": "GUI_dequeued", "value": 391850211, "line": 75, "sequence": 75, "field": "GUI_dequeued_qpc" },
+        { "id": "writer_preflight", "value": 391940941, "line": 76, "sequence": 76, "field": "preflight_started_qpc" },
+        { "id": "native_before", "value": 391954377, "line": 76, "sequence": 76, "field": "native_before_qpc" },
+        { "id": "native_after", "value": 392028621, "line": 76, "sequence": 76, "field": "native_after_qpc" },
+        { "id": "geometry_observed", "value": 392041683, "line": 76, "sequence": 76, "field": "geometry_observed_qpc" },
+        { "id": "post_observed", "value": 392041692, "line": 76, "sequence": 76, "field": "post_observed_qpc" }
+      ],
+      "segments": [
+        { "from": "legacy_dispatch", "to": "release_before", "delta_qpc": 1097, "milliseconds": 0.1097 },
+        { "from": "release_before", "to": "release_after", "delta_qpc": 2400, "milliseconds": 0.2400 },
+        { "from": "release_after", "to": "detach_before", "delta_qpc": 243, "milliseconds": 0.0243 },
+        { "from": "detach_before", "to": "detach_after", "delta_qpc": 1536, "milliseconds": 0.1536 },
+        { "from": "detach_after", "to": "gone_receipt", "delta_qpc": 24616, "milliseconds": 2.4616 },
+        { "from": "gone_receipt", "to": "GUI_dequeued", "delta_qpc": 291885, "milliseconds": 29.1885 },
+        { "from": "GUI_dequeued", "to": "writer_preflight", "delta_qpc": 90730, "milliseconds": 9.0730 },
+        { "from": "writer_preflight", "to": "native_before", "delta_qpc": 13436, "milliseconds": 1.3436 },
+        { "from": "native_before", "to": "native_after", "delta_qpc": 74244, "milliseconds": 7.4244 },
+        { "from": "native_after", "to": "geometry_observed", "delta_qpc": 13062, "milliseconds": 1.3062 },
+        { "from": "geometry_observed", "to": "post_observed", "delta_qpc": 9, "milliseconds": 0.0009 }
+      ],
+      "rollups_not_additional_samples": {
+        "dispatch_to_gone_qpc": 29892,
+        "dispatch_to_gone_ms": 2.9892,
+        "dispatch_to_GUI_qpc": 321777,
+        "dispatch_to_GUI_ms": 32.1777,
+        "total_qpc": 513258,
+        "total_ms": 51.3258
+      },
+      "actual_result": { "line": 76, "native_attempted": true, "native_succeeded": true, "native_completion_known": true, "exact": true, "identity_valid": true, "post_context_checked": false, "post_context_valid": false, "call_id": 2 }
+    },
+    {
+      "generation": 2,
+      "source_key": 5,
+      "source_HWND": 197418,
+      "source_PID": 4296,
+      "source_TID": 4292,
+      "overlay_HWND": 197288,
+      "raw_pin_id": "rotated_product_log",
+      "endpoints": [
+        { "id": "legacy_dispatch", "value": 401861450, "line": 104, "sequence": 104, "field": "legacy_up_dispatch_qpc" },
+        { "id": "release_before", "value": 401864436, "line": 107, "sequence": 107, "field": "release_before_qpc" },
+        { "id": "release_after", "value": 401867187, "line": 107, "sequence": 107, "field": "release_after_qpc" },
+        { "id": "detach_before", "value": 401869020, "line": 109, "sequence": 109, "field": "detach_before_qpc" },
+        { "id": "detach_after", "value": 401872240, "line": 109, "sequence": 109, "field": "detach_after_qpc" },
+        { "id": "gone_receipt", "value": 401912027, "line": 110, "sequence": 110, "field": "resource_observed_qpc" },
+        { "id": "GUI_dequeued", "value": 402142945, "line": 111, "sequence": 111, "field": "GUI_dequeued_qpc" },
+        { "id": "writer_preflight", "value": 402186711, "line": 112, "sequence": 112, "field": "preflight_started_qpc" },
+        { "id": "native_before", "value": 402196096, "line": 112, "sequence": 112, "field": "native_before_qpc" },
+        { "id": "native_after", "value": 402294747, "line": 112, "sequence": 112, "field": "native_after_qpc" },
+        { "id": "geometry_observed", "value": 402321015, "line": 112, "sequence": 112, "field": "geometry_observed_qpc" },
+        { "id": "post_observed", "value": 402321030, "line": 112, "sequence": 112, "field": "post_observed_qpc" }
+      ],
+      "segments": [
+        { "from": "legacy_dispatch", "to": "release_before", "delta_qpc": 2986, "milliseconds": 0.2986 },
+        { "from": "release_before", "to": "release_after", "delta_qpc": 2751, "milliseconds": 0.2751 },
+        { "from": "release_after", "to": "detach_before", "delta_qpc": 1833, "milliseconds": 0.1833 },
+        { "from": "detach_before", "to": "detach_after", "delta_qpc": 3220, "milliseconds": 0.3220 },
+        { "from": "detach_after", "to": "gone_receipt", "delta_qpc": 39787, "milliseconds": 3.9787 },
+        { "from": "gone_receipt", "to": "GUI_dequeued", "delta_qpc": 230918, "milliseconds": 23.0918 },
+        { "from": "GUI_dequeued", "to": "writer_preflight", "delta_qpc": 43766, "milliseconds": 4.3766 },
+        { "from": "writer_preflight", "to": "native_before", "delta_qpc": 9385, "milliseconds": 0.9385 },
+        { "from": "native_before", "to": "native_after", "delta_qpc": 98651, "milliseconds": 9.8651 },
+        { "from": "native_after", "to": "geometry_observed", "delta_qpc": 26268, "milliseconds": 2.6268 },
+        { "from": "geometry_observed", "to": "post_observed", "delta_qpc": 15, "milliseconds": 0.0015 }
+      ],
+      "rollups_not_additional_samples": {
+        "dispatch_to_gone_qpc": 50577,
+        "dispatch_to_gone_ms": 5.0577,
+        "dispatch_to_GUI_qpc": 281495,
+        "dispatch_to_GUI_ms": 28.1495,
+        "total_qpc": 459580,
+        "total_ms": 45.9580
+      },
+      "actual_result": { "line": 112, "native_attempted": true, "native_succeeded": true, "native_completion_known": true, "exact": true, "identity_valid": true, "post_context_checked": false, "post_context_valid": false, "call_id": 4 }
+    }
+  ],
+  "source_chain_at_frozen_product": [
+    { "path": "src/platform/windows/operations/gesture_input_shield.cpp", "git_blob_sha1": "bfff75533346b37dd07379c09ef356c4d5b60086", "locations": [386, 658, 1055, 1182, 1332], "meaning": "WM_LBUTTONUP内采 dispatch；release与detach真实before/after；remove_overlay完成自有资源后同步emit Gone。" },
+    { "path": "src/platform/windows/product/input_service.cpp", "git_blob_sha1": "966b6853e8f1fdcaa45f1c5ae72d903449e7080e", "locations": [97, 148, 277, 338, 616, 622, 1120], "meaning": "CaptureBridge接收并保存资源回执的qpc；input-owner消费Gone并严格校验NormalUp；push发布规范化UP并通知GUI；push没有enqueue QPC。" },
+    { "path": "src/platform/windows/product/input_service.h", "git_blob_sha1": "5a53523d2b5ea0211cda091764d8ddca5a5f64e1", "meaning": "InputEvent保留hook/resource起点，没有输入队列publication QPC。" },
+    { "path": "src/platform/windows/product/product_app.cpp", "git_blob_sha1": "605784e7709bb91c73b95965be4a4eb804214b63", "locations": [162, 178, 369, 2016, 2021, 2067, 2068, 2090, 2175, 2224], "meaning": "GUI pop后采GUI_dequeued_qpc；此前资源回执逐行记录；UP再经finish/目录重查/batch形成停靠写入。" },
+    { "path": "src/platform/windows/product/window_writer.cpp", "git_blob_sha1": "b03c25e330138333aa56705e4273f07657c2a88a", "locations": [273, 396, 832, 877], "meaning": "preflight为place_with_destination入口；native-before为最终claim之后、SetWindowPos之前；worker返回时记录native-after。" },
+    { "path": "src/platform/windows/product/window_writer.h", "git_blob_sha1": "375b8bca81113f025f5e7873c24597f33eb24740", "locations": [108, 109, 112], "meaning": "geometry/post为实际回读及适用观察完成边界。两条原件post_context_checked=false，不把endpoint名称改写成额外上下文检查通过。" }
+  ],
+  "unknown_stage": {
+    "status": "UNKNOWN",
+    "interval": "Gone receipt → normalized UP GUI pop",
+    "milliseconds_by_generation": { "1": 29.1885, "2": 23.0918 },
+    "missing_boundaries": ["input-owner实际消费Gone的QPC", "规范化UP成功发布到输入队列的QPC"],
+    "mixed_work": ["资源receipt队列等待及owner消息分发", "owner的严格清理/NormalUp资格判定", "规范化UP入队与GUI等待", "GUI对前序资源事件的处理与诊断记录"],
+    "not_established": ["纯GUI队列时长", "系统调度根因", "单独入队耗时", "单独日志耗时"],
+    "GUI_to_preflight_caveat": "9.0730/4.3766ms包含UP日志、finish撤权/预览清理、Catalog重新查询及batch admission，不是单独solver或native耗时。"
+  },
+  "logging_candidate_not_conclusion": {
+    "observed_source_fact": "GUI对UP之前的Raw/route/legacy/release/detach/Gone回执调用Log::event；每行含file_size、格式化和ofstream.flush。输入及资源回调不写磁盘。",
+    "causal_status": "UNPROVEN",
+    "reason": "原件没有这些逐行日志的begin/end QPC；不能据代码路径便将29.1885/23.0918ms归因于日志，也不能反向认定属于系统。"
+  },
+  "minimal_next_step_if_further_attribution_is_needed": {
+    "product_changed_this_round": false,
+    "candidate_defect_proven_by_this_review": false,
+    "proposal": "只为本条正常UP链保存input-owner消费Gone及规范化UP成功发布两个QPC边界，在现有GUI记录输出；不在资源/输入线程落盘，不改变authority、清理、writer或验收门。",
+    "purpose": "区分资源→owner等待、owner处理/发布、发布→GUI消费，不新增通用统计框架或重复采样稀释慢尾。",
+    "requires_new_product_implementation_identity_if_implemented": true,
+    "old_EXE_and_old_evidence_must_not_be_rebound": true,
+    "not_implemented_or_run_by_this_review": true
+  },
+  "verification": {
+    "method": "读取被pin原件；逐端点核对字段、行号、sequence、generation、source_sha；整数QPC差及十进制换算；分段加总、单调性、rollup和原件SHA256/长度复核；git blob与冻结465源码比较。",
+    "raw_endpoint_values_match": true,
+    "endpoint_count": 24,
+    "all_endpoint_clocks_nonzero_and_strictly_monotonic_per_sample": true,
+    "all_22_segment_deltas_and_decimal_milliseconds_match": true,
+    "segment_sums_equal_original_dispatch_to_post": true,
+    "original_log_and_product_pins_match": true,
+    "source_blobs_unchanged_from_frozen_product": true,
+    "new_native_or_interactive_test_result": "NOT_RUN"
+  }
+}

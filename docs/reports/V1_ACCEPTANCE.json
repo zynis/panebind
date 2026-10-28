@@ -2,7 +2,7 @@
   "schema": "panebind-v1-acceptance/1",
   "contract": "docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md",
   "contract_version": "1.0",
-  "record_date": "2026-10-28",
+  "record_date": "2026-10-29",
   "branch": "codex/r1c4b-live-magnet",
   "engineering_status": "PARTIAL",
   "dev_complete": false,
@@ -2726,7 +2726,7 @@
       "description": "当前Release/Medium五种真实应用与E01-E05显示/环境矩阵。",
       "status": "BLOCKED",
       "remaining_conditions": "普通Explorer、Notepad/Electron/浏览器完整矩阵与E01/E03–E05真实显示环境尚缺。",
-      "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
+      "next_action": "2026-10-29已补可信SSH只读能力核验，集中报告现有最小方案已细化为待授权的专属完整Medium guest实施/退出步骤；未确认现成可丢弃guest，不新建/启动VM或改宿主。完整桌面可解锁的应用/托盘前置与E03/E04双独立显示仍分开判定，继续所有不受阻合同。"
     },
     {
       "id": "HG04",
@@ -14689,7 +14689,8 @@
       "remaining_conditions": [
         "缺单屏100%真实隔离显示条件；当前实际150%不改写为100%。"
       ],
-      "next_action": "取得真实100%隔离显示后执行适用整链，不在宿主改显示配置。 用户已确认有Windows ISO/VM但内存不足；不创建新VM、不调整宿主/其他任务，待可用隔离交互环境及足够资源；继续当前Sandbox不受阻项目，不要求购买Pro。",
+      "next_action": "2026-10-29已通过原可信SSH只读复核ZS-WORKSTATION，未确认现成具名且明确可丢弃的完整guest；Hyper-V功能禁用、无Get-VM/module/vmconnect及对应CIM命名空间，不能将未知清单写成无VM。按V1_DELIVERY_REPORT现有最小方案及20261029-environment-readonly-supplement提交新建专属完整Medium单屏100%guest的具体待授权步骤；本轮不启用功能、创建/启动VM或改宿主。瞬时可用内存不等于维护资源已获分配，先继续不受阻工作。",
+      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -14753,7 +14754,8 @@
         "已实测Medium/non-elevated/session1/单屏150%下的有限功能：42ab/f78普通GUI/设置效果/Move-NormalUp、4ff精确Terminal的Move→Resize→Move/五阶段磁吸/两成员Ctrl和实际资源收尾；f06a/750各自owned范围另保身份。不能再称全部sourceGUI/VDM/实际增强未验，也不授完整E02。",
         "当前仍缺200%主要UI/完整HC恢复、五应用及适用I01–I12。229e/2b49的Medium Shell事实不等于普通文件窗；69f4确见新Cabinet双heldRun成员，但实际RID8192/elevated=true被拒且Shell单条exact path未确认；客户nonce/菜单投递也各未通过。"
       ],
-      "next_action": "复用已通过f78当前普通GUI、4ff Terminal真实增强、f06a/750各自合同，不重放已关闭专项。当前相同Explorer启动路线停止重复，缺口是实际non-elevated且路径可确认的完整Medium隔离桌面；Terminal客户语义、托盘菜单和其它应用分别按具体事实推进，不将全部问题归为显示或系统原因。200%UI、真实双屏/混合DPI、虚拟桌面/会话及最终整链仍独立，保持环境BLOCKED与宿主数据保护。",
+      "next_action": "复用已通过f78普通GUI、4ff Terminal真实增强、f06a/750各自合同，不重放已关闭专项或无变量Explorer路线。2026-10-29可信只读补查仍未确认现成完整guest；按集中报告待授权完整Medium桌面方案解锁non-elevated Explorer、真实托盘、应用前置及150%/200%UI，授权前不新建VM或修改宿主。Terminal客户语义、托盘菜单、应用初始化及HC exact恢复分别保具体失败/未知，不能统一归系统；双屏/混合DPI另需独立显示能力实证。",
+      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -14858,7 +14860,8 @@
       "remaining_conditions": [
         "当前guest真实monitors仅1，尚无双屏负坐标隔离显示能力证据。"
       ],
-      "next_action": "在已有隔离设施评估真实双虚拟显示器，不用坐标模型替代。 用户已确认有Windows ISO/VM但内存不足；不创建新VM、不调整宿主/其他任务，待可用隔离交互环境及足够资源；继续当前Sandbox不受阻项目，不要求购买Pro。",
+      "next_action": "2026-10-29只读WMI仅一条Active显示连接；RTX模式3840×2160与Oray未知模式、SSH session0不能证明guest双屏或负坐标。具名双显示guest尚未确认；完整桌面方案和独立双显示能力分开申请/判定，不预设Hyper-V或RDP必能提供。待实际两独立显示路径、同DPI和负坐标能力可核验后执行E03；本轮不建VM、不改宿主显示、不用核心坐标代替。",
+      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -14911,7 +14914,8 @@
       "remaining_conditions": [
         "当前guest真实monitors仅1，尚无双屏100/150%混合DPI能力证据。"
       ],
-      "next_action": "集中给真实混合DPIguest最小外部缺口；继续所有单屏工作。 用户已确认有Windows ISO/VM但内存不足；不创建新VM、不调整宿主/其他任务，待可用隔离交互环境及足够资源；继续当前Sandbox不受阻项目，不要求购买Pro。",
+      "next_action": "按2026-10-29只读补查与集中报告保留独立双显示100%/150%逐屏DPI缺口：一条Active显示连接和RTX/Oray适配器条目不是两条guest显示路径，SSH session0不能提供交互拓扑。只在真实双独立显示路径及逐屏DPI可核验后执行E04，不能由完整单屏guest或Hyper-V启用推定成立。本轮不创建VM、改宿主或安装显示驱动；单屏可推进工作继续。",
+      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -14964,7 +14968,8 @@
       "remaining_conditions": [
         "未执行真实拓扑/DPI/虚拟桌面/session变化，既有单桌面观察不能替代。"
       ],
-      "next_action": "只在专用guest提供能力后执行I09及恢复首手势。 用户已确认有Windows ISO/VM但内存不足；不创建新VM、不调整宿主/其他任务，待可用隔离交互环境及足够资源；继续当前Sandbox不受阻项目，不要求购买Pro。",
+      "next_action": "2026-10-29只读复核未确认现成可丢弃完整guest；按集中报告最小待授权方案准备可独立登录/锁定/切换虚拟桌面的测试环境，再执行I09及恢复首手势。拓扑/DPI热变化仍须真实显示能力，不能由单屏VM或SSH连通推定；本轮不启动/新建VM、不锁宿主、不改显示或其他项目资源。",
+      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -15790,6 +15795,7 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
         "docs/reports/v1-evidence/20261027-targeted-followup-review.jsonl",
+        "docs/reports/v1-evidence/20261029-nf02-legacy-stage-review.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/11ae-existing-timing-review.json",
         "docs/reports/v1-evidence/11ae-existing-timing-summary.jsonl",
@@ -15806,7 +15812,28 @@
     "936/a2ce/12cc已定向实测D32/D33：实际mapped hook336573711到exact command placement同值；公开无hook对照保留missing1/discarded1。PID4988 P86最后完成先于P87 summary；PID6948 P79 samples0/unfinished1、writer_exited=false/unknown=true如实保留。故意阻塞完成样本296915us不是正常性能，也没有post-context/NormalUp或全清理PASS。完整NF02仍要求同候选Release代表范围/分类分母、同机QPC与完整适用后验，正常callback p99<1000us、输入到完整后验p95<50000us；持续>100ms异常如实记录，软件时间不是物理显示延迟。",
         "NF02当前可比正常代表组合DEV预算通过，不授五应用、全部显示、完整用户链或整版PASS；这些按原各自合同继续，不重复硬塞为本功能性能门。慢尾体验调查OPEN，不以历史失败永久否定后继候选，也不从未知补造任何预算样本。"
       ],
-      "next_action": "7a/2132原122有效hook样本与34缺起点的正常代表预算PASS保原身份。465/c4f2已取得两条独立legacy-UP dispatch→完整适用后验样本51325.8/45958us，summary samples2/missing0/unfinished0、p95桶99999us；同显示离散无lease post-context为NA，原false字段保留，不造已做context核验。该故障组合Run的hook11/missing2与legacy2分别记域，不与原122混算或据两样本授新整体NF02 PASS。原两条无起点legacy历史不补算；慢尾调查和其它整版合同继续，不盲优化/新增max门。",
+      "next_action": "7a/2132原122有效hook预算PASS及34缺起点保原身份；465/c4f2独立两条legacy-UP计时已补齐，不再写待补测、不混入122。20261029原QPC/冻结源码有界复核：dispatch→Gone2.9892/5.0577ms、Gone→GUI消费29.1885/23.0918ms、总51.3258/45.9580ms。缺input-owner消费Gone与规范化UP成功入队两个clock，后段仍混合owner排队/清理、发布与GUI处理，不能归为纯GUI排队、单独入队、日志或系统原因。本轮未证实生产缺陷，不重建465、不重复采样；若后续必须进一步归因，只补这两个时钟边界后按影响验证。四个角双击慢尾保原调查范围，不加max门；完整NF02和应用/桌面整版条件分别继续。",
+      "current_legacy_stage_analysis": {
+        "review_date": "2026-10-29",
+        "evidence_path": "docs/reports/v1-evidence/20261029-nf02-legacy-stage-review.json",
+        "run_id": "c4f226a180dc4c87acb9a5c03c5421f1",
+        "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+        "product_binary_sha256": "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB",
+        "legacy_dispatch_to_post_ms": [51.3258, 45.9580],
+        "legacy_dispatch_to_gone_ms": [2.9892, 5.0577],
+        "gone_to_GUI_dequeued_ms": [29.1885, 23.0918],
+        "origin": "overlay_WM_LBUTTONUP_branch_QPC_not_hook_or_physical_UP",
+        "post_context_scope": "same_display_discrete_without_lease_NA_original_checked_false_retained",
+        "unknown_boundaries": ["input_owner_Gone_consumed_QPC", "normalized_UP_successfully_published_QPC"],
+        "stage_cause": "UNKNOWN_MIXED_OWNER_AND_GUI_PATH_NOT_PURE_QUEUE_OR_SYSTEM",
+        "new_samples_collected": false,
+        "product_defect_proven": false,
+        "product_rebuilt": false,
+        "original_122_samples_rebound_or_mixed": false,
+        "new_overall_NF02_PASS_awarded": false,
+        "c4f2_original_whole_result": "FAIL",
+        "c4f2_I07_original_guard_cause": "UNKNOWN"
+      },
       "current_serial_timing_review": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
       "current_contract_review": "docs/reports/v1-evidence/830a-focus-successor-review.json",
       "source_sha": "7a4760e099367ed28731df9eef2975f8a8442179",
@@ -33492,6 +33519,48 @@
       "host_CrossRec_or_user_configuration_changed": false,
       "user_ISO_or_VM_and_insufficient_new_VM_memory_report_retained": true,
       "scope_limit": "Not proof there are no VM files anywhere; unregistered VM ownership/memory configuration UNKNOWN. Free-RAM snapshot does not authorize allocation or override the user's resource limit."
+    },
+    "current_VM_display_readonly_supplement": {
+      "record_date": "2026-10-29",
+      "evidence_path": "docs/reports/v1-evidence/20261029-environment-readonly-supplement.json",
+      "executable_plan_ref": "docs/reports/V1_DELIVERY_REPORT.md",
+      "raw_receipt": "uat/v1-control/environment-readonly-20261029-d70b195320404b2f9348e78911c54a29/receipt.json",
+      "host_identity": "ZS-WORKSTATION",
+      "trusted_existing_SSH_result": "ACTUAL_EXIT0_STRICT_HOST_KEY_CHECKING",
+      "scope": "BOUNDED_READONLY_NOT_A_GUEST_OR_DISPLAY_ACCEPTANCE",
+      "HyperV_seven_optional_features_InstallState": 2,
+      "HyperV_seven_optional_features_meaning": "Disabled",
+      "HyperV_management_commands_module_vmconnect": "NOT_AVAILABLE",
+      "VMMS_service_filtered_inventory": "NOT_ENUMERATED",
+      "services_observed_running": ["HvHost", "vmcompute"],
+      "hypervisor_present": true,
+      "processor_virtualization_flags": "false_NOT_PROOF_BIOS_DISABLED_WHILE_HYPERVISOR_PRESENT",
+      "registered_VM_CIM_inventory": "UNKNOWN_INVALID_NAMESPACE_NOT_EMPTY_SUCCESS",
+      "named_disposable_complete_guest": "NOT_CONFIRMED_NOT_PROVEN_ABSENT",
+      "known_inventory_scope": "Known_VirtualBox_VMware_inventory_and_default_HyperV_directories_absent_NOT_DRIVE_WIDE_SEARCH",
+      "remote_Downloads_top_level_ISO_count": 0,
+      "developer_ISO_path": "C:\\Users\\zhang\\Downloads\\26200.6584.250915-1905.25h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso",
+      "developer_ISO_current_license_or_mount": "NOT_RECONFIRMED_HISTORICAL_PATH_ONLY",
+      "point_in_time_resources_GiB": {
+        "free_physical": 12.065,
+        "performance_available": 12.003,
+        "committed": 25.511,
+        "commit_limit": 34.206,
+        "commit_headroom": 8.695,
+        "C_free": 29.06,
+        "I_free": 640.03
+      },
+      "resource_allocation_or_CrossRec_idle": "NOT_PROVEN_NOT_RESERVED",
+      "WMI_active_display_connections": 1,
+      "adapter_metadata": "RTX2070SUPER_3840x2160_Oray_unknown_NOT_TWO_GUEST_MONITORS",
+      "SSH_process_session": 0,
+      "interactive_guest_signed_rectangles_and_independent_DPI": "NOT_OBSERVED",
+      "full_desktop_and_dual_display_are_separate_gates": true,
+      "new_VM_route": "WAITING_FOR_SPECIFIC_ENVIRONMENT_CHANGE_AUTHORIZATION_NOT_EXECUTED",
+      "host_or_other_project_settings_changed": false,
+      "VM_or_Sandbox_started_or_created": false,
+      "synthetic_input_sent": false,
+      "functional_PASS_awarded": false
     }
   },
   "pending_product_candidate": {

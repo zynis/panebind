@@ -1,0 +1,196 @@
+{
+  "schema": "panebind-v1-readonly-environment-review/1",
+  "kind": "BOUNDED_READONLY_SUPPLEMENT_NOT_FUNCTIONAL_ACCEPTANCE",
+  "record_date": "2026-10-29",
+  "record_timezone": "Asia/Shanghai",
+  "source_head_at_check": "4348ae5f8f904d45f684c290ecb118397dcdb10b",
+  "remote_observed_utc": "2026-10-28T16:13:32.3842866Z",
+  "remote_observed_client_time": "2026-10-29T00:13:32.3842866+08:00",
+  "evidence_form": "Minimally redacted derived review of actual SSH stdout; original UTF-16 stdout and generated receipt remain local under the exact paths and hashes below. Not a lossless copy of stdout.",
+  "transport": {
+    "program": "C:\\Windows\\System32\\OpenSSH\\ssh.exe",
+    "configuration": "C:\\Users\\zhang\\.ssh\\config",
+    "alias": "crossrec-desktop",
+    "endpoint": "192.168.1.6:22",
+    "account": "zs",
+    "batch_mode": true,
+    "strict_host_key_checking": true,
+    "connect_timeout_seconds": 8,
+    "connection_attempts_per_invocation": 1,
+    "actual_ssh_exit": 0,
+    "actual_machine": "ZS-WORKSTATION",
+    "actual_ssh_process_session": 0,
+    "query_transport": "Short UTF-16 EncodedCommand bootstrap, exact UTF-8 base64 read-only payload on ordinary SSH stdin; no uploaded or executed remote file.",
+    "query_payload_sha256": "86D0EB7FC606FA427139BFA0AF44021B83BE41D711120E64866973FCD3D724E6",
+    "first_invocation": {
+      "local_artifact_directory": "uat/v1-control/environment-readonly-20261029-3da3abb143284519a9731582154a4534",
+      "result": "LOCAL_NATIVE_STDERR_TERMINATED_LONG_COMMAND_INVOCATION_BEFORE_RECEIPT",
+      "failure_type_observed": "NativeCommandError",
+      "stdout_and_stderr_files_bytes": [0, 0],
+      "lossless_original_error_file_available": false,
+      "classification": "Command-length limitation inferred from the long encoded command error and successful same-payload short-command retry; not NETWORK_DOWN or an authentication failure.",
+      "evidence_preserved": true,
+      "host_configuration_changed_to_retry": false
+    }
+  },
+  "raw_artifacts": [
+    {
+      "path": "uat/v1-control/environment-readonly-20261029-d70b195320404b2f9348e78911c54a29/receipt.json",
+      "bytes": 26625,
+      "sha256": "3BCEA24C231C7624D61E37BFCFB2C9C4A44852E798FBF15778EB0FE0443E8528"
+    },
+    {
+      "path": "uat/v1-control/environment-readonly-20261029-d70b195320404b2f9348e78911c54a29/ssh-stdout.json",
+      "encoding": "UTF-16LE from the local Windows PowerShell redirection",
+      "bytes": 34650,
+      "sha256": "A7367E01EC75435A987B3E7CF854741798BC63435B19A14A833CF1A53C274ACB"
+    },
+    {
+      "path": "uat/v1-control/environment-readonly-20261029-d70b195320404b2f9348e78911c54a29/ssh-stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "uat/v1-control/readonly-environment-20261029.ps1",
+      "bytes": 9168,
+      "sha256": "6717AC9168D991BFE7C8BB787F7484D66521850DB7A14D1C8E0C8DE84DA2FC79"
+    }
+  ],
+  "resources": {
+    "os": "Windows 11 Professional",
+    "version": "10.0.26200",
+    "processor": "Intel Core i7-9700F",
+    "logical_processors": 8,
+    "physical_bytes": 34290831360,
+    "free_physical_bytes": 12954808320,
+    "performance_provider_available_bytes": 12888092672,
+    "committed_bytes": 27392008192,
+    "commit_limit_bytes": 36728561664,
+    "commit_headroom_bytes": 9336553472,
+    "C_free_bytes": 31202516992,
+    "I_free_bytes": 687226728448,
+    "rounded_GiB": {
+      "physical": 31.936,
+      "free_physical": 12.065,
+      "performance_available": 12.003,
+      "committed": 25.511,
+      "commit_limit": 34.206,
+      "commit_headroom": 8.695,
+      "C_free": 29.06,
+      "I_free": 640.03
+    },
+    "allocation_verdict": "NOT_ALLOCATED. These are point-in-time observations, not a resource reservation or proof that CrossRec is idle. The existing 12GiB free/8GiB commit-headroom planning floors are only narrowly met; a future authorized allocation requires a fresh check and an explicit noninterference resource slot.",
+    "no_process_was_stopped_to_gain_memory": true
+  },
+  "virtualization": {
+    "hypervisor_present": true,
+    "processor_reported_firmware_virtualization": false,
+    "processor_reported_VM_monitor_extensions": false,
+    "processor_reported_SLAT": false,
+    "processor_field_interpretation": "Do not infer BIOS is disabled or request a BIOS change from these fields alone while an existing hypervisor is reported.",
+    "optional_features": {
+      "query": "Win32_OptionalFeature Name LIKE Microsoft-Hyper-V%",
+      "raw_InstallState": 2,
+      "official_mapping": "Disabled",
+      "names": [
+        "Microsoft-Hyper-V-All",
+        "Microsoft-Hyper-V",
+        "Microsoft-Hyper-V-Tools-All",
+        "Microsoft-Hyper-V-Management-PowerShell",
+        "Microsoft-Hyper-V-Hypervisor",
+        "Microsoft-Hyper-V-Services",
+        "Microsoft-Hyper-V-Management-Clients"
+      ]
+    },
+    "services_observed_running": ["HvHost", "vmcompute"],
+    "vmms_service_in_filtered_inventory": "NOT_ENUMERATED",
+    "commands_not_available": ["Get-VM", "Get-VMHost", "Get-VMMemory", "Get-VMVideo", "vmconnect.exe", "VBoxManage.exe", "vmrun.exe"],
+    "mstsc_executable": "C:\\Windows\\system32\\mstsc.exe",
+    "Hyper_V_PowerShell_module_list": [],
+    "registered_VM_query": {
+      "namespace": "root/virtualization/v2",
+      "class": "Msvm_ComputerSystem",
+      "result": "UNKNOWN_QUERY_FAILED_INVALID_NAMESPACE",
+      "not_an_empty_successful_VM_inventory": true
+    },
+    "enhanced_session_policy_query": "UNKNOWN_QUERY_FAILED_INVALID_NAMESPACE",
+    "named_disposable_complete_Windows_guest": "NOT_CONFIRMED_NOT_PROVEN_ABSENT",
+    "reuse_verdict": "No named guest, ownership, disposability or Windows licensing was established. No existing VM was started, modified or selected. Existing Sandbox availability does not supply full Hyper-V management or a complete Medium Shell."
+  },
+  "bounded_inventory_scope": {
+    "exact_inventory_files_checked_absent": [
+      "C:\\Users\\zs\\.VirtualBox\\VirtualBox.xml",
+      "C:\\Users\\zs\\AppData\\Roaming\\VMware\\inventory.vmls"
+    ],
+    "exact_default_directories_checked_absent": [
+      "C:\\ProgramData\\Microsoft\\Windows\\Hyper-V\\Virtual Machines",
+      "C:\\Users\\Public\\Documents\\Hyper-V\\Virtual Hard Disks"
+    ],
+    "remote_ISO_check": {
+      "path": "C:\\Users\\zs\\Downloads",
+      "filter": "*.iso, top-level files only",
+      "files_returned": 0,
+      "truncated": false,
+      "recursive": false,
+      "not_a_drive_wide_absence_proof": true
+    },
+    "developer_ISO": {
+      "source": "docs/reports/v1-evidence/20261026-environment-readonly-review.json",
+      "path": "C:\\Users\\zhang\\Downloads\\26200.6584.250915-1905.25h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso",
+      "historically_observed_bytes": 7371034624,
+      "rechecked_mounted_or_transferred_this_round": false,
+      "current_installable_edition_and_valid_license": "NOT_RECONFIRMED"
+    },
+    "other_project_VM_contents_or_full_user_disks_searched": false
+  },
+  "display_capability": {
+    "host_adapter_metadata": [
+      {"name": "NVIDIA GeForce RTX 2070 SUPER", "reported_resolution": [3840, 2160]},
+      {"name": "OrayIddDriver Device", "reported_resolution": "UNKNOWN"}
+    ],
+    "WMI_active_monitor_connection_count": 1,
+    "WMI_video_output_technology": 10,
+    "scope": "Read-only hardware/provider metadata from SSH Session0, not an interactive guest display enumeration.",
+    "host_interactive_signed_rectangles_and_per_monitor_DPI": "NOT_OBSERVED",
+    "guest_actual_independent_monitor_count": "UNKNOWN_NO_CONFIRMED_GUEST",
+    "guest_negative_coordinate_work_area": "NOT_OBSERVED",
+    "guest_independent_100_150_percent_DPI": "NOT_OBSERVED",
+    "full_desktop_and_dual_display_are_separate_gates": true,
+    "one_4K_adapter_or_Oray_name_proves_dual_guest_displays": false,
+    "future_Hyper_V_enhanced_session_guarantees_dual_or_mixed_DPI": false
+  },
+  "approval_required_next_step": {
+    "selected_route": "ZS-WORKSTATION dedicated complete Windows11 Generation2 guest only, if the user approves construction; not an existing confirmed VM.",
+    "host_change": "Official Hyper-V platform and management feature enablement, initially NoRestart. Any actual restart requires a current maintenance/saved-work confirmation; none is authorized or performed by this review.",
+    "new_owned_resources": "One new I:\\PaneBindMVP1Runs\\<new RunId> directory, one uniquely named dedicated VM, 4 vCPU, 8GiB fixed RAM and 96GiB dynamic VHDX with SecureBoot/vTPM. No external vSwitch, host firewall, account, UAC or remote-access changes in this minimal offline route.",
+    "potentially_unblocked": "E01/E02 full Medium Shell, native app initialization/client input/normal exit, exact Explorer and tray prerequisites, then their existing integration contracts. Capacity is not functional PASS.",
+    "not_automatically_unblocked": "E03/E04 independent dual monitors, negative work areas and per-monitor mixed DPI, E05 actual topology/session changes, complete NF02, or human UAT.",
+    "execution_steps_and_rollback_ref": "docs/reports/V1_DELIVERY_REPORT.md, existing minimum environment plan updated for this review",
+    "current_status": "WAITING_FOR_ENVIRONMENT_CHANGE_AUTHORIZATION_NOT_EXECUTED"
+  },
+  "official_reference_checks": [
+    {"url": "https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-optionalfeature", "use": "InstallState 2 means Disabled"},
+    {"url": "https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/host-hardware-requirements", "use": "Hyper-V OS/hardware and existing-hypervisor reporting caveat"},
+    {"url": "https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/get-started/Install-Hyper-V", "use": "Official feature enablement route, not executed"},
+    {"url": "https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements", "use": "Windows11 VM generation/security/resource minima, not a guarantee of useful test capacity"},
+    {"url": "https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/use-local-resources-virtual-machine-connection", "use": "Enhanced session prerequisites and host resource redirection boundaries"},
+    {"url": "https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/powershell-direct", "use": "Network-independent host-to-guest management requires running configured guest and valid guest credentials; not proof of interactive desktop execution"},
+    {"url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/rdp-properties", "use": "Multimon selects actual local displays; a single remote rectangle or whole-session scale is not independent per-monitor DPI evidence"}
+  ],
+  "effects": {
+    "remote_files_or_directories_deliberately_created_modified_or_removed": false,
+    "VM_or_Sandbox_started_or_created": false,
+    "features_or_host_settings_changed": false,
+    "host_restarted": false,
+    "CrossRec_or_other_project_resources_manipulated": false,
+    "user_processes_stopped": false,
+    "host_or_guest_synthetic_input_sent": false,
+    "scheduled_checks_or_occupancy_polling_created": false,
+    "local_only_generated_raw_query_receipts": true,
+    "existing_history_retained": true
+  },
+  "V1_DEV_STATUS": "PARTIAL",
+  "HUMAN_UAT": "PENDING",
+  "REA": "NOT_STARTED",
+  "functional_PASS_awarded_by_this_review": false
+}

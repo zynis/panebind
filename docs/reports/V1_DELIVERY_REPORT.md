@@ -1,5 +1,27 @@
 # PaneBind V1 集中交付进展
 
+## 本轮只读续接：legacy-UP 分段与完整桌面执行前置（2026-10-29）
+
+已认可的I08组合DEV PASS、b856完整I07和c4f2中I10窄复验不重跑；原c4f2 FAIL／UNKNOWN、旧122条样本及全部原EXE／包身份保持不变。生产仍60/60接通、46/60功能DEV、22/40对标、5/12整链，整版PARTIAL、真人UAT PENDING、REA未启动。本轮没有产品／驱动／运行机制变更，不重建465，不做Full／900秒或新现场采样。
+
+依据[两条旧样本的原始QPC与冻结源码复核](v1-evidence/20261029-nf02-legacy-stage-review.json)，可观察边界进一步分开如下（ms；不是新增样本或新分位总体）：
+
+| 区间 | c4f2 g1 | c4f2 g2 | 能说明与不能说明 |
+| --- | ---: | ---: | --- |
+| legacy-UP分支采集→清理Gone回执 | 2.9892 | 5.0577 | 含本代release／detach／销毁，不能当纯API耗时 |
+| Gone回执→GUI实际pop规范化UP | 29.1885 | 23.0918 | 主要未细分段；没有input-owner消费Gone、UP成功发布时钟，不能全归GUI排队／系统调度 |
+| GUI pop UP→writer preflight | 9.0730 | 4.3766 | 包含UP记录、finish与Catalog／batch准入，不是纯solver |
+| preflight→native调用前 | 1.3436 | 0.9385 | 适用预检到实际调用边界，未绕过权限检查 |
+| native调用区间 | 7.4244 | 9.8651 | 不等于整条输入时延 |
+| 调用后→适用后验端点 | 1.3071 | 2.6283 | 两条原件post_context_checked=false，不能宣额外上下文检查通过 |
+| 分支采集→适用后验总值 | 51.3258 | 45.9580 | 第一条超过50ms目标；不新增max硬门，不混入旧122或授新总体NF02 PASS |
+
+`legacy_up_dispatch_qpc`实际在遮罩的WM_LBUTTONUP分支中、前置route回执之后采集，不是WndProc入口／hook／物理UP。Gone回执在资源线程向CaptureBridge发布时采钟，也不等于已进入GUI队列。GUI在规范化UP之前处理多个资源回执，现有逐行`file_size`／格式化／flush是一个可调查路径，但没有对应耗时钟，**尚无确定生产缺陷或已证明的日志／系统根因**。若继续区分，仅需input-owner消费Gone与规范化UP成功发布两处边界；那会是新产品身份，不能对旧原件补0／倒推，也不需重开已闭功能或用重复采样稀释慢尾。本轮在已有原件可支持的结论处收口。
+
+[远端只读补查](v1-evidence/20261029-environment-readonly-supplement.json)已确认Hyper-V完整平台／管理组件Disabled、具名可丢弃guest仍未确认，资源只是瞬时勉强达到原规划准入；未启用功能、建／启VM、重启、写远端任务文件或修改CrossRec。完整桌面与双屏分别判断，实际事实、批准后命令顺序、输入／证据隔离、资源及恢复边界见下方既有“环境结论与一个最小方案”章节。**当前需要的外部决定只集中为是否授权该ZS主机的Hyper-V启用＋一个专属4vCPU／8GiB／96GiB guest及资源时段；需要重启仍须当时维护／保存确认。** 不把该建设自动当E03／E04双屏／混合DPI已具备，不开放宿主试用。
+
+本轮起点`4348ae5f8f904d45f684c290ecb118397dcdb10b`，分支`codex/r1c4b-live-magnet`；标准`git fetch origin`成功，起点与origin同分支0/0。Windows开发机执行`powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptance.ps1`有效、同命令附加`-SelfTest`为5/5且未改实际报告，`git diff --check`通过。独立复核6份原件／包pins、24个QPC端点、22段整数差值及换算、6份冻结源码blob、4份环境原件pins和2份新增索引pins均一致；旧索引内容与10月27—28日关键原件未变。这些是文档／证据一致性检查，不是新增现场验收；未知的`cleaner.ps1`及方案输入目录保持原样，不加入提交。
+
 ## 本轮实测：I08五分支组合闭合，I07当前候选完整复验通过（2026-10-28）
 
 **V1仍为PARTIAL：46/60功能DEV、22/40＝55%、5/12整链（I05／I06／I07／I08／I10）、模块0，真人UAT PENDING。** 三批复用产品`465cbf321d37b9f8dcdf30420aa648494a94cbf3`原EXE，Release SHA-256 `89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB`，没有因TEST／报告变更重建产品。用户释放Sandbox后已按c4f2→68cf→b856串行运行及精确清理；不再等待旧占用，不推断完整Medium／应用／显示条件满足。[本轮原始摘录与复核](v1-evidence/20261028-input-followup-review.json)保留原包／Run和逐字事实。普通便携入口仍是独立已验证的7a／caed／17b6，不改绑到465 TEST组合，也不重做便携包。
@@ -87,23 +109,30 @@
 - p99 **严格小于1ms**，输入到实际几何＋post-context 完成的 p95 **严格小于50ms**；串行 follower 保留共同输入起点，不只计 native API。未解释的正常持续大于100ms停顿须调查；故意 writer stall 单独作为恢复证据。
 - 完成摘要在真实 writer stop／最后 drain 后；全部正常样本的 missing／reversed／overflow／unfinished／饱和均须核算，不能删除慢值、遗漏末次完成或把未知当0。无法解释完整分母时仍不通过。
 
-### 环境结论与一个最小方案（10月26日历史检查及27日更新，建设尚未执行）
+### 环境结论与一个最小方案（10月26—27日历史，29日只读补查；建设待授权）
 
 [本轮只读回执](v1-evidence/20261026-environment-readonly-review.json)区分实际观察与历史：T14p 为 Home／26200，物理内存31.49GiB，可用5.66GiB，已提交56.18／66.00GiB。已确认用户给定 ISO 文件存在（7,371,034,624字节），未挂载、未安装；未确认任何具名、可丢弃的完整 Windows VM。发现 vmwp 不等于可复用 VM，未触碰它。初次受限 CIM 的 access denied 经同一只读查询权限解决，空值转0不作为实测内存。
 
 10月26日检查时，ZS-Workstation 的原可信 SSH 在端口22超时、未进入认证，远端查询未执行；该回执保留原范围。**27日此连接阻断已解除**：[当前只读回执](v1-evidence/20261027-restored-ssh-environment.json)实际确认 Professional／26200、Sandbox Enabled、约19.45GiB可用物理内存；05:01基础OS复核约19.37GiB，性能提供器提交计数查询超时，后者保持UNKNOWN而非沿用旧值。既有Sandbox已用于本任务新Run；没有启动或新建普通VM、修改宿主设置、CrossRec或其它项目，也没有宿主合成输入／定时检查。完整Windows guest的具名实例、双独立显示能力仍未确认，不能由SSH恢复推出已具备。
 
-**推荐只选 ZS-Workstation 上一个独立、完整 Windows11 x64 Medium 桌面 guest 的路线；不是现在启动它。** 优先采用经所有者确认可丢弃的现有具名 VM，目前没有可靠读到该名字／路径；不能虚构。若确无现成 guest，下一次需要用户决定的唯一建设方案为：在 `I:\PaneBindMVP1Runs\` 新目录中建立专属 Hyper-V Generation2 guest，建议4 vCPU、8GiB固定内存、96GiB动态 VHDX、Secure Boot／vTPM；前提是确认该主机现有 Hyper-V 能力、许可和不影响 CrossRec 的资源配额。该配置是工程预算，不是已安装事实或已授权系统变更；8GiB不从当前 T14p 的5.66GiB空闲硬挤。建议分配前主机至少有12GiB可用物理内存及不少于8GiB提交余量；若不能保证，不抢资源、不强关应用，暂不建设。
+**29日只读补查，不覆盖上述历史值。** [本次回执](v1-evidence/20261029-environment-readonly-supplement.json)通过原严格主机校验 SSH 确认同一 ZS-WORKSTATION／Professional26200：物理空闲12.065GiB，性能提供器可用12.003GiB，提交25.511／34.206GiB（余8.695GiB），C空闲29.06GiB、I空闲640.03GiB。七项 Hyper-V 可选组件均为 `InstallState=2`（Disabled），Get-VM／Get-VMHost／VMConnect／Hyper-V module未找到；HvHost／vmcompute正在运行不等于完整Hyper-V管理平台可用。Hyper-V v2查询为无效命名空间，不是成功枚举出的空VM清单；两个已知Hyper-V默认目录及VBox／VMware清单未见，台式机Downloads仅顶层未见ISO，均非全盘无文件证明。仍未确认具名、归属清楚且可丢弃的完整guest。hypervisor已存在时CPU虚拟化字段false不能据此要求改BIOS。[微软主机要求](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/host-hardware-requirements)
 
-只确认存在的介质为 `C:\Users\zhang\Downloads\26200.6584.250915-1905.25h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso`；未确认台式机上有同文件、也未重新确认其中 edition／评估许可期限。Windows11 VM官方最低要求为4GB内存、64GB存储、两虚拟处理器及适用的安全能力；上述8／96是为桌面＋五应用留余量的建议，不把最低配置当可用性保证。[微软VM要求](https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements)
+**单一待决定路线仍是 ZS-Workstation 的完整Windows11 Medium专属guest，不是新建已获授权。** 本轮不启用组件、不建／启VM、不重启。建议一次性决定以下最小建设范围及资源时段；下面仅为批准后的命令骨架／执行顺序，不是现在可运行的自动脚本。建议4vCPU、8GiB固定内存、96GiB动态VHDX；分配前至少12GiB物理可用及8GiB提交余量是工程准入，不是官方最低值。此次余量仅瞬时勉强达标，不能推定CrossRec空闲或已允许分配；资源时段未确认或重新检查不足就停止建设，不结束其他项目／用户进程。
 
-该完整 guest 首先解锁 E01／E02：标准 non-elevated 测试用户、原生 Explorer／托盘、五类真实应用先确认可启动／客户输入／正常退出，单屏100%及150%和200% UI后，再执行相应产品链。E03／E04 额外硬要求是 **guest 实际枚举两个独立显示器**、副屏负坐标、同DPI及100%／150%不同DPI；单个放大的远程窗口不满足。当前没有已确认的双虚拟显示能力，因此不能承诺 Hyper-V／增强会话自动解除此门；若现有平台不能提供，集中需要一个有此能力的隔离显示会话，不回退到宿主输入。增强会话本身依赖主机／guest条件及重定向设置，不能把 SSH 或 VMConnect 窗口等同完整显示能力。[微软VMConnect条件](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/use-local-resources-virtual-machine-connection)
+只确认存在的介质仍是10月26日实际检查的 `C:\Users\zhang\Downloads\26200.6584.250915-1905.25h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso`；未确认台式机上有同文件，也未重新确认其中edition／许可有效期，文件名不能代替许可核验。批准后先核对合法使用条件及ISO哈希，再通过原可信SCP复制到全新本任务目录，核对两端哈希；不要求用户搬文件，不用过期评估期承诺验收可运行。Windows11 VM最低为Gen2、4GB、64GB、至少两虚拟处理器及SecureBoot／vTPM；8／96为桌面＋应用余量建议。[微软VM要求](https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements)
 
-保留输入只读、仅任务输出可写，不映射整个用户盘／CrossRec；guest 使用空白文档及临时目录。首次可运行前建立该专属 guest 的已知干净恢复点，运行后先产品正常退出并核验 hooks／capture／浮层／writer，再仅正常退出自建客户、保存证据、正常关 guest。故障恢复仅涉及本任务资源；回退或销毁 guest 仍不计产品 cleanup PASS。
+批准后由本任务执行的最小顺序如下；`<RunId>`／`<VMId>`须由新建记录填入，不匹配即拒绝，不能替换成现有未知VM：
 
-现有自动 driver 的 Sandbox 账户／目录检查不能直接移用到普通 VM。只有明确选定 guest 及其归属之后，才为该具名实例增加精确身份／RunId／输入输出标记的适配，并先复验宿主拒绝；不删除保护、不加任意 `--force`，也不把产品普通入口可启动等同自动控制通道可用。本轮没有选定或启动此类 VM，相关适配不预填完成。
+1. **官方启用与维护边界。** 合法管理员执行 `Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -All -NoRestart`，将本次日志写到新RunId目录，记录真实返回和RestartNeeded；不改启动项／BIOS／UAC／网络。若要求重启，保存部署与恢复记录，重新取得当时维护时段／桌面工作已保存确认，再作不强制关闭应用的一次重启；旧Sandbox维护确认不继承为当前可重启。恢复后核主机身份、组件与管理命令，再继续。若权限、依赖或兼容条件失败，记录具体缺项，不绕过。[微软启用方式](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/get-started/Install-Hyper-V)、[NoRestart参数](https://learn.microsoft.com/en-us/powershell/module/dism/enable-windowsoptionalfeature)
+2. **仅一个新guest，无外部交换机。** 验证 `I:\PaneBindMVP1Runs\<RunId>\` 不存在再新建，登记目录／VM名称 `PaneBind-V1-DEV-<RunId>`／VMId／文件清单。命令骨架为 `New-VHD -Path <run>\VM\PaneBind.vhdx -Dynamic -SizeBytes 96GB`；`New-VM -Name <name> -Generation 2 -MemoryStartupBytes 8GB -VHDPath <vhdx> -Path <run>\VM`；`Set-VMProcessor -VMName <name> -Count 4`、`Set-VMMemory -VMName <name> -DynamicMemoryEnabled $false`。不传SwitchName、不创建／修改外部vSwitch，读回网络适配器确认未连接。只对该VM设置 `Set-VMFirmware -VMName <name> -EnableSecureBoot On -SecureBootTemplate MicrosoftWindows`、`Set-VMKeyProtector -VMName <name> -NewLocalKeyProtector`、`Enable-VMTPM -VMName <name>` 并读回；不改宿主TPM。为其DVD添加已核ISO并设置启动项，首次安装前再次核VMId。[微软创建流程](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/get-started/create-a-virtual-machine-in-hyper-v)、[key protector](https://learn.microsoft.com/en-us/powershell/module/hyper-v/set-vmkeyprotector)、[vTPM](https://learn.microsoft.com/en-us/powershell/module/hyper-v/enable-vmtpm)
+3. **可见guest桌面与独立身份。** `Start-VM -Name <name>` 后通过 `VMConnect.exe localhost <name>` 的基础连接安装／登录该guest，关闭不需要的驱动器、剪贴板和设备重定向，不修改host增强会话策略来促成通过。guest内建立专用标准用户及空白测试资料，确认实际WinSta0／活动交互session、Medium／non-elevated及Explorer／托盘；只看到VMConnect窗口或PowerShell返回不算桌面可操作。建立干净恢复点，记录安装版次、许可状态、guest身份及显示事实。若无法取得可见、可控的guest交互桌面，停止测试输入，保留具体缺项。
+4. **入包及出证据，不映射主机盘。** 在既有合法Hyper-V管理员能力与guest凭据下，以 `New-PSSession -VMId <VMId> -Credential <guestCredential>` 建临时PowerShell Direct会话；用 `Copy-Item -ToSession` 只传已核manifest中的包／官方测试资产到guest专用Input，逐项回读哈希并设为测试标准用户只读；Output为guest内独立可写目录。用 `Copy-Item -FromSession` 只取本RunId输出到I盘同批Output，复核哈希后 `Remove-PSSession`；凭据不写日志／包／Git。该通道不依赖guest网络，也不是已登录GUI输入桌面，不从它的后台进程或Session0发送模拟输入。[微软PowerShell Direct条件及双向复制](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/powershell-direct)
+5. **先补精确guard，再测原生前置和产品。** 现有driver的WDAG账户／Sandbox路径合同不能直接移用。对这一个已选guest实现VMId关联、guest实际身份、RunId、只读Input／独立Output及目标归属的精确适配，先验证普通宿主与错误guest拒绝；不得删除保护、加任意force、搬用High例外，当前该适配仍未实现。自动driver只在guest已登录标准用户的真实交互桌面启动；先产品真正ABSENT验证Explorer、Notepad、Edge、Code、Terminal各自启动／客户输入／正常退出，分别判断前置，再复用冻结产品EXE及兼容driver运行未闭合合同。只有产品源码改变才重建并按影响复验，不为换环境清空历史证据。
+6. **止损与正常退出。** 资源不足、许可不成立、身份／桌面未知、输入配对或资源清理失败均停止受影响操作，保留原始日志；不关闭其他项目实例、不抢焦点／capture、不自动放宽权限。运行后先产品正常退出并独立核验hooks／capture／浮层／writer，再正常关闭自建客户、收集证据并关该guest。可用 `Stop-VM -Name <name>` 的正常guest关闭请求，不加Force／TurnOff；无响应则保留证据与已知归属，不能用强断电伪造产品cleanup。归档核验后仅清理该VM注册及本RunId明确自建的部署／临时资源，保留必要原件和回执；新启用的宿主组件如实登记，不擅自批量回滚系统功能。
 
-**确需用户决定的环境能力**：原台式机LAN／SSH已恢复，不再要求用户处理。只有完整non-elevated桌面／真实应用前置，以及独立双显示和混合DPI仍缺；当前不建设VM。上述专属guest只是供决定的预算方案，不承诺Hyper-V可满足双屏。若有现成可丢弃完整guest，需先明确名称、归属、许可与显示能力；否则由用户决定是否另行授权建设及资源配额。当前Sandbox内不依赖这些条件的功能继续执行，不为相同应用前置失败无变量重试，也不把环境缺项当作计划完成。
+该路线首先提供E01／E02及真实应用／托盘所缺的前置能力，**不保证这些合同自动PASS**；需在guest真实运行单屏100%、150%及200% UI检查，虚拟桌面／会话恢复也另测。**双屏为单独能力门。** 29日host只读WMI仅报告一个Active连接，显卡元数据为RTX2070SUPER3840×2160及Oray未知分辨率；SSH进程在Session0，这些都不证明guest拓扑。E03／E04须guest实际枚举两个独立显示器、副屏负坐标、同DPI及100%／150%不同DPI；单个放大的远程窗口不满足。Hyper-V／增强会话当前可用性及独立双显示／混合DPI均UNKNOWN，不在本次单屏建设方案中承诺解锁；若仍缺，集中请求有该能力的隔离显示会话，不回退宿主自动输入。增强会话依赖host／guest条件；RDP的multimon选项或整体scale参数也不是逐屏DPI实测。[微软VMConnect条件](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/use-local-resources-virtual-machine-connection)、[微软RDP显示参数](https://learn.microsoft.com/en-us/azure/virtual-desktop/rdp-properties)
+
+**集中需要的最小决定**是：是否允许在已核ZS主机按上述范围启用Hyper-V组件并建设一个专属完整guest，以及可分配4vCPU／8GiB的具体资源时段；需要重启时再确认当时维护／工作保存状态。当前未实施任何组件、VM、账户、网络或宿主设置变更；未新建VM／发送宿主输入／修改CrossRec。介质合法条件和真实桌面控制仍需在建设时核实，双屏／混合DPI保持独立未知门。当前Sandbox中不依赖这些条件的工作继续，不作无变量应用启动重试、不把环境缺项当作V1完成；销毁guest始终不算产品cleanup PASS。
 
 ### 本轮新候选与验证身份
 
