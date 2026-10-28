@@ -1,6 +1,15 @@
 # PaneBind V1 集中交付进展
 
-## 本轮待现场候选：465cbf计量分域与窄输入影响复验（2026-10-27）
+## 本轮仅修I08测试前置：产品465不变、驱动545f／新包68cf（2026-10-28）
+
+I08前置不再必须等到外部前台事件：原60秒有界观察中，observer已安装、未停止、缓冲无溢出且已消费完成，source身份／几何／桌面／DPI／GUI／释放按键等始终合格且末端fresh，可以走`stable_source_full_bound`；如真实发生任意非source切换，须自然返回后fresh核验，走`natural_exact_source_return`。unknown／记录不完整或到期未返回仍拒绝，不抢焦、不激活未知窗口。**这是TEST前置修复，前置通过不等于自主清理或I08 PASS。**
+
+- 仅TEST五文件变化，driver／包装源码`545f20d5ed9c0e0816124e52d9f34de58f28177d`，D/R驱动构建、guestpath offline各1项（共用17个定向分支）、362项静态检查（含a540实际旧源码反例）及2次完整有效argv宿主Exit78均通过。没有重建产品：复用`465cbf321d37b9f8dcdf30420aa648494a94cbf3`原D/R EXE；新Release driver SHA-256 `0CC16FD619C29A0BD024ADFCBC8CE7AAE29850AEDA21529D97E9222D3FA5BB35`。这些均不冒充现场结果。[构建回执](../../uat/v1-control/build-i08-startup-driver-545f20d-b111d5ae590a443aaddefc0172945c44/receipt.json) SHA-256 `99906AE94B3CF90929722DD5985EBC80A2A47D8AC42EA3134C7B0B2F2B5F6A29`；[宿主保护回执](../../uat/v1-host-guard/0cc0b952cd864052b6b893c4ce47df08/receipt.json) SHA-256 `627B7448F9DE31B15D74A7406FFE0FE3BE8206FA789B4F42AA1A8AF4D6C4B85C`。
+- 唯一新包Run `68cf4fcc1ff6419dbbf4cbfdd7b1bd52`，`DriverDisconnectOnly`选择Release运行且封包保留D/R，ZIP SHA-256 `2C1B136F2ABC02A7ACE5382451188BCC32FC2DA13BA06FF2BCD279C353C89269`；2026-10-28T06:12:23.9174321Z已Deploy到本批`I:\PaneBindMVP1Runs\68cf4fcc1ff6419dbbf4cbfdd7b1bd52`，文件哈希和只读输入／独立可写output的WSB映射核合。完整产品／驱动／manifest／WSB pins及原回执见验收表`source_identity.pending_driver_disconnect_startup_followup`。
+- 现场仍`NOT_RUN`，本轮未执行占用查询、Inventory、Launch、清理或创建task/guest；没有新的占用结论。未收到用户释放通知，不能据旧PID75948断言此刻仍忙。收到通知后仅在Launch前核一次可用性，按**原c4f2 InputFollowupOnly→新68cf I08**顺序接续；不轮询、不启动第二实例、不建VM。原1dfb包保历史`NOT_RUN`，仅不再作为待执行选择；465产品、c4f2整包／driver465及两旧ZIP字节不变。
+- 无外来FocusLost/Pause的真实actor退出、自主撤销／自有capture释放和严格abort-UP／同实例后继仍待现场；不增加精确30秒门、不制造产品driver通知。旧122样本、26Run／747原行和7a／caed／17b6已测身份不改绑，四链影响与46/60 DEV、22/40、4链、0模块的PARTIAL判定不变。
+
+## 上批固定待验候选：465cbf计量分域与窄输入影响复验（2026-10-27）
 
 新产品／driver／包装源码均为`465cbf321d37b9f8dcdf30420aa648494a94cbf3`，D/R构建及各9项受影响offline、351项既有静态检查与4次完整有效argv宿主Exit78拒绝已通过；这些不计现场PASS。Release产品SHA-256 `89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB`，driver `91CD69602B7D860FC4C15DA2E072E9083752712B5ADECDA4D9C9197F64E6F9AA`；[构建回执](../../uat/v1-control/build-sizing-465cbf3-2baff3ae06e8495a95ab53438e52b799/receipt.json) SHA-256 `429FCEDB033DEFE9569154E9D14C340B8F332691990EA1190E199DBB7DC1CA52`。ed10／64fc中间构建保留原二进制及回执，不改绑为最终465cbf。
 

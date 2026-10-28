@@ -7628,6 +7628,84 @@
       }
     }
   ],
+  "driver_startup_precondition_correction_20261028": {
+    "record_date": "2026-10-28",
+    "scope": "TEST_ONLY_DRIVER_BUILD_STATIC_AND_PACKAGE_DEPLOYMENT_NOT_A_FIELD_Run",
+    "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+    "driver_source_sha": "545f20d5ed9c0e0816124e52d9f34de58f28177d",
+    "product_EXE_rebuilt": false,
+    "product_hashes": {
+      "Debug": "7391CEC2969A4C3A11288AD6C95ED7057FDBB001E3C6859FD4EA65F9448DCA9D",
+      "Release": "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB"
+    },
+    "implemented_precondition": "quiet完整有界窗口或真实自然归位；各loop重新核实际source/context/cursor/hit。任意非source HWND（包括ownPID.otherHWND）清除旧returned；getter buffer reserved/flushed/overflow/lifecycle均使用真实snapshot，未知、未归位或不完整拒绝。仅TEST前置，不抢焦、不控制未知窗口、不改产品权限。",
+    "build": {
+      "receipt": {"path":"uat/v1-control/build-i08-startup-driver-545f20d-b111d5ae590a443aaddefc0172945c44/receipt.json","bytes":5220,"sha256":"99906AE94B3CF90929722DD5985EBC80A2A47D8AC42EA3134C7B0B2F2B5F6A29"},
+      "frozen_driver_directory": "out/v1-i08-startup-driver-545f20d",
+      "result": "DEBUG_RELEASE_DRIVER_BUILD_AND_GUEST_PATH_OFFLINE_EACH_1_OF_1_PASS",
+      "shared_driver_decision_cases_added": 17,
+      "configurations": [
+        {
+          "configuration": "Debug",
+          "driver": {"path":"out/v1-i08-startup-driver-545f20d/src/platform/windows/Debug/panebind-v1-guest-fixture.exe","bytes":11344384,"sha256":"8CDD39251CE692A05833856B7B77347D79536C47792F984033D51F6612988D50"},
+          "build_log": {"path":"uat/v1-control/build-i08-startup-driver-545f20d-b111d5ae590a443aaddefc0172945c44/Debug-build.txt","bytes":14568,"sha256":"0DC4B9D6E59BA0D78E8D65151EC0FA733A3D1EAFEF80CBB41DE75503FC6906BE"},
+          "ctest_original_log": {"path":"uat/v1-control/build-i08-startup-driver-545f20d-b111d5ae590a443aaddefc0172945c44/Debug-offline-ctest.txt","bytes":318,"sha256":"D18D71D106880906F8989B033261379006DFC05EA70E421EF973BA2DE6CA5137"},
+          "offline_passed": 1,"offline_total": 1,"offline_proc_seconds": 0.18,"offline_wall_seconds": 0.21,
+          "driver_configuration_directory_has_product_EXE": false
+        },
+        {
+          "configuration": "Release",
+          "driver": {"path":"out/v1-i08-startup-driver-545f20d/src/platform/windows/Release/panebind-v1-guest-fixture.exe","bytes":4782080,"sha256":"0CC16FD619C29A0BD024ADFCBC8CE7AAE29850AEDA21529D97E9222D3FA5BB35"},
+          "build_log": {"path":"uat/v1-control/build-i08-startup-driver-545f20d-b111d5ae590a443aaddefc0172945c44/Release-build.txt","bytes":14596,"sha256":"26C922408E409A11FE89403B4B3BBAAB99693314FA9474AFED003445B4B915BD"},
+          "ctest_original_log": {"path":"uat/v1-control/build-i08-startup-driver-545f20d-b111d5ae590a443aaddefc0172945c44/Release-offline-ctest.txt","bytes":318,"sha256":"11ABA8C74B8ECCC483BF261D8CD2524A29F60022AE6369561837E5FC4A476AE0"},
+          "offline_passed": 1,"offline_total": 1,"offline_proc_seconds": 0.14,"offline_wall_seconds": 0.22,
+          "driver_configuration_directory_has_product_EXE": false
+        }
+      ],
+      "frozen_original_artifacts_rechecked_unchanged": [
+        {"path":"out/v1-app-sizing-465cbf3/src/platform/windows/Debug/panebind.exe","bytes":4373504,"sha256":"7391CEC2969A4C3A11288AD6C95ED7057FDBB001E3C6859FD4EA65F9448DCA9D"},
+        {"path":"out/v1-app-sizing-465cbf3/src/platform/windows/Release/panebind.exe","bytes":1258496,"sha256":"89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB"},
+        {"path":"out/v1-app-sizing-465cbf3/src/platform/windows/Debug/panebind-v1-guest-fixture.exe","bytes":11339264,"sha256":"B53F72E849C90448C8B649FB19D51BF18D1DE1ABB4195292C7B35B85C5584E71"},
+        {"path":"out/v1-app-sizing-465cbf3/src/platform/windows/Release/panebind-v1-guest-fixture.exe","bytes":4779008,"sha256":"91CD69602B7D860FC4C15DA2E072E9083752712B5ADECDA4D9C9197F64E6F9AA"},
+        {"path":"uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/c4f226a180dc4c87acb9a5c03c5421f1.zip","bytes":6384038,"sha256":"7DBA2A3378E8FEE59E5E9FD943A28E329A11892076A6222538C24D0130E4954D"},
+        {"path":"uat/v1-sandbox/1dfbcd8ce1284c4487bc65f37fbd31e2/1dfbcd8ce1284c4487bc65f37fbd31e2.zip","bytes":6384049,"sha256":"37D04B5F78D2057ABA269C25E1C9F353B33C39C2532547549FE757D306E700C4"}
+      ]
+    },
+    "static_checks": {
+      "original_log": {"path":"uat/v1-control/i08-startup-static-545f20d.txt","bytes":70908,"sha256":"103C2924454EE5BE8E0238DEBB5E3B7E5A801EC4A51DB0FF6E2F474479739EDF"},
+      "actual_passed": 362,
+      "coverage": "实际a540源码反例及破坏接线mutation负例；共享driver决定函数的17个新正反例由guest-path执行，不是现场操作。"
+    },
+    "host_guard": {
+      "receipt": {"path":"uat/v1-host-guard/0cc0b952cd864052b6b893c4ce47df08/receipt.json","bytes":11745,"sha256":"627B7448F9DE31B15D74A7406FFE0FE3BE8206FA789B4F42AA1A8AF4D6C4B85C"},
+      "actual_full_argv_exit78_count": 2,
+      "suite": "DriverDisconnectOnly",
+      "configurations": ["Debug","Release"],
+      "actual_product_and_driver_build_identity_source_split_matches": true,
+      "synthetic_input_by_admitted_route": 0,"ordinary_product_launches": 0
+    },
+    "prepared_package_not_a_runtime_Run": {
+      "reserved_run_id": "68cf4fcc1ff6419dbbf4cbfdd7b1bd52",
+      "suite": "DriverDisconnectOnly","configuration_to_launch": "Release",
+      "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "driver_and_packaging_source_sha": "545f20d5ed9c0e0816124e52d9f34de58f28177d",
+      "package_receipt": {"path":"uat/v1-sandbox/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/package-receipt.json","bytes":13539,"sha256":"204C73020997447F5FB3A8398517828DD4D47661B1B0ABE318F2A23128AC675C"},
+      "zip": {"path":"uat/v1-sandbox/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/68cf4fcc1ff6419dbbf4cbfdd7b1bd52.zip","bytes":6386669,"sha256":"2C1B136F2ABC02A7ACE5382451188BCC32FC2DA13BA06FF2BCD279C353C89269"},
+      "manifest": {"path":"uat/v1-sandbox/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/input/manifest.json","bytes":18336,"sha256":"041E75061C38F6D9325060F45E36A9C3F1B4F609049E5855FECDE689282D4025"},
+      "wsb": {"path":"uat/v1-sandbox/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/PaneBindV1.wsb","bytes":977,"sha256":"430406595BC2D30DD5DD53617E4C58DE0FE066F79CE02F9A0EC08D5406699027"},
+      "deploy_receipt": {"path":"uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/deploy-receipt.json","bytes":2664,"sha256":"6B9CAF53DC7858A1BC50044ED6B5BC8358D882D334598A14822F5BAA59269DB1"},
+      "actual_deploy_utc": "2026-10-28T06:12:23.9174321Z",
+      "local_files_matching_deploy_inventory": 9,
+      "readonly_input_only_writable_output": true,
+      "actual_deploy_receipt_guest_started": false,
+      "field_validation": "NOT_RUN",
+      "snapshot_boundary": "准备receipt内deployed=false仍是原快照；实际文件部署由独立deploy回执证明，非运行或验收PASS。"
+    },
+    "next_field_boundary": "InputFollowupOnly继续原465/c4f2包，不重新打包或重绑545；旧1dfb原I08包保留但后继拟用68cf。两者现场均NOT_RUN，顺序c4f2→68cf。仅完成可信SSH文件传输，没有Read-SandboxProcesses/Inventory/Launch、未知窗口控制、新任务、guest、VM或输入；未重查Sandbox占用，昨日快照不冒充本轮实时结果。待用户release通知后由root一次核占用再串行运行。",
+    "I08_DEV_PASS_awarded": false,"new_feature_or_benchmark_PASS": 0,
+    "old_26_Run_identities_and_747_literal_lines_rebound": false,
+    "field_validation": "NOT_RUN"
+  },
   "independent_nf02_origin_trace_review": {
     "kind": "READ_ONLY_ANALYSIS_OF_EXISTING_RUNS_NOT_A_NEW_FIELD_RUN",
     "basis_run_id": "21328cc2190b4e3aa02079921b88bf9b",
