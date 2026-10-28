@@ -1,0 +1,1484 @@
+{
+  "schema": "panebind-v1-targeted-followup-review/1",
+  "record_date": "2026-10-28",
+  "scope": "既定465cbf产品与冻结c4f2/68cf包的两项定向guest实测，追加只增TEST拒UP诊断945160b驱动的b856完整I07配置规则链。保留c4f2原工具拒UP失败与UNKNOWN根因、两条legacy分域时钟、I10有限失败恢复及68cf真实actor退出自主收尾；新I07真实通过不重写旧失败。原件不改绑；不是新验收表、任务书、性能总体或整版PASS。",
+  "source_contract": "docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md",
+  "excerpt_policy": {
+    "path": "docs/reports/v1-evidence/20261028-input-followup-review.jsonl",
+    "selection": "98 literal original JSONL lines with exact source path/line associations; UTF-8 LF copy",
+    "raw_line_order_is_not_cross_producer_native_order": true,
+    "original_files_remain_local": true,
+    "packet_or_executable_bytes_copied": false,
+    "numeric_identity_note": "64-bit FILETIME identities in summary are decimal strings; original excerpt bytes/numbers preserved verbatim"
+  },
+  "engineering_status": "PARTIAL",
+  "human_uat": "PENDING",
+  "REA": "NOT_STARTED",
+  "runs": [
+    {
+      "run_id": "c4f226a180dc4c87acb9a5c03c5421f1",
+      "configuration": "Release",
+      "suite": "InputFollowupOnly",
+      "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "driver_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "packaging_head": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "product_sha256": "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB",
+      "driver_sha256": "91CD69602B7D860FC4C15DA2E072E9083752712B5ADECDA4D9C9197F64E6F9AA",
+      "remote_run_root": "I:\\PaneBindMVP1Runs\\c4f226a180dc4c87acb9a5c03c5421f1",
+      "raw_artifacts": [
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-guest-summary.json",
+          "sha256": "709071EA1AAF97D327B273FE88DF70382F958F78A91CAD036E6FEC84DF5DE241",
+          "bytes": 20902
+        },
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-Release-launch.json",
+          "sha256": "D92F2D9E57008538B3BBA3F7D3819DBDF0552F97370D2E03D77666C6EA868F25",
+          "bytes": 9878
+        },
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "sha256": "E8A0BDBEF3F4ECC32BEB13954193CC88166C673071A339E3E66FD8CD4210DF87",
+          "bytes": 395630
+        },
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/collection-receipt.json",
+          "sha256": "1CA05F562F90B9476691C860CFF989593B83E65CD8F8A08EE60959DD435B71BB",
+          "bytes": 9903
+        },
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-product-Release/panebind.log.jsonl",
+          "sha256": "4AB4349A9007173BB0FFFEC5736751FDDD68D4C73BB80393C018FCEED698DA89",
+          "bytes": 45561
+        },
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-product-Release/panebind.log.jsonl.1",
+          "sha256": "46C26A2BD5705E5364BBD4B52008385D84FD6954D47A00F0078148292296C4C3",
+          "bytes": 524911
+        }
+      ],
+      "package_and_control_artifacts": [
+        {
+          "path": "uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/c4f226a180dc4c87acb9a5c03c5421f1.zip",
+          "sha256": "7DBA2A3378E8FEE59E5E9FD943A28E329A11892076A6222538C24D0130E4954D",
+          "bytes": 6384038
+        },
+        {
+          "path": "uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/PaneBindV1.wsb",
+          "sha256": "D17ED698E913868CA91CB49723F2BBC9709ADBA064EB6FBEF9AAF88D2E83F472",
+          "bytes": 974
+        },
+        {
+          "path": "uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/package-receipt.json",
+          "sha256": "79325438859AE623520ABCED14F78B125383F01C19F0C71453D1FC9B29F4C3AA",
+          "bytes": 13536
+        },
+        {
+          "path": "uat/v1-sandbox/c4f226a180dc4c87acb9a5c03c5421f1/input/manifest.json",
+          "sha256": "C4AD70CB751BB0B4496411B0213735A15942AD3700930742CFE95D4E0AD7C343",
+          "bytes": 17165
+        },
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/cleanup-receipt.json",
+          "sha256": "20592A411EBD9E5A224DFB1959322D71B88901DF3D208B8064FF3C1938B475FE",
+          "bytes": 10912
+        },
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/launch-receipt.json",
+          "sha256": "E0EA2C522D32764148C745F6F36AF4ED3ED82FAFA23D461932F9EEB547A73C0E",
+          "bytes": 14479
+        },
+        {
+          "path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/deploy-receipt.json",
+          "sha256": "1167F4368B2E7BC69D8EA6B57C5D69F09272ACC1F161BF83C5D10BF52689C9BB",
+          "bytes": 2664
+        }
+      ],
+      "environment_scope": {
+        "isolation": "dedicated_disposable_Windows_Sandbox",
+        "child_integrity_rid": 8192,
+        "child_elevated": false,
+        "interactive_session": 1,
+        "source_dpi": 144,
+        "display_count": 1,
+        "work_area": [
+          0,
+          0,
+          3050,
+          1596
+        ],
+        "full_standard_Medium_shell_proven": false,
+        "human_uat": "NOT_RUN"
+      },
+      "result": "FAIL_I07_DRIVER_PRE_UP_ROUTE_REJECTION_OTHER_COMPONENTS_SEPARATE",
+      "original_guest_status": "BLOCKED_OR_FAILED",
+      "fixture_exit_code": 1,
+      "original_guest_product_cleanup_pass": false,
+      "integrity": {
+        "fixture_rows": 638,
+        "product_rows": 407,
+        "fixture_sequence_contiguous": true,
+        "product_sequence_contiguous_across_rotation": true,
+        "product_pid": 3948
+      },
+      "component_results": {
+        "legacy_dock_clock_coverage": "PASS_TWO_ACTUAL_LEGACY_DISPATCH_CLOCKS_NOT_BOTH_UNDER_50MS",
+        "I07_rule_input_followup": "FAIL_DRIVER_REFUSED_BEFORE_UP_NATIVE_MOVE_NOT_COMPLETE",
+        "I10_second_member_failure_and_survivor_recovery": "PASS_SCOPED",
+        "product_own_normal_shutdown": "OBSERVED_RESOURCE_RELEASE_AND_POST_STOP_CLIENT_INPUT",
+        "whole_I07": "NO_NEW_PASS",
+        "whole_I10": "CANONICAL_INHERITANCE_REVIEW_NOT_A_WHOLE_CHAIN_REPLAY"
+      },
+      "legacy_timing": {
+        "clock_frequency_hz": 10000000,
+        "origin": "shield_WM_LBUTTONUP_dispatch_not_LL_hook_or_physical_input",
+        "dispatch_to_GUI_dequeue_scope": "Observed dispatch-to-GUI-consumption interval, including pre-enqueue resource cleanup/Gone and input delivery; not isolated GUI queue, scheduler or system time. InputEvent resource_observed_qpc copies dispatch; the separate legacy_left_up resource-fact timestamp is later. Finer attribution UNKNOWN.",
+        "endpoint_scope": "exact_geometry_observation_and_applicable_discrete_completion; same-display no-lease post_context_NA with raw false flags retained",
+        "samples": [
+          {
+            "generation": 1,
+            "fixture_line": 144,
+            "product_sequence": 76,
+            "dispatch_qpc": 391528434,
+            "legacy_left_up_resource_fact_sequence": 68,
+            "legacy_left_up_resource_fact_qpc": 391528466,
+            "post_qpc": 392041692,
+            "dispatch_to_post_us": 51325.8,
+            "dispatch_to_GUI_dequeue_us": 32177.7,
+            "native_API_us": 7424.4
+          },
+          {
+            "generation": 2,
+            "fixture_line": 163,
+            "product_sequence": 112,
+            "dispatch_qpc": 401861450,
+            "legacy_left_up_resource_fact_sequence": 104,
+            "legacy_left_up_resource_fact_qpc": 401861497,
+            "post_qpc": 402321030,
+            "dispatch_to_post_us": 45958,
+            "dispatch_to_GUI_dequeue_us": 28149.5,
+            "native_API_us": 9865.1
+          }
+        ],
+        "final_summary": {
+          "product_sequence": 406,
+          "legacy_samples": 2,
+          "legacy_missing": 0,
+          "legacy_unfinished": 0,
+          "legacy_maximum_us": 51326,
+          "legacy_p95_bucket_upper_us": 99999,
+          "hook_samples": 11,
+          "hook_missing": 2,
+          "hook_p95_bucket_upper_us": 99999,
+          "hook_maximum_us": 57743,
+          "callback_samples": 178,
+          "callback_p99_bucket_upper_us": 999,
+          "callback_maximum_us": 1205
+        },
+        "old_122_hook_sample_population_rebound": false,
+        "normal_percentile_budget_inferred_from_fault_run": false,
+        "new_maximum_latency_gate": false
+      },
+      "I07_failure": {
+        "fixture_lines": [
+          376,
+          378,
+          379,
+          382,
+          413
+        ],
+        "phase": "current_shared_input_rule_exclusion_and_fresh_group",
+        "reason": "normal_release_route_changed_after_observation_before_UP",
+        "expected_generation": 0,
+        "retired_previous_ready_generation": 3,
+        "current_native_source_capture": true,
+        "direct_source_hit": true,
+        "UP_attempt_had_not_run_at_rejection": true,
+        "independent_phase_single_pending_UP_cleanup": true,
+        "exclusion_recovery_scope_not_completed": true,
+        "original_failure_retained": true
+      },
+      "I10_scope": {
+        "fault_generation": 4,
+        "first_native_member": 0,
+        "second_native_member": 2,
+        "actual_native_attempts": 2,
+        "second_API_returned_true": true,
+        "second_actual_identity_lost": true,
+        "third_member_native_attempts": 0,
+        "end_is_NormalUp": false,
+        "actual_single_abort_UP_observed": true,
+        "post_failure_same_instance_generations": [
+          5,
+          6,
+          7
+        ],
+        "recovery": [
+          "actual ordinary Move",
+          "actual Move forms survivor relation",
+          "actual Ctrl moves two surviving members"
+        ],
+        "original_configuration_restored": true,
+        "product_restarted": false,
+        "full_max_grid_fixed_scope_replayed": false
+      },
+      "cleanup": {
+        "product_shutdown_sequence": 407,
+        "fixture_product_stop_line": 626,
+        "own_hooks_stopped": true,
+        "own_input_resources_stopped": true,
+        "own_capture_released": true,
+        "own_input_association_detached": true,
+        "native_worker_exited": true,
+        "issued_native_completion_unknown": false,
+        "post_stop_actual_client_DOWN_UP_counts_before": [
+          0,
+          0
+        ],
+        "post_stop_actual_client_DOWN_UP_counts_after": [
+          1,
+          1
+        ],
+        "test_observers_removed": true,
+        "owned_fixture_windows_destroyed": true,
+        "guest_summary_false_retained": true,
+        "dedicated_guest_exited": true,
+        "own_task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "guest_destruction_not_product_cleanup_evidence": true
+      },
+      "excerpt_index": [
+        {
+          "excerpt_line": 1,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 13,
+          "original_sequence": 13,
+          "type": "guard_binary_identity"
+        },
+        {
+          "excerpt_line": 2,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 19,
+          "original_sequence": 19,
+          "type": "actual_guest_environment"
+        },
+        {
+          "excerpt_line": 3,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 144,
+          "original_sequence": 144,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 4,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 163,
+          "original_sequence": 163,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 5,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 237,
+          "original_sequence": 237,
+          "type": "independent_entry_phase_result"
+        },
+        {
+          "excerpt_line": 6,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 376,
+          "original_sequence": 376,
+          "type": "normal_release_route_observation"
+        },
+        {
+          "excerpt_line": 7,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 378,
+          "original_sequence": 378,
+          "type": "configuration_rule_input_failed_cleanup"
+        },
+        {
+          "excerpt_line": 8,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 379,
+          "original_sequence": 379,
+          "type": "independent_entry_phase_failure"
+        },
+        {
+          "excerpt_line": 9,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 382,
+          "original_sequence": 382,
+          "type": "independent_phase_test_input_cleanup"
+        },
+        {
+          "excerpt_line": 10,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 413,
+          "original_sequence": 413,
+          "type": "independent_entry_phase_result"
+        },
+        {
+          "excerpt_line": 11,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 498,
+          "original_sequence": 498,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 12,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 501,
+          "original_sequence": 501,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 13,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 510,
+          "original_sequence": 510,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 14,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 519,
+          "original_sequence": 519,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 15,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 521,
+          "original_sequence": 521,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 16,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 531,
+          "original_sequence": 531,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 17,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 533,
+          "original_sequence": 533,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 18,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 544,
+          "original_sequence": 544,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 19,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 547,
+          "original_sequence": 547,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 20,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 552,
+          "original_sequence": 552,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 21,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 553,
+          "original_sequence": 553,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 22,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 615,
+          "original_sequence": 615,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 23,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 616,
+          "original_sequence": 616,
+          "type": "I10_batch_failure_only_complete"
+        },
+        {
+          "excerpt_line": 24,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 624,
+          "original_sequence": 624,
+          "type": "independent_entry_phase_result"
+        },
+        {
+          "excerpt_line": 25,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 626,
+          "original_sequence": 626,
+          "type": "product_stop"
+        },
+        {
+          "excerpt_line": 26,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 633,
+          "original_sequence": 633,
+          "type": "post_stop_actual_client_click"
+        },
+        {
+          "excerpt_line": 27,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 634,
+          "original_sequence": 634,
+          "type": "input_followup_only_summary"
+        },
+        {
+          "excerpt_line": 28,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-release-fixture.jsonl",
+          "origin_line": 638,
+          "original_sequence": 638,
+          "type": "driver_shutdown"
+        },
+        {
+          "excerpt_line": 29,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-product-Release/panebind.log.jsonl",
+          "origin_line": 30,
+          "original_sequence": 406,
+          "type": "timing_summary"
+        },
+        {
+          "excerpt_line": 30,
+          "origin_path": "uat/v1-control/c4f226a180dc4c87acb9a5c03c5421f1/collection-20261028T085752594Z-9a3bc74756a244f3ade405e6123a9206/c4f226a180dc4c87acb9a5c03c5421f1-product-Release/panebind.log.jsonl",
+          "origin_line": 31,
+          "original_sequence": 407,
+          "type": "shutdown"
+        }
+      ]
+    },
+    {
+      "run_id": "68cf4fcc1ff6419dbbf4cbfdd7b1bd52",
+      "configuration": "Release",
+      "suite": "DriverDisconnectOnly",
+      "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "driver_source_sha": "545f20d5ed9c0e0816124e52d9f34de58f28177d",
+      "packaging_head": "545f20d5ed9c0e0816124e52d9f34de58f28177d",
+      "product_sha256": "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB",
+      "driver_sha256": "0CC16FD619C29A0BD024ADFCBC8CE7AAE29850AEDA21529D97E9222D3FA5BB35",
+      "remote_run_root": "I:\\PaneBindMVP1Runs\\68cf4fcc1ff6419dbbf4cbfdd7b1bd52",
+      "raw_artifacts": [
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-guest-summary.json",
+          "sha256": "E93BD125F7CA1BC97D9016377E2D89480721885191CBD1A4B856139C9FF0F592",
+          "bytes": 20872
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-Release-launch.json",
+          "sha256": "70E5F894BF3AEAB37884E02AEBC8F3CB63B8BB4B060DA8C308710A4ED4DFE507",
+          "bytes": 9925
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "sha256": "87DD0CB10AAD90F5C51EB4EFDE82499D33A1897D3DF9677D7B5696DAC63BFBE0",
+          "bytes": 163664
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/collection-receipt.json",
+          "sha256": "E934F8EE98147DEE376C617FA30C2B6B90D4BF4AF79F91E9ED2752CFAF7F7D3A",
+          "bytes": 10837
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "sha256": "0939D46EBAE4AAFC90FB0A3006664B6452A095FA4D2FE645D2B0482CA79641E1",
+          "bytes": 209190
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-input-actor-completion.packet",
+          "sha256": "15B92DBEF116F8013B81D8C974CD06C3DE945190E2E94E40539E290B539ABCF9",
+          "bytes": 96
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-input-actor.json",
+          "sha256": "C9762E3FDC5EBA0471E9E8F4FCE923D208736BAAC7A1A0546A2B481EF5D7AF14",
+          "bytes": 4203
+        }
+      ],
+      "package_and_control_artifacts": [
+        {
+          "path": "uat/v1-sandbox/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/68cf4fcc1ff6419dbbf4cbfdd7b1bd52.zip",
+          "sha256": "2C1B136F2ABC02A7ACE5382451188BCC32FC2DA13BA06FF2BCD279C353C89269",
+          "bytes": 6386669
+        },
+        {
+          "path": "uat/v1-sandbox/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/PaneBindV1.wsb",
+          "sha256": "430406595BC2D30DD5DD53617E4C58DE0FE066F79CE02F9A0EC08D5406699027",
+          "bytes": 977
+        },
+        {
+          "path": "uat/v1-sandbox/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/package-receipt.json",
+          "sha256": "204C73020997447F5FB3A8398517828DD4D47661B1B0ABE318F2A23128AC675C",
+          "bytes": 13539
+        },
+        {
+          "path": "uat/v1-sandbox/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/input/manifest.json",
+          "sha256": "041E75061C38F6D9325060F45E36A9C3F1B4F609049E5855FECDE689282D4025",
+          "bytes": 18336
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/cleanup-receipt.json",
+          "sha256": "59597CDBC8EA1F79474864C33811E54EA7ECC8EB1DB0B296CCDEA25E52E2A1FD",
+          "bytes": 11750
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/launch-receipt.json",
+          "sha256": "314A561EBBA0E75E93C9C0CDD4936532B1287D4D28318FAB838CFA1D864CA977",
+          "bytes": 14479
+        },
+        {
+          "path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/deploy-receipt.json",
+          "sha256": "6B9CAF53DC7858A1BC50044ED6B5BC8358D882D334598A14822F5BAA59269DB1",
+          "bytes": 2664
+        }
+      ],
+      "environment_scope": {
+        "isolation": "dedicated_disposable_Windows_Sandbox",
+        "child_integrity_rid": 8192,
+        "child_elevated": false,
+        "interactive_session": 1,
+        "source_dpi": 144,
+        "display_count": 1,
+        "work_area": [
+          0,
+          0,
+          3050,
+          1596
+        ],
+        "full_standard_Medium_shell_proven": false,
+        "human_uat": "NOT_RUN"
+      },
+      "result": "PASS_SCOPED_REAL_ACTOR_EXIT_AUTONOMOUS_RETIREMENT_AND_SAME_INSTANCE_RECOVERY",
+      "original_guest_status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+      "fixture_exit_code": 0,
+      "original_guest_product_cleanup_pass": false,
+      "integrity": {
+        "fixture_rows": 253,
+        "product_rows": 159,
+        "fixture_sequence_contiguous": true,
+        "product_sequence_contiguous": true,
+        "product_pid": 6460
+      },
+      "startup_precondition": {
+        "actual_branch": "natural_exact_source_return",
+        "actual_observation_ms": 17797,
+        "external_transition_required": false,
+        "observation_complete": true,
+        "full_bound_observed": false,
+        "observer_reserved": 9,
+        "observer_flushed": 9,
+        "observer_overflow": 0,
+        "passive_SetForegroundWindow_calls": 0,
+        "external_basename": "rgnupdt.exe",
+        "quiet_full_bound_branch_field_run": "NOT_RUN_OFFLINE_SHARED_545F_BRANCH_TEST_ONLY",
+        "historical_diagnostic_inconsistency": "D115 still says passive external-then-return required; preserved verbatim, not the actual adapter D124 predicate/result"
+      },
+      "actor_exit": {
+        "actor_pid": 7152,
+        "actor_birth_filetime": "134376516752600962",
+        "exit_observed_on_held_process_handle": true,
+        "exit_code": 0,
+        "actor_UP_calls": 0,
+        "source_still_alive": true,
+        "packet_bytes": 96,
+        "packet_sha256_before_and_after": "15B92DBEF116F8013B81D8C974CD06C3DE945190E2E94E40539E290B539ABCF9",
+        "same_held_file_identity": true,
+        "packet_content_not_committed": true,
+        "product_driver_channel": false,
+        "hard_TerminateProcess": "NOT_RUN",
+        "ordinary_orderly_UP_disconnect": "NOT_RUN"
+      },
+      "autonomous_retirement": {
+        "generation": 1,
+        "before_exit_boundary_tick": 52796,
+        "actual_end_tick": 82437,
+        "configured_production_deadline_ms": 30000,
+        "actual_elapsed_from_actor_before_send_ms": 30016,
+        "exact_30000ms_not_acceptance_gate": true,
+        "reason": "Deadline",
+        "end_enum": 7,
+        "normal_up": false,
+        "pending_retired": true,
+        "native_calls_before_boundary": 1,
+        "native_calls_at_retirement": 1,
+        "no_external_foreground_between_boundary_and_terminal": true,
+        "no_supervisor_UP_or_Pause_before_retirement": true,
+        "source_physical_button_state_not_inferred_from_async": true
+      },
+      "resource_exit": {
+        "source_HWND": 262952,
+        "overlay_HWND": 197424,
+        "capture_release_sequence": 64,
+        "capture_before": 197424,
+        "capture_after": 0,
+        "release_before_qpc": 824705651,
+        "release_after_qpc": 824715293,
+        "detach_before_qpc": 824720104,
+        "detach_after_qpc": 824725442,
+        "detach_succeeded": true,
+        "isolation_gone_sequence": 67,
+        "isolation_gone_qpc": 824775297,
+        "removal_reason": 4,
+        "overlay_destroyed": true,
+        "hotkey_unregistered": true
+      },
+      "abort_UP": {
+        "single_actual_test_UP_packets": 1,
+        "send_before_qpc": 826207540,
+        "after_resource_Gone": true,
+        "matching_actual_LL_abort_UP": true,
+        "NormalUp_claimed": false,
+        "target_UP_delivery_claimed": false
+      },
+      "same_instance_recovery": {
+        "product_pid": 6460,
+        "product_birth_filetime": "134376516542311441",
+        "source_kept_alive": true,
+        "product_restarted": false,
+        "supervisor_is_original_test_sender": true,
+        "Move": {
+          "generation": 2,
+          "actual_rect": [
+            215,
+            240,
+            695,
+            560
+          ],
+          "placement_sequence": 88,
+          "normal_UP_end_sequence": 103
+        },
+        "Resize": {
+          "generation": 3,
+          "actual_rect": [
+            215,
+            240,
+            695,
+            584
+          ],
+          "placement_sequence": 121,
+          "normal_UP_end_sequence": 136
+        },
+        "actual_UP_and_no_capture_each": true,
+        "new_input_actor_protocol_not_required_by_original_guide": true
+      },
+      "scope_boundary": {
+        "original_driver_whole_I08_PASS": false,
+        "canonical_I08_five_causes": "COMBINE_EXISTING_ORIGINAL_IDENTITIES_SEPARATELY",
+        "fixture_exit_zero_not_used_as_feature_proof": true,
+        "no_new_full_or_900_run": true,
+        "no_full_standard_Medium_desktop_claim": true
+      },
+      "cleanup": {
+        "product_shutdown_sequence": 159,
+        "fixture_product_stop_line": 247,
+        "own_hooks_stopped": true,
+        "own_overlay_destroyed": true,
+        "own_input_resources_stopped": true,
+        "own_capture_released": true,
+        "own_input_association_detached": true,
+        "native_worker_exited": true,
+        "issued_native_completion_unknown": false,
+        "guest_summary_false_retained": true,
+        "owned_fixture_windows_destroyed": true,
+        "test_observers_removed": true,
+        "dedicated_guest_exited": true,
+        "own_task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "guest_destruction_not_product_cleanup_evidence": true
+      },
+      "excerpt_index": [
+        {
+          "excerpt_line": 31,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 13,
+          "original_sequence": 13,
+          "type": "guard_binary_identity"
+        },
+        {
+          "excerpt_line": 32,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 19,
+          "original_sequence": 19,
+          "type": "actual_guest_environment"
+        },
+        {
+          "excerpt_line": 33,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 115,
+          "original_sequence": 115,
+          "type": "I08_disconnect_test_contract"
+        },
+        {
+          "excerpt_line": 34,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 124,
+          "original_sequence": 124,
+          "type": "I08_disconnect_passive_startup_foreground_precondition"
+        },
+        {
+          "excerpt_line": 35,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 134,
+          "original_sequence": 134,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 36,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 135,
+          "original_sequence": 135,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 37,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 137,
+          "original_sequence": 137,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 38,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 140,
+          "original_sequence": 140,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 39,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 142,
+          "original_sequence": 142,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 40,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 145,
+          "original_sequence": 145,
+          "type": "I08_disconnect_single_abort_cleanup_UP"
+        },
+        {
+          "excerpt_line": 41,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 147,
+          "original_sequence": 147,
+          "type": "I08_disconnect_actual_abort_cleanup_UP_receipt"
+        },
+        {
+          "excerpt_line": 42,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 161,
+          "original_sequence": 161,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 43,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 165,
+          "original_sequence": 165,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 44,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 166,
+          "original_sequence": 166,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 45,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 172,
+          "original_sequence": 172,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 46,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 176,
+          "original_sequence": 176,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 47,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 177,
+          "original_sequence": 177,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 48,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 182,
+          "original_sequence": 182,
+          "type": "I08_input_actor_exit_scope"
+        },
+        {
+          "excerpt_line": 49,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 237,
+          "original_sequence": 237,
+          "type": "I08_disconnect_scope_complete"
+        },
+        {
+          "excerpt_line": 50,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 247,
+          "original_sequence": 247,
+          "type": "product_stop"
+        },
+        {
+          "excerpt_line": 51,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 249,
+          "original_sequence": 249,
+          "type": "driver_disconnect_only_summary"
+        },
+        {
+          "excerpt_line": 52,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-release-fixture.jsonl",
+          "origin_line": 253,
+          "original_sequence": 253,
+          "type": "driver_shutdown"
+        },
+        {
+          "excerpt_line": 53,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "origin_line": 61,
+          "original_sequence": 61,
+          "type": "gesture_end"
+        },
+        {
+          "excerpt_line": 54,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "origin_line": 64,
+          "original_sequence": 64,
+          "type": "gesture_input_resource"
+        },
+        {
+          "excerpt_line": 55,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "origin_line": 67,
+          "original_sequence": 67,
+          "type": "gesture_input_resource"
+        },
+        {
+          "excerpt_line": 56,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "origin_line": 88,
+          "original_sequence": 88,
+          "type": "placement"
+        },
+        {
+          "excerpt_line": 57,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "origin_line": 103,
+          "original_sequence": 103,
+          "type": "gesture_end"
+        },
+        {
+          "excerpt_line": 58,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "origin_line": 121,
+          "original_sequence": 121,
+          "type": "placement"
+        },
+        {
+          "excerpt_line": 59,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "origin_line": 136,
+          "original_sequence": 136,
+          "type": "gesture_end"
+        },
+        {
+          "excerpt_line": 60,
+          "origin_path": "uat/v1-control/68cf4fcc1ff6419dbbf4cbfdd7b1bd52/collection-20261028T090204760Z-ec268f027c754a8a9fc6bca114f7c9a9/68cf4fcc1ff6419dbbf4cbfdd7b1bd52-product-Release/panebind.log.jsonl",
+          "origin_line": 159,
+          "original_sequence": 159,
+          "type": "shutdown"
+        }
+      ]
+    },
+    {
+      "run_id": "b856d7e5932c49d9a5d9693815a146a8",
+      "configuration": "Release",
+      "suite": "ConfigurationChainOnly",
+      "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "driver_source_sha": "945160b25c6e1ec33276151a61cd08d7ba22ddb2",
+      "packaging_head": "945160b25c6e1ec33276151a61cd08d7ba22ddb2",
+      "product_sha256": "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB",
+      "driver_sha256": "68B7B266D8A463CDA3B040B6ACEF312DBB3AA6EFBF803E9E1C185306C0BADA84",
+      "remote_run_root": "I:\\PaneBindMVP1Runs\\b856d7e5932c49d9a5d9693815a146a8",
+      "raw_artifacts": [
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-guest-summary.json",
+          "sha256": "188F85E390C48C0A3DBA9A58B8C7D0D22A4BDBE253D661C0285E75A753D732DB",
+          "bytes": 20880
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-Release-launch.json",
+          "sha256": "C41CFC6CE5DB6159963622853AE1BFFB849CBA27A2024AEA3B8B30F6CC0652E5",
+          "bytes": 9929
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "sha256": "912FC8BB77377B212EF3FB69C0A51A7CAD75EFE4CCE63CC0C18EA7840712E769",
+          "bytes": 441549
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-settings-export.conf",
+          "sha256": "19EF3A76EF73686665E238D58B0F525329D00755F525941F81928F5B22E81195",
+          "bytes": 1215
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/collection-receipt.json",
+          "sha256": "AC7A22BB188A3693019D63015251BA00E6DC135A0E7971468A67F3C22AC3457E",
+          "bytes": 10877
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-product-Release/panebind.log.jsonl",
+          "sha256": "B13412A2633523CFF4787A9E6B16AB2ABE07F486D8467CC1F2B8609FA233E016",
+          "bytes": 481742
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-product-Release/settings.ini.corrupt.43765",
+          "sha256": "647A166FA686723A0D4B627A3D1CCFBD779AB846A2AAE813E64D9DF704B58380",
+          "bytes": 62
+        }
+      ],
+      "package_build_and_control_artifacts": [
+        {
+          "path": "uat/v1-sandbox/b856d7e5932c49d9a5d9693815a146a8/b856d7e5932c49d9a5d9693815a146a8.zip",
+          "sha256": "700BB0C9031C930057AA6F056CBBA1020CC25519BCE4795F9FAED5E8C0B746E0",
+          "bytes": 6397113
+        },
+        {
+          "path": "uat/v1-sandbox/b856d7e5932c49d9a5d9693815a146a8/input/manifest.json",
+          "sha256": "47B7B8DEF3ACA0BAEAFB4796213913B7E735AE40E551042308C983D19A4AF15A",
+          "bytes": 18442
+        },
+        {
+          "path": "uat/v1-sandbox/b856d7e5932c49d9a5d9693815a146a8/PaneBindV1.wsb",
+          "sha256": "F9A77FE1475D4F52ADAC68D787A207D5E1D2C5B11C1803018806ECDB3AD118BF",
+          "bytes": 979
+        },
+        {
+          "path": "uat/v1-sandbox/b856d7e5932c49d9a5d9693815a146a8/package-receipt.json",
+          "sha256": "17332E9C5C1CF8B328319A3DE362BB9D24D5A68073E915E528FABA1FA101C5ED",
+          "bytes": 13541
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/deploy-receipt.json",
+          "sha256": "AB4A099A87FC71BF399CB26DDCEC7288E111E466B28BFE865E97B1422E26893B",
+          "bytes": 2664
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/launch-receipt.json",
+          "sha256": "013770EC9566083230080A02BB985678C8BB9CE5A5D39EC64947E023D147A41C",
+          "bytes": 14479
+        },
+        {
+          "path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/cleanup-receipt.json",
+          "sha256": "473AA47F64BEA9401972C31BEF5566FB3E0CCC88E47022792390F745ABB2F2B6",
+          "bytes": 11790
+        },
+        {
+          "path": "uat/v1-control/build-i08-startup-driver-945160b-9b7b2af4634344fc958e5e3ba4bdf7ea/receipt.json",
+          "sha256": "A2447B7A4CB9C4DC178ED214ABF015813292D5BAA00925D5BAA82E7D87A801A4",
+          "bytes": 5313
+        },
+        {
+          "path": "uat/v1-control/build-i08-startup-driver-945160b-9b7b2af4634344fc958e5e3ba4bdf7ea/Debug-offline-ctest.txt",
+          "sha256": "DEEE9C721EFB6115C1180DC906C993DBD754EE7A4D1D8260EAFF7CB0C697D730",
+          "bytes": 318
+        },
+        {
+          "path": "uat/v1-control/build-i08-startup-driver-945160b-9b7b2af4634344fc958e5e3ba4bdf7ea/Release-offline-ctest.txt",
+          "sha256": "978A22733E9518AAC5FFDD6A5F7684DF1E2E0FE3F687EF90BD4AD3CAF2B15166",
+          "bytes": 318
+        },
+        {
+          "path": "uat/v1-host-guard/20437982336d46079bb94ddacb0b52cc/receipt.json",
+          "sha256": "9E4ED86A18AC41C11CEBCDABEAF9333938D81320F3C15A9C800C56B356B88CC4",
+          "bytes": 11763
+        }
+      ],
+      "environment_scope": {
+        "isolation": "dedicated_disposable_Windows_Sandbox",
+        "child_integrity_rid": 8192,
+        "child_elevated": false,
+        "interactive_session": 1,
+        "source_dpi": 144,
+        "display_count": 1,
+        "work_area": [
+          0,
+          0,
+          3050,
+          1596
+        ],
+        "full_standard_Medium_shell_proven": false,
+        "human_uat": "NOT_RUN"
+      },
+      "result": "PASS_SCOPED_CURRENT_COMPLETE_I07_CONFIGURATION_RULE_CHAIN",
+      "original_guest_status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+      "fixture_exit_code": 0,
+      "original_guest_product_cleanup_pass": false,
+      "integrity": {
+        "fixture_rows": 571,
+        "fixture_sequence_contiguous": true,
+        "product_log_rows": 371,
+        "per_product_sequence_contiguous": true,
+        "products": [
+          {
+            "pid": 6420,
+            "rows": 274,
+            "sequence_first": 1,
+            "sequence_last": 274
+          },
+          {
+            "pid": 6644,
+            "rows": 97,
+            "sequence_first": 1,
+            "sequence_last": 97
+          }
+        ],
+        "product_change": "expected_normal_stop_and_restart_only_in_corrupt_configuration_test"
+      },
+      "build": {
+        "product_exe_rebuilt": false,
+        "test_diagnostic_only_source_change": true,
+        "Debug_driver_sha256": "6AEA7D03D7812E974540FC03D58CA33970AE0270579033685D66637731F8BD0E",
+        "Release_driver_sha256": "68B7B266D8A463CDA3B040B6ACEF312DBB3AA6EFBF803E9E1C185306C0BADA84",
+        "Debug_guestpath": "1_OF_1_PASS",
+        "Release_guestpath": "1_OF_1_PASS",
+        "host_guard_actual_exit78_count": 2,
+        "identity_static_checks": 369,
+        "earlier_465_product_and_driver_and_old_two_package_bytes_preserved": true
+      },
+      "historical_c4f2_failure": {
+        "retained_run": "c4f226a180dc4c87acb9a5c03c5421f1",
+        "original_verdict": "FAIL",
+        "original_reason": "normal_release_route_changed_after_observation_before_UP",
+        "root_cause": "UNKNOWN",
+        "new_final_rejection_diagnostic_observed": false,
+        "no_product_or_guard_gate_relaxation_claim": true,
+        "new_success_does_not_relabel_old_failure": true
+      },
+      "actual_ordered_chain": {
+        "before_rule": {
+          "fixture_line": 112,
+          "generation": 1,
+          "members": 3,
+          "actual_native_members": 3,
+          "real_NormalUp": true
+        },
+        "exclusion": {
+          "GUI_real_Add_Current_App_Class_and_Save": true,
+          "native_plain_Move_START_END_and_real_UP": true,
+          "native_Ctrl_Move_START_END_and_real_UP": true,
+          "plain_END_line": 195,
+          "Ctrl_END_line": 215,
+          "zero_writer_line": 219,
+          "native_callsite_before": 3,
+          "native_callsite_after": 3,
+          "excluded_follower_geometry_unchanged": true,
+          "stale_group_not_reused": true,
+          "excluded_native_UP_not_product_NormalUp": true
+        },
+        "removal": {
+          "fresh_group_line": 293,
+          "generation": 3,
+          "members": 3,
+          "real_NormalUp": true
+        },
+        "export": {
+          "fixture_line": 325,
+          "actual_native_file_dialog": true,
+          "bytes": 1215,
+          "sha256": "19EF3A76EF73686665E238D58B0F525329D00755F525941F81928F5B22E81195",
+          "cancel_keeps_runtime_line": 328
+        },
+        "changed_behavior": {
+          "GUI_actual_Save_line": 352,
+          "attraction_dip": 0,
+          "actual_free_Move_line": 366,
+          "generation": 4,
+          "actual": [
+            134,
+            83,
+            534,
+            443
+          ]
+        },
+        "import": {
+          "original_valid_draft_line": 406,
+          "actual_GUI_import_and_Save_line": 411,
+          "nondefault_attraction_dip": 8,
+          "actual_snap_Move_line": 425,
+          "generation": 5,
+          "actual": [
+            140,
+            80,
+            540,
+            440
+          ]
+        },
+        "corruption_and_restart": {
+          "normal_stop_line": 439,
+          "original_product_pid": 6420,
+          "intended_new_product_pid": 6644,
+          "notice_line": 442,
+          "exact_bad_byte_backup_line": 443,
+          "backup": "settings.ini.corrupt.43765",
+          "no_historical_backup_relabelled": true,
+          "default_real_Move_line": 470,
+          "real_GUI_original_options_restored_line": 500,
+          "valid_export_unchanged_line": 501,
+          "nondefault_real_snap_after_recovery_line": 515,
+          "actual": [
+            140,
+            80,
+            540,
+            440
+          ]
+        },
+        "final_restore": {
+          "original_options_and_binary_line": 545,
+          "original_layout_lines": [
+            548,
+            549,
+            550
+          ],
+          "actual_idle_status_line": 551,
+          "enabled": true,
+          "gesture_active": false,
+          "native_pending": false,
+          "native_completion_unknown": false,
+          "visual_restore_pending": false
+        },
+        "component_line": 551,
+        "phase_PASS_line": 559,
+        "summary_PASS_line": 567,
+        "whole_I07": "CURRENT_465_SAME_CANDIDATE_ORDERED_RULE_EXPORT_IMPORT_CORRUPT_RESTART_CHAIN_OBSERVED_NOT_WHOLE_VERSION"
+      },
+      "cleanup": {
+        "product_normal_stop_lines": [
+          433,
+          561
+        ],
+        "product_shutdown_origin_lines": [
+          274,
+          371
+        ],
+        "post_stop_actual_client_delivery_lines": [
+          438,
+          566
+        ],
+        "both_product_own_input_resources_stopped": true,
+        "both_product_own_capture_released": true,
+        "both_product_own_association_detached": true,
+        "issued_native_completion_unknown": false,
+        "guest_summary_false_retained": true,
+        "owned_fixture_windows_destroyed": true,
+        "dedicated_guest_exited": true,
+        "own_guest_pid": 60580,
+        "own_task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "guest_destruction_not_product_cleanup_evidence": true
+      },
+      "scope_boundary": {
+        "old_122_hook_samples_rebound": false,
+        "Full_or_900_replay": false,
+        "new_I07_benchmark_points_awarded_here": false,
+        "tray": "NOT_RUN",
+        "five_applications": "NOT_RUN",
+        "full_Medium_desktop": "NOT_RUN",
+        "human_uat": "NOT_RUN",
+        "whole_version": "PARTIAL"
+      },
+      "excerpt_index": [
+        {
+          "excerpt_line": 61,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 13,
+          "original_sequence": 13,
+          "type": "guard_binary_identity"
+        },
+        {
+          "excerpt_line": 62,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 19,
+          "original_sequence": 19,
+          "type": "actual_guest_environment"
+        },
+        {
+          "excerpt_line": 63,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 112,
+          "original_sequence": 112,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 64,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 193,
+          "original_sequence": 193,
+          "type": "normal_release_route_observation"
+        },
+        {
+          "excerpt_line": 65,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 195,
+          "original_sequence": 195,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 66,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 203,
+          "original_sequence": 203,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 67,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 213,
+          "original_sequence": 213,
+          "type": "normal_release_route_observation"
+        },
+        {
+          "excerpt_line": 68,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 215,
+          "original_sequence": 215,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 69,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 219,
+          "original_sequence": 219,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 70,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 293,
+          "original_sequence": 293,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 71,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 294,
+          "original_sequence": 294,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 72,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 325,
+          "original_sequence": 325,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 73,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 328,
+          "original_sequence": 328,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 74,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 352,
+          "original_sequence": 352,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 75,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 366,
+          "original_sequence": 366,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 76,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 406,
+          "original_sequence": 406,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 77,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 411,
+          "original_sequence": 411,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 78,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 425,
+          "original_sequence": 425,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 79,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 433,
+          "original_sequence": 433,
+          "type": "product_stop"
+        },
+        {
+          "excerpt_line": 80,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 439,
+          "original_sequence": 439,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 81,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 441,
+          "original_sequence": 441,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 82,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 442,
+          "original_sequence": 442,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 83,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 443,
+          "original_sequence": 443,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 84,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 470,
+          "original_sequence": 470,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 85,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 500,
+          "original_sequence": 500,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 86,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 501,
+          "original_sequence": 501,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 87,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 515,
+          "original_sequence": 515,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 88,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 545,
+          "original_sequence": 545,
+          "type": "case"
+        },
+        {
+          "excerpt_line": 89,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 551,
+          "original_sequence": 551,
+          "type": "configuration_chain_component"
+        },
+        {
+          "excerpt_line": 90,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 559,
+          "original_sequence": 559,
+          "type": "independent_entry_phase_result"
+        },
+        {
+          "excerpt_line": 91,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 561,
+          "original_sequence": 561,
+          "type": "product_stop"
+        },
+        {
+          "excerpt_line": 92,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 566,
+          "original_sequence": 566,
+          "type": "post_stop_actual_client_click"
+        },
+        {
+          "excerpt_line": 93,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 567,
+          "original_sequence": 567,
+          "type": "configuration_chain_only_summary"
+        },
+        {
+          "excerpt_line": 94,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-release-fixture.jsonl",
+          "origin_line": 571,
+          "original_sequence": 571,
+          "type": "driver_shutdown"
+        },
+        {
+          "excerpt_line": 95,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-product-Release/panebind.log.jsonl",
+          "origin_line": 3,
+          "original_sequence": 3,
+          "type": "startup"
+        },
+        {
+          "excerpt_line": 96,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-product-Release/panebind.log.jsonl",
+          "origin_line": 274,
+          "original_sequence": 274,
+          "type": "shutdown"
+        },
+        {
+          "excerpt_line": 97,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-product-Release/panebind.log.jsonl",
+          "origin_line": 277,
+          "original_sequence": 3,
+          "type": "startup"
+        },
+        {
+          "excerpt_line": 98,
+          "origin_path": "uat/v1-control/b856d7e5932c49d9a5d9693815a146a8/collection-20261028T091436198Z-8d647c6e2d68483bb4228b8ae7e3dc76/b856d7e5932c49d9a5d9693815a146a8-product-Release/panebind.log.jsonl",
+          "origin_line": 371,
+          "original_sequence": 97,
+          "type": "shutdown"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,18 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-27",
+  "input_followup_20261028_files": [
+    {
+      "path": "docs/reports/v1-evidence/20261028-input-followup-review.json",
+      "sha256": "B965546CDF0AA347F341824DDE43065491F7BA5E426D5CE2748F227698E1902C",
+      "bytes": 67822
+    },
+    {
+      "path": "docs/reports/v1-evidence/20261028-input-followup-review.jsonl",
+      "sha256": "34D975A99E805F162E212EB2E8F11477895239EC1BE4A04243BDAC4C9494A583",
+      "bytes": 85784
+    }
+  ],
   "current_round_targeted_followup": {
     "path": "docs/reports/v1-evidence/20261027-targeted-followup-review.json",
     "sha256": "DE78308A1ADADFB605855E26B78C99EE94C4DF27C5A07E862EA098D4F3FDE52C",
