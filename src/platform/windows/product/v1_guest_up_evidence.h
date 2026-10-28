@@ -9,6 +9,22 @@
 
 namespace panebind::platform::windows::product::guest {
 
+// TEST-only startup observation result. A foreground excursion is optional;
+// a complete quiet bound is equally valid. No outcome grants product authority.
+enum class DisconnectStartupDecision {Observe,StableSource,NaturalReturn,Reject};
+struct DisconnectStartupFacts {
+    bool context_qualified{},observer_healthy{},observation_complete{},full_bound_observed{};
+    bool foreground_transition_seen{},natural_return_observed{},fresh_source{};
+};
+inline DisconnectStartupDecision disconnect_startup_decision(const DisconnectStartupFacts& f){
+    if(!f.context_qualified||!f.observer_healthy)return DisconnectStartupDecision::Reject;
+    if(!f.observation_complete||!f.fresh_source||
+       (f.foreground_transition_seen&&!f.natural_return_observed))
+        return f.full_bound_observed?DisconnectStartupDecision::Reject:DisconnectStartupDecision::Observe;
+    if(f.foreground_transition_seen)return DisconnectStartupDecision::NaturalReturn;
+    return f.full_bound_observed?DisconnectStartupDecision::StableSource:DisconnectStartupDecision::Observe;
+}
+
 // A fixture contract, not a product input source. Ordinary portable launches
 // intentionally do not emit diagnostic input_button_observed records.
 enum class UpEvidenceMode { DiagnosticEvent, StatusSnapshot };

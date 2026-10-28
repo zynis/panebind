@@ -1239,7 +1239,10 @@ Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('geometry_history_receipt(s,row,type)&&','true&&')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP resource receipt cannot replace the actual same-launch and type matcher'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('e::unique_value(gone,"\"overlay_destroyed\":")=="true"','true')) $lifecyclePrepare $lifecycleGuest} 'static pre-UP cleanup cannot omit actual overlay destruction'
 Reject {Assert-V1TargetedAccountingRecoveryWiring $fixtureSource $targetedTiming $targetedConfiguration $targetedSettings $targetedActor ($targetedDisconnect.Replace('return observed.matched;','return true;')) $lifecyclePrepare $lifecycleGuest} 'static actual cleanup UP cannot be accepted without its strict observed receipt'
-function Assert-V1DisconnectFailureContinuation([string]$Fixture,[string]$Actor,[string]$Disconnect=$targetedDisconnect){
+$disconnectStartupEvidence=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_up_evidence.h'),[Text.Encoding]::UTF8)
+$disconnectForegroundObserver=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_foreground_observer.h'),[Text.Encoding]::UTF8)
+function Assert-V1DisconnectFailureContinuation([string]$Fixture,[string]$Actor,[string]$Disconnect=$targetedDisconnect,
+    [string]$StartupEvidence=$disconnectStartupEvidence,[string]$Observer=$disconnectForegroundObserver){
     $transport=Get-V1FixtureFunctionText $Actor 'owned_input_actor_exit_transport'
     $phase=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
     $cleanup=Get-V1FixtureFunctionText $Fixture 'cleanup'
@@ -1283,9 +1286,39 @@ function Assert-V1DisconnectFailureContinuation([string]$Fixture,[string]$Actor,
         's.suite=="DriverDisconnectOnly"&&source_birth&&',
         'visible(source)==initial&&GetWindowRect(source,&native)&&EqualRect(&native_before,&native)',
         'input_actor_desktop(set.thread,GetCurrentProcessId())&&medium(GetCurrentProcess())&&keys_clear()',
-        'callback_window_identity_stable','registered_task_PID_birth_match',
-        '!external.empty()&&!returned.empty()&&source_exact(true)&&GetTickCount64()-began<maximum_ms')){
-        if(-not $preflight.Contains($fact)){throw ('Passive startup precondition must retain actual external/return observation and exact released source: '+$fact)}
+        'callback_window_identity_stable',
+        'context_qualified=source_exact(false);',
+        'fresh_source=foreground==source&&source_exact(true);',
+        'transition_seen=true;external=row;returned.clear();',
+        'transition_seen=true;returned.clear();',
+        'source_event_end_qpc=*callback_end;',
+        'external_end_qpc<=source_event_end_qpc',
+        'observation=foreground_observer.evidence_snapshot();',
+        'const bool observer_healthy=observation.installed&&!observation.stopped&&!observation.overflow;',
+        'observation_complete=observation.reserved==observation.flushed&&!unclassified_foreground;',
+        'full_bound_observed=GetTickCount64()-began>=maximum_ms;',
+        'decision=product::guest::disconnect_startup_decision({context_qualified,observer_healthy,observation_complete,',
+        'full_bound_observed,transition_seen,!returned.empty(),fresh_source});',
+        'decision==product::guest::DisconnectStartupDecision::StableSource||decision==product::guest::DisconnectStartupDecision::NaturalReturn',
+        'const bool accepted=reason.empty()&&context_qualified&&source_exact(true)&&',
+        'external_transition_required\":false',
+        'foreground_transition_identity_or_actual_context_unknown')){
+        if(-not $preflight.Contains($fact)){throw ('Passive startup must accept a complete qualified quiet bound or actual natural return without dropping exact observation facts: '+$fact)}
+    }
+    foreach($fact in @('if(!f.context_qualified||!f.observer_healthy)return DisconnectStartupDecision::Reject;',
+        'if(!f.observation_complete||!f.fresh_source||',
+        '(f.foreground_transition_seen&&!f.natural_return_observed))',
+        'return f.full_bound_observed?DisconnectStartupDecision::Reject:DisconnectStartupDecision::Observe;',
+        'if(f.foreground_transition_seen)return DisconnectStartupDecision::NaturalReturn;',
+        'return f.full_bound_observed?DisconnectStartupDecision::StableSource:DisconnectStartupDecision::Observe;')){
+        if(-not $StartupEvidence.Contains($fact)){throw ('Shared actual startup decision lost a bounded stable-source, natural-return or reject branch: '+$fact)}
+    }
+    foreach($fact in @('[[nodiscard]] EvidenceSnapshot evidence_snapshot()const noexcept',
+        'const bool installed=lifecycle_ready_[0].load(std::memory_order_acquire)&&lifecycle_[0].returned;',
+        'const auto overflow=overflow_.load(std::memory_order_acquire);',
+        'const auto reserved=reserved_.load(std::memory_order_acquire);',
+        'return {installed,lifecycle_ready_[1].load(std::memory_order_acquire),reserved,drained_,overflow};')){
+        if(-not $Observer.Contains($fact)){throw ('Startup admission needs actual installed/stopped/reserved/flushed/overflow buffer facts: '+$fact)}
     }
     if($preflight -match '\b(SetForegroundWindow|SetFocus|SwitchDesktop|SetCapture|SendInput|inject)\s*\(' -or
        -not $foreground.Contains('external_or_unknown_foreground_intervened_after_disconnect_boundary') -or
@@ -1314,7 +1347,20 @@ function Assert-V1DisconnectFailureContinuation([string]$Fixture,[string]$Actor,
     }
 }
 Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor
-Check $true 'static disconnect observes passive startup and autonomous retirement without foreign foreground or an added elapsed-time gate; failure and strict recovery remain separate'
+Check $true 'static disconnect admits a full quiet-source bound or observed natural return while preserving actual evidence completeness and autonomous retirement; no foreground excursion required'
+$oldDisconnectStartup=@(& git -C $repository show 'a5406fa6121924b6f36a32bcfe5601853c3292e7:src/platform/windows/product/v1_guest_driver_disconnect_case.h') -join "`n"
+if($LASTEXITCODE -ne 0){throw 'Cannot inspect the actual pre-fix a540 disconnect startup source.'}
+Check ($oldDisconnectStartup.Contains('!external.empty()&&!returned.empty()&&source_exact(true)&&GetTickCount64()-began<maximum_ms')) 'actual a540 source counterexample requires an unnecessary external foreground excursion'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor $oldDisconnectStartup} 'actual a540 startup adapter fails the revised quiet-source admission contract; not an idealized mock adapter'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor ($targetedDisconnect.Replace('decision=product::guest::disconnect_startup_decision({context_qualified,observer_healthy,observation_complete,','decision=product::guest::DisconnectStartupDecision::StableSource;/*'))} 'static startup cannot bypass the shared tested admission predicate'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor ($targetedDisconnect.Replace('full_bound_observed=GetTickCount64()-began>=maximum_ms;','full_bound_observed=true;'))} 'static quiet startup cannot fabricate completion of the bounded observation'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor ($targetedDisconnect.Replace('returned.clear();',''))} 'static every later non-source foreground must retire any previous natural-return receipt'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor ($targetedDisconnect.Replace('||external_end_qpc<=source_event_end_qpc',''))} 'static an older same-HWND departure cannot classify a new foreground loss after a confirmed source return'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor ($targetedDisconnect.Replace('context_qualified=source_exact(false);','context_qualified=true;'))} 'static source identity geometry desktop and released-input validity must be sampled throughout startup observation'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor ($targetedDisconnect.Replace('fresh_source=foreground==source&&source_exact(true);','fresh_source=true;'))} 'static historical source return cannot replace fresh foreground cursor hit and source validation'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor ($targetedDisconnect.Replace('observation_complete=observation.reserved==observation.flushed&&!unclassified_foreground;','observation_complete=true;'))} 'static an undrained or unclassified foreground observation cannot grant actor admission'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor $targetedDisconnect ($disconnectStartupEvidence.Replace('if(!f.context_qualified||!f.observer_healthy)return DisconnectStartupDecision::Reject;',''))} 'static shared startup decision cannot ignore unknown context or unavailable observer'
+Reject {Assert-V1DisconnectFailureContinuation $fixtureSource $targetedActor $targetedDisconnect $disconnectStartupEvidence ($disconnectForegroundObserver.Replace('reserved,drained_,overflow};','reserved,reserved,0};'))} 'static foreground completeness cannot relabel reserved callbacks as actually drained or hide overflow'
 Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('if(!autonomous_without_intervention)s.log.failed=true;',''))} 'static observed FocusLost recovery cannot erase the failed autonomous-retirement sub-contract'
 Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('(disconnect||end_tick-before_tick>=30000)','(end_tick-before_tick>=30000)'))} 'static DriverDisconnectOnly cannot acquire an extra exact default-30-second acceptance gate'
 Reject {Assert-V1DisconnectFailureContinuation $fixtureSource ($targetedActor.Replace('e::number(ended,"\"end\":")==static_cast<std::uint64_t>(v::End::Deadline)&&','true&&'))} 'static FocusLost or Pause cannot substitute for actual autonomous Deadline retirement'

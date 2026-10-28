@@ -608,5 +608,53 @@ int main() {
        !expect(guest::legacy_dock_same_display_context_not_applicable(context_changed("\"explicit_destination_display_bound\":false","\"explicit_destination_display_bound\":true")),false,"destination transition requires its real post-context checks")||
        !expect(guest::legacy_dock_same_display_context_not_applicable(context_changed("\"post_context_reason\":\"\"","\"post_context_reason\":\"failed\"")),false,"a reported context rejection is not N/A")||
        !expect(guest::legacy_dock_same_display_context_not_applicable("{}"),false,"missing context facts cannot be accepted as N/A"))return 1;
+    // The real disconnect adapter calls this same predicate only after it has
+    // drained and validated its foreground evidence and sampled the exact
+    // source/input context. These are TEST decision branches, not observations
+    // of Windows foreground delivery or of product cleanup.
+    using StartupDecision=guest::DisconnectStartupDecision;
+    const guest::DisconnectStartupFacts stable_startup{true,true,true,true,false,false,true};
+    const auto startup_is=[&](const guest::DisconnectStartupFacts& facts,StartupDecision wanted,const char* why){
+        return expect(guest::disconnect_startup_decision(facts)==wanted,true,why);};
+    if(!startup_is(stable_startup,StartupDecision::StableSource,
+            "complete bounded observation with continuously qualified source needs no external foreground event"))return 1;
+    auto startup=stable_startup;startup.full_bound_observed=false;
+    if(!startup_is(startup,StartupDecision::Observe,
+            "no-transition source remains under observation before the full bound"))return 1;
+    startup=stable_startup;startup.foreground_transition_seen=true;
+    if(!startup_is(startup,StartupDecision::Reject,
+            "at the bound a transition without a natural source return rejects"))return 1;
+    startup.full_bound_observed=false;
+    if(!startup_is(startup,StartupDecision::Observe,
+            "a known foreground transition may await natural return inside the bound"))return 1;
+    startup.natural_return_observed=true;
+    if(!startup_is(startup,StartupDecision::NaturalReturn,
+            "complete observed transition and fresh natural return allow entry before the bound"))return 1;
+    startup.full_bound_observed=true;
+    if(!startup_is(startup,StartupDecision::NaturalReturn,
+            "a confirmed natural return also remains valid at the bound"))return 1;
+    startup.natural_return_observed=false;
+    if(!startup_is(startup,StartupDecision::Reject,
+            "a later non-source transition invalidates the prior natural-return fact"))return 1;
+    for(const bool reached_bound:{false,true}){
+        startup=stable_startup;startup.full_bound_observed=reached_bound;startup.context_qualified=false;
+        if(!startup_is(startup,StartupDecision::Reject,
+                "unknown or invalid exact source context rejects even before the bound"))return 1;
+        startup=stable_startup;startup.full_bound_observed=reached_bound;startup.observer_healthy=false;
+        if(!startup_is(startup,StartupDecision::Reject,
+                "uninstalled stopped or overflowed foreground observer never permits entry"))return 1;
+        startup=stable_startup;startup.full_bound_observed=reached_bound;startup.observation_complete=false;
+        if(!startup_is(startup,reached_bound?StartupDecision::Reject:StartupDecision::Observe,
+                "an incomplete evidence suffix cannot grant entry and rejects at the bound"))return 1;
+        startup=stable_startup;startup.full_bound_observed=reached_bound;startup.fresh_source=false;
+        if(!startup_is(startup,reached_bound?StartupDecision::Reject:StartupDecision::Observe,
+                "a stale source snapshot cannot grant entry and rejects at the bound"))return 1;
+    }
+    startup=stable_startup;startup.foreground_transition_seen=true;startup.natural_return_observed=true;startup.observation_complete=false;
+    if(!startup_is(startup,StartupDecision::Reject,
+            "natural return cannot conceal an incomplete observer buffer at the bound"))return 1;
+    startup=stable_startup;startup.foreground_transition_seen=true;startup.natural_return_observed=true;startup.fresh_source=false;
+    if(!startup_is(startup,StartupDecision::Reject,
+            "historical return cannot replace the final fresh source/context check"))return 1;
     std::cout << checked << " guest-directory, UP-evidence, deadline and physical-log cases passed; bounded test-owned filesystem operations; no UI or input\n";
 }

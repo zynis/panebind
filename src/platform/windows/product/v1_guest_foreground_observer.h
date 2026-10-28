@@ -22,6 +22,16 @@ public:
     ForegroundObserver(const ForegroundObserver&)=delete;
     ForegroundObserver& operator=(const ForegroundObserver&)=delete;
 
+    // Read only on the same serialized consumer as drain(). This is a bounded
+    // buffer/lifecycle snapshot, not proof of unobserved OS events or hook health.
+    struct EvidenceSnapshot {bool installed{},stopped{};std::uint64_t reserved{},flushed{},overflow{};};
+    [[nodiscard]] EvidenceSnapshot evidence_snapshot()const noexcept {
+        const bool installed=lifecycle_ready_[0].load(std::memory_order_acquire)&&lifecycle_[0].returned;
+        const auto overflow=overflow_.load(std::memory_order_acquire);
+        const auto reserved=reserved_.load(std::memory_order_acquire);
+        return {installed,lifecycle_ready_[1].load(std::memory_order_acquire),reserved,drained_,overflow};
+    }
+
     // Call only after the exact guest/RunId guards. The object must outlive
     // its hook (the fixture uses process-lifetime storage, not a stack lease).
     bool start() noexcept {

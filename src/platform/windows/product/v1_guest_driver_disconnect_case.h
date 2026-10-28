@@ -13,7 +13,9 @@ bool input_actor_disconnect_startup_preflight(State& s,LayoutFixtures& set,DWORD
     std::uint64_t product_birth,POINT point,Rect initial,UINT dpi,HMONITOR monitor){
     namespace e=product::guest::up_evidence_detail;
     const HWND source=set.frames[0].hwnd;const auto source_birth=process_birth(GetCurrentProcess());
-    const auto began=GetTickCount64();constexpr DWORD maximum_ms=60000;
+    constexpr DWORD maximum_ms=60000;
+    drain_foreground_observer();const auto cursor_begin=s.log.mark();
+    const auto began=GetTickCount64();
     LARGE_INTEGER begin_qpc{};RECT native_before{};
     const auto keys_clear=[&]{if(s.left||s.control)return false;
         for(const int key:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
@@ -32,40 +34,33 @@ bool input_actor_disconnect_startup_preflight(State& s,LayoutFixtures& set,DWORD
             (!require_foreground||(GetForegroundWindow()==source&&GetCursorPos(&actual)&&actual.x==point.x&&actual.y==point.y&&
                 GetAncestor(WindowFromPoint(actual),GA_ROOT)==source));
     };
-    bool observer_installed=false,observer_complete=true;std::string external,returned,reason;
-    auto cursor_mark=s.log.mark();std::uint64_t external_end_qpc{};DWORD external_stamp{};
+    bool context_qualified=true,transition_seen=false;std::string external,returned,reason;
+    auto cursor_mark=cursor_begin;std::uint64_t external_end_qpc{},source_event_end_qpc{};DWORD external_stamp{};
+    HWND unclassified_foreground{};
+    auto decision=product::guest::DisconnectStartupDecision::Observe;
+    auto observation=foreground_observer.evidence_snapshot();
+    bool full_bound_observed=false,observation_complete=false,fresh_source=false;
     if(!QueryPerformanceCounter(&begin_qpc)||begin_qpc.QuadPart<=0||!GetWindowRect(source,&native_before)||!source_exact(true)){
-        reason="initial_exact_source_context_unconfirmed";
+        context_qualified=false;reason="initial_exact_source_context_unconfirmed";
     }else{
-        drain_foreground_observer();std::istringstream prior(s.log.since(0));std::string row;
-        while(std::getline(prior,row)){
-            if(input_actor_disconnect_driver_record(row,"guest_foreground_observer_lifecycle")&&
-               e::quoted(row,"\"operation\":","install"))observer_installed=e::unique_value(row,"\"native_return\":")=="true";
-            if(input_actor_disconnect_driver_record(row,"guest_foreground_observer_buffer")&&
-               e::unique_value(row,"\"overflow\":")!="0")observer_complete=false;
-        }
-        if(!observer_installed||!observer_complete)reason="existing_foreground_observer_unavailable_or_incomplete";
+        if(!observation.installed||observation.stopped||observation.overflow)
+            reason="existing_foreground_observer_unavailable_or_incomplete";
     }
-    bool expired=false,invalid=false;
     if(reason.empty()){
         // Existing bounded TEST wait pumps messages and drains this observer.
+        // Drain/parse BEFORE deciding the bound, including its final predicate.
         // No fixed startup Sleep, extra activation or unknown-window control.
         (void)wait([&]{
-            if(GetTickCount64()-began>=maximum_ms){expired=true;return true;}
-            if(!set.owns(0)||!keys_clear()){invalid=true;reason="source_or_released_input_changed_before_actor";return true;}
+            drain_foreground_observer();
             const auto suffix=s.log.since(cursor_mark);cursor_mark=s.log.mark();std::istringstream rows(suffix);std::string row;
             while(std::getline(rows,row)){
-                if(input_actor_disconnect_driver_record(row,"guest_foreground_observer_buffer")&&
-                   e::unique_value(row,"\"overflow\":")!="0"){
-                    invalid=true;reason="foreground_observer_overflow_or_unknown";return true;
-                }
                 if(!input_actor_disconnect_driver_record(row,"guest_foreground_observed"))continue;
                 const auto hwnd=e::number(row,"\"hwnd\":"),pid=e::number(row,"\"callback_window_pid_before\":");
                 const auto tid=e::number(row,"\"callback_window_tid_before\":"),stamp_value=e::number(row,"\"native_event_time_u32\":");
                 const auto callback_begin=e::number(row,"\"callback_begin_qpc\":"),callback_end=e::number(row,"\"callback_end_qpc\":");
                 const auto event_birth=e::number(row,"\"callback_process_birth_filetime\":");
                 if(!stamp_value||*stamp_value>MAXDWORD||!callback_begin||!*callback_begin||!callback_end||*callback_end<*callback_begin){
-                    invalid=true;reason="foreground_transition_clock_unknown";return true;
+                    context_qualified=false;reason="foreground_transition_clock_unknown";return true;
                 }
                 const auto stamp=static_cast<DWORD>(*stamp_value);
                 if(static_cast<DWORD>(stamp-static_cast<DWORD>(began))>=0x80000000u||
@@ -75,25 +70,67 @@ bool input_actor_disconnect_startup_preflight(State& s,LayoutFixtures& set,DWORD
                     e::unique_value(row,"\"callback_process_birth_known\":")=="true"&&
                     e::unique_value(row,"\"class_utf8_known\":")=="true"&&e::unique_value(row,"\"class_may_be_truncated\":")=="false"&&
                     e::number(row,"\"callback_foreground_before\":")==hwnd&&e::number(row,"\"callback_foreground_after\":")==hwnd;
-                if(!actual){invalid=true;reason="foreground_transition_identity_or_actual_context_unknown";return true;}
-                if(external.empty()&&*pid!=GetCurrentProcessId()&&*pid!=product_pid&&
-                   e::unique_value(row,"\"registered_task_PID_birth_match\":")=="false"){
-                    external=row;external_end_qpc=*callback_end;external_stamp=stamp;
+                if(!actual){context_qualified=false;reason="foreground_transition_identity_or_actual_context_unknown";return true;}
+                if(*hwnd!=reinterpret_cast<std::uintptr_t>(source)){
+                    // ANY non-source foreground counts, even another fixture
+                    // or product HWND. A previous return cannot cover it.
+                    transition_seen=true;external=row;returned.clear();
+                    external_end_qpc=*callback_end;external_stamp=stamp;
+                    if(unclassified_foreground==reinterpret_cast<HWND>(static_cast<std::uintptr_t>(*hwnd)))unclassified_foreground=nullptr;
                 }
-                else if(!external.empty()&&hwnd==reinterpret_cast<std::uintptr_t>(source)&&pid==GetCurrentProcessId()&&
-                    *tid==set.thread&&*event_birth==source_birth&&*callback_begin>external_end_qpc&&
-                    static_cast<DWORD>(stamp-external_stamp)<0x80000000u)returned=row;
+                else if(*pid!=GetCurrentProcessId()||*tid!=set.thread||*event_birth!=source_birth){
+                    context_qualified=false;reason="source_foreground_event_identity_changed";return true;
+                }else{
+                    source_event_end_qpc=*callback_end;
+                    if(transition_seen&&!external.empty()){
+                        if(*callback_begin<=external_end_qpc||static_cast<DWORD>(stamp-external_stamp)>=0x80000000u){
+                            context_qualified=false;reason="source_return_clock_not_comparable";return true;
+                        }
+                        returned=row;
+                    }
+                }
             }
-            return !returned.empty()&&source_exact(true);
+            // Context/input validity must hold throughout, not just at the
+            // two endpoints. Foreground loss alone may await natural return.
+            context_qualified=source_exact(false);
+            const auto foreground=GetForegroundWindow();
+            if(!context_qualified||!foreground){
+                context_qualified=false;reason="source_identity_geometry_input_or_desktop_changed_during_observation";return true;
+            }
+            fresh_source=foreground==source&&source_exact(true);
+            if(foreground==source&&!fresh_source){
+                context_qualified=false;reason="source_cursor_or_hit_changed_during_observation";return true;
+            }
+            if(foreground!=source){
+                transition_seen=true;returned.clear();
+                if(e::number(external,"\"hwnd\":")!=reinterpret_cast<std::uintptr_t>(foreground)||external_end_qpc<=source_event_end_qpc)
+                    unclassified_foreground=foreground;
+            }
+            observation=foreground_observer.evidence_snapshot();
+            const bool observer_healthy=observation.installed&&!observation.stopped&&!observation.overflow;
+            observation_complete=observation.reserved==observation.flushed&&!unclassified_foreground;
+            full_bound_observed=GetTickCount64()-began>=maximum_ms;
+            decision=product::guest::disconnect_startup_decision({context_qualified,observer_healthy,observation_complete,
+                full_bound_observed,transition_seen,!returned.empty(),fresh_source});
+            return decision!=product::guest::DisconnectStartupDecision::Observe;
         },maximum_ms);
     }
-    const bool accepted=reason.empty()&&!expired&&!invalid&&!external.empty()&&!returned.empty()&&source_exact(true)&&GetTickCount64()-began<maximum_ms;
-    if(!accepted&&reason.empty())reason=expired?"natural_external_activity_and_exact_source_return_not_observed_within_bound":"fresh_source_context_not_confirmed_after_natural_return";
+    const bool accepted=reason.empty()&&context_qualified&&source_exact(true)&&
+        (decision==product::guest::DisconnectStartupDecision::StableSource||decision==product::guest::DisconnectStartupDecision::NaturalReturn);
+    if(!accepted&&reason.empty())reason=!observation.installed||observation.stopped||observation.overflow?
+        "foreground_observer_unavailable_stopped_or_overflow":!observation_complete?"foreground_observation_incomplete_at_bound":
+        "natural_exact_source_return_not_observed_within_bound";
+    const auto branch=!accepted?"rejected":decision==product::guest::DisconnectStartupDecision::StableSource?
+        "stable_source_full_bound":"natural_exact_source_return";
     s.log.emit("I08_disconnect_passive_startup_foreground_precondition","\"result\":"+quote(accepted?"PASS":"NOT_RUN")+
+        ",\"admission_branch\":"+quote(branch)+",\"external_transition_required\":false"+
         ",\"maximum_observation_ms\":"+std::to_string(maximum_ms)+",\"began_tick\":"+std::to_string(began)+
         ",\"ended_tick\":"+std::to_string(GetTickCount64())+",\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source))+
         ",\"source_PID\":"+std::to_string(GetCurrentProcessId())+",\"source_TID\":"+std::to_string(set.thread)+",\"source_birth\":"+std::to_string(source_birth)+
-        ",\"actual_external_foreground_receipt\":"+(external.empty()?"null":quote(external))+",\"actual_natural_source_return_receipt\":"+(returned.empty()?"null":quote(returned))+
+        ",\"actual_non_source_foreground_receipt\":"+(external.empty()?"null":quote(external))+",\"actual_natural_source_return_receipt\":"+(returned.empty()?"null":quote(returned))+
+        ",\"full_bound_observed\":"+(full_bound_observed?"true":"false")+",\"foreground_transition_seen\":"+(transition_seen?"true":"false")+
+        ",\"observation_complete\":"+(observation_complete?"true":"false")+",\"observer_reserved\":"+std::to_string(observation.reserved)+
+        ",\"observer_flushed\":"+std::to_string(observation.flushed)+",\"observer_overflow\":"+std::to_string(observation.overflow)+
         ",\"reason\":"+quote(reason)+",\"actor_created\":false,\"test_DOWN_sent\":false,\"SetForegroundWindow_calls_in_passive_phase\":0,"+
         "\"unknown_window_control_or_content_read\":false,\"startup_event_is_not_a_system_root_cause\":true,\"product_deadline_changed\":false");
     return accepted;
