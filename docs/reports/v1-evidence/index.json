@@ -1,6 +1,13 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-27",
+  "unblocked_followup_20261104_files": [
+    {
+      "path": "docs/reports/v1-evidence/20261104-unblocked-followup-review.json",
+      "sha256": "B8CBF62C7F34416C72F030E9B41070F98D2208B4C5171E895758D8D62434458F",
+      "bytes": 14084
+    }
+  ],
   "existing_environment_reuse_20261104_files": [
     {
       "path": "docs/reports/v1-evidence/20261104-existing-vm-reuse-review.json",

@@ -3131,6 +3131,20 @@ M10-F05 acceptance. Existing notice logs do not prove a visible notice. No HC
 API, synthetic input or native experiment was executed on the developer host;
 guest execution and screenshot review remain NOT_RUN at implementation time.
 
+#### TEST preflight correction — 2026-11-04 (Asia/Shanghai)
+
+Reuses the above inspected upstream pins and original PaneBind lease; no new
+upstream implementation, issue or commit was inspected or copied. Re-read the
+official HIGHCONTRASTW and SystemParametersInfoW pages linked above: the scheme
+is a distinct structure field, and a successful SET does not establish exact
+restoration. The actual `8d8a` D65/D117 snapshot/restore evidence retained an
+empty original scheme while OFF, then read a named scheme after restore despite
+matching flags and six colors. This supports a TEST admission restriction, not
+a claimed Windows root cause: reject that state before SET, keep already-ON
+read-only, and treat a named OFF scheme only as a candidate still requiring
+exact restoration and owned-buffer cleanup. No new native observation, host
+configuration change, theme workaround, external code or attribution is added.
+
 ### V1 explicit guest callback-owner stop — 2026-10-22
 
 Scope: one exact disposable-guest/RunId/Medium, already-active owned source;

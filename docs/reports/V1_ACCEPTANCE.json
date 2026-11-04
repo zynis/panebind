@@ -8,6 +8,19 @@
   "dev_complete": false,
   "human_uat": "PENDING",
   "source_identity": {
+    "local_hc_safe_preflight_driver": {
+      "driver_source_sha": "03e5ae7d7390ceeae1394b7ca682ca59a87476e0",
+      "debug_driver_sha256": "E638D988D0E0B85D1D10B027D59DD6DCB85CDD090DDD78DC28A82B39ED48CD4C",
+      "release_driver_sha256": "65FF5AE7CEC149D3B76EF5E0562D309E1BEEF3B45357F7F9FF02BC657EFBE96F",
+      "build_status": "DEBUG_RELEASE_PASS",
+      "field_status": "NOT_RUN",
+      "product_exe_rebuilt": false,
+      "existing_product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+      "existing_product_runtime_evidence_rebound": false,
+      "new_package_generated": false,
+      "evidence_path": "docs/reports/v1-evidence/20261104-unblocked-followup-review.json",
+      "scope": "TEST入口及lease共同拒绝原空scheme/OFF快照；已ON只读，具名仅候选。原8d8a FAIL和M10-F05 BLOCKED保留，不是新产品候选或HC恢复PASS。"
+    },
     "pending_driver_disconnect_startup_followup": {
       "product_source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
       "driver_source_sha": "545f20d5ed9c0e0816124e52d9f34de58f28177d",
@@ -7897,8 +7910,10 @@
         "docs/reports/v1-evidence/21a5-settings-controls-excerpt.jsonl"
       ],
       "defects": [
-        "V1-D02",
         "V1-D11"
+      ],
+      "nonblocking_historical_defects": [
+        "V1-D02"
       ],
       "candidate_identity_ref": "source_identity.observed_product_04ff",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -9327,7 +9342,8 @@
         "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
         "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
-      "defects": [
+      "defects": [],
+      "nonblocking_historical_defects": [
         "V1-D02",
         "V1-D08"
       ],
@@ -9453,7 +9469,7 @@
         "108/ccde及8d8a/4f7实测150%页0/3键盘焦点与两静态视觉帧，flags/六颜色恢复，但原空scheme变成高对比黑色导致exact restore FAIL；产品GET buffer LocalFree修复/构建与TEST free分开，不能由TEST计数冒充生产API轨迹。",
         "完整主要设置页动态键盘/焦点、中文不截断及200%主要控件仍未齐；当前没有证据把scheme差异定性为生产HC缺陷或随意删掉恢复比较。"
       ],
-      "next_action": "保留原身份scheme exact restore FAIL；官方HIGHCONTRAST/GET分配所有权已核，生产只GET及LocalFree修复已保留，不再描述为官方文档未读。原空scheme→黑的可逆恢复合同仍未证明，只有具备具体可区分对照或完整隔离桌面条件才继续，不叠SET/API或无变量HC试错。真实200%/全主要页另需显示事实；不新建VM或用NIN_KEYSELECT替代。",
+      "next_action": "保留原身份scheme exact restore FAIL及生产GET/LocalFree修复。03e5ae7已在实际TEST入口/lease加入共享预检：未启用且空scheme在SET前拒绝，已启用仅只读，具名方案仍只是需精确恢复的候选；新工具现场NOT_RUN，不授M10-F05 PASS。后续需要可逆原始方案及全主要页真实键盘/焦点/中文与200%显示证据；没有新可区分依据不重复HC变更，不叠SET/API、不删scheme比较，也不以VM路径或NIN_KEYSELECT替代。",
       "latest_runtime_component_observation": {
         "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
         "binary_sha256": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
@@ -14690,7 +14706,7 @@
       "remaining_conditions": [
         "缺单屏100%真实隔离显示条件；当前实际150%不改写为100%。"
       ],
-      "next_action": "2026-11-04只读补查后仍尚未确认ZS上可复用的具名完整guest；已检查D盘非默认安装路径、相关注册项及可读清单，不是全盘无VM证明。此前新建方案已按用户决定暂停，下一步只补既有VM/模板确切配置路径、归属和可修改/使用时段，获针对实例的启动授权后才验证完整Medium单屏100%桌面。当前提交余量超时UNKNOWN，旧值不作分配依据；T14p任何VM均不得启动，也不停其它项目资源。",
+      "next_action": "环境盘点已收口，尚未确认可复用实例；没有新具体线索不重复查询，也不等待VM路径。E01实际缺单屏100%可丢弃交互显示及合格Medium/non-elevated桌面证据；在已有授权环境具备这些能力时定向验证。既有VM线索仅为可选入口，启动完整VM及新建方案仍暂停；T14p不启动任何VM，不停其它项目资源。",
       "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -14755,7 +14771,7 @@
         "已实测Medium/non-elevated/session1/单屏150%下的有限功能：42ab/f78普通GUI/设置效果/Move-NormalUp、4ff精确Terminal的Move→Resize→Move/五阶段磁吸/两成员Ctrl和实际资源收尾；f06a/750各自owned范围另保身份。不能再称全部sourceGUI/VDM/实际增强未验，也不授完整E02。",
         "当前仍缺200%主要UI/完整HC恢复、五应用及适用I01–I12。229e/2b49的Medium Shell事实不等于普通文件窗；69f4确见新Cabinet双heldRun成员，但实际RID8192/elevated=true被拒且Shell单条exact path未确认；客户nonce/菜单投递也各未通过。"
       ],
-      "next_action": "复用f78普通GUI、4ff Terminal几何及f06a/750原身份，不重放已闭专项或无变量Explorer路线。2026-11-04定向只读补查未确认现成可复用完整guest，新建Hyper-V方案暂停；先补既有实例配置/模板位置及归属、修改许可和时段，再在另行授权的远端实例中验证non-elevated Explorer、真实托盘、应用原生前置及150%/200%UI。Terminal客户语义、菜单、初始化和HC恢复仍分别判定；动态Medium/真实应用能力不能由软件、ISO或磁盘存在推定，双屏/DPI另门。",
+      "next_action": "复用f78普通GUI、4ff Terminal几何及f06a/750原身份，不重放已闭专项或无变量Explorer路线。盘点已收口，VM路径不是推进前提。分别按集中报告核对应用原生可交互/正常退出、合格non-elevated Explorer、同权限托盘、单屏200%及安全HC恢复前置；有新可区分依据再补相关步骤。原初始化及权限反例保留，不统一归因Sandbox，不降低资格；现有Medium局部证据与完整Shell/应用能力、独立双屏分判。",
       "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -14861,7 +14877,7 @@
       "remaining_conditions": [
         "当前guest真实monitors仅1，尚无双屏负坐标隔离显示能力证据。"
       ],
-      "next_action": "2026-11-04补查仅针对既有环境元数据，没有启动guest或重新实测显示；10月29日一条Active连接保历史，不充当当前guest拓扑。具名可复用完整guest及其两个独立显示器/负坐标仍UNKNOWN；先确认具体实例，再按获授权的真实显示能力验证E03。完整桌面、远程连接或虚拟化平台存在都不等于双屏，不能预设Hyper-V/RDP可满足；本轮不建/启VM、不改宿主显示、不用核心坐标代替。",
+      "next_action": "E03缺两个实际独立显示器及负工作区原点的可丢弃交互环境；先取得该具体能力的证据，再补同DPI跨屏和拓扑变化。完整桌面、VM路径、远程连接或虚拟化软件存在都不等于双屏；不重复盘点、不预设Hyper-V/RDP满足，不建设/启动VM或改宿主显示，不用核心坐标代替。",
       "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -14915,7 +14931,7 @@
       "remaining_conditions": [
         "当前guest真实monitors仅1，尚无双屏100/150%混合DPI能力证据。"
       ],
-      "next_action": "2026-11-04定向只读补查没有确认具名双独立显示guest，亦未验证逐屏100%/150%DPI；旧显卡/连接快照和可远程连接事实不能替代。先确认既有实例及实际独立显示能力，另按具体能力验证E04；完整单屏桌面与混合DPI分别判定，不把当前暂停的新建方案视为已解锁。本轮不启动/克隆VM、安装显示驱动或改宿主；现有单屏不受阻工作继续。",
+      "next_action": "E04另缺两个实际独立显示器逐屏100%/150%DPI及fresh frame/work-area回读；单屏200%或远程连接不替代。取得该隔离显示能力后定向补跨屏和DPI变化；既有VM线索不是先决条件，不重复查询、不建设/启动/克隆VM、安装显示驱动或改宿主。",
       "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -14969,7 +14985,7 @@
       "remaining_conditions": [
         "未执行真实拓扑/DPI/虚拟桌面/session变化，既有单桌面观察不能替代。"
       ],
-      "next_action": "2026-11-04只读补查仍尚未确认归属和可修改范围清楚的现成完整guest；先补既有实例位置、恢复点/模板及允许使用时段，不自动转入已暂停的新建方案。获针对实例的另行启动授权且交互前置成立后，才执行I09、虚拟桌面/session变化及恢复首手势；拓扑/DPI变化另需实际显示能力。本轮不启动/恢复/克隆VM、不锁宿主、不停其它项目或改显示。",
+      "next_action": "E05缺可安全执行真实虚拟桌面切换、锁定/解锁及睡眠恢复的可丢弃交互会话；已通过的7117消息注入撤权/同实例恢复保原范围。具备该具体能力后补I09真实变化和首手势，拓扑/DPI另门。环境盘点收口，不等待未知VM路径，不启动/恢复/克隆VM、不锁宿主或停止其它项目。",
       "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -16375,9 +16391,17 @@
     },
     {
       "id": "V1-D02",
-      "status": "OPEN",
-      "kind": "RUNTIME_REVALIDATION_PENDING",
-      "description": "RestorePending、独立native executor、completion barrier、deferred临时视觉恢复及helper已在当前runtime提交并构建；完整异常/硬崩溃与迟到完成的现场证据仍需复验，不能据正常stop关闭。；R7/4e9在途call33真实identity/geometry exact完成且不授新权限，原alpha恢复及后继g6 Move/NormalUp已定向通过；不替代完整硬崩溃/活动退出合同。",
+      "status": "HISTORICAL_FAILURE_RETAINED_CONTRACT_SCOPED_REVALIDATED",
+      "kind": "HISTORICAL_RUNTIME_FAILURE_SCOPED_REVALIDATED",
+      "historical_status": "OPEN",
+      "historical_description": "RestorePending、独立native executor、completion barrier、deferred临时视觉恢复及helper已在当前runtime提交并构建；完整异常/硬崩溃与迟到完成的现场证据仍需复验，不能据正常stop关闭。；R7/4e9在途call33真实identity/geometry exact完成且不授新权限，原alpha恢复及后继g6 Move/NormalUp已定向通过；不替代完整硬崩溃/活动退出合同。",
+      "description": "保留原失败及R7/4e9原身份。bf5c同212/Release/Medium已实际覆盖活动/空闲退出、受控异常终止后的helper恢复、真实客户输入及同EXE后继Move/Resize；M01-F04独立合同已闭合。关联的M03-F04/F05、M08-F02、M10-F04亦按各自已登记证据和原构建身份独立DEV通过，本项不再作为这些已闭合同的当前阻断。自然非受控崩溃仍NOT_RUN，受控TerminateProcess不冒充自然崩溃，也不授模块、完整整链、真实托盘或整版PASS。",
+      "next_action": "复用已登记的退出、在途完成及恢复证据，不重复已闭专项；自然非受控崩溃保留NOT_RUN风险，继续具体尚缺的功能、应用、环境及整版硬门，不据本次映射纠正增加PASS或分数。",
+      "natural_uncontrolled_crash": "NOT_RUN",
+      "current_scope_evidence_paths": [
+        "docs/reports/v1-evidence/bf5c-r13-active-exit-recovery-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/bf5c-r13-active-exit-recovery-product-selected.jsonl"
+      ],
       "features": [
         "M01-F04",
         "M03-F04",
@@ -16387,7 +16411,8 @@
       ],
       "partial_observation_ids": [
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES"
+        "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
+        "PO-BF5C-R13-ACTIVE-EXIT-CONTROLLED-TERMINATION-F04-CONTRACT-PASS"
       ]
     },
     {

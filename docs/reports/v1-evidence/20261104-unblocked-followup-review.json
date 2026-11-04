@@ -1,0 +1,188 @@
+{
+    "schema":  "panebind-v1-repository-evidence/1",
+    "review_date":  "2026-11-04",
+    "evidence_id":  "EV-20261104-HC-TEST-PREFLIGHT-AND-CONTRACT-CLOSEOUT",
+    "base_sha":  "b899381818c667571687076aaa96e7f54ddc964f",
+    "driver_source_sha":  "03e5ae7d7390ceeae1394b7ca682ca59a87476e0",
+    "product_source_sha":  "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+    "product_exe_rebuilt":  false,
+    "scope":  "TEST-only HC admission correction and existing acceptance mapping; no new product feature PASS",
+    "original_failure":  {
+                             "run_id":  "8d8a505f787f41f782e1b0fb2777dbaa",
+                             "driver_source_sha":  "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+                             "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+                             "excerpt_path":  "docs/reports/v1-evidence/8d8a-HC-UI-and-scheme-restore-excerpt.jsonl",
+                             "excerpt_sha256":  "9746B45067CAC2F0E4DB83BBA674E49E7718D7265F1A971D698287ACE4E1FE13",
+                             "original_sequence":  65,
+                             "restore_sequence":  117,
+                             "failed_case_sequence":  118,
+                             "original_flags":  126,
+                             "original_scheme":  "",
+                             "original_HC_ON":  false,
+                             "restore_native_return":  true,
+                             "actual_after_scheme":  "高对比黑色",
+                             "exact_restore":  false,
+                             "failure_preserved":  true,
+                             "root_cause":  "UNKNOWN; no Windows or production-theme root cause inferred"
+                         },
+    "correction":  {
+                       "actual_entry_and_lease_use_same_preflight":  true,
+                       "empty_scheme_HC_OFF":  "REJECT_BEFORE_SET",
+                       "already_ON":  "READ_ONLY_NO_SET",
+                       "named_scheme_HC_OFF":  "CANDIDATE_ONLY_NOT_RESTORE_PASS",
+                       "exact_flags_scheme_six_colors_and_owned_buffers_checks_retained":  true,
+                       "host_guard_unchanged":  true,
+                       "native_SET_callsite_count":  2,
+                       "new_theme_fallback":  false,
+                       "native_attempt_facts_separate_from_permission":  true
+                   },
+    "verification":  {
+                         "static_identity_checks":  374,
+                         "actual_b899_source_rejected_by_new_wiring_test":  true,
+                         "new_shared_preflight_directed_cases":  16,
+                         "Debug":  {
+                                       "ctest":  "v1-guest-path",
+                                       "passed":  1,
+                                       "failed":  0,
+                                       "case_checks":  301
+                                   },
+                         "Release":  {
+                                         "ctest":  "v1-guest-path",
+                                         "passed":  1,
+                                         "failed":  0,
+                                         "case_checks":  301
+                                     },
+                         "existing_reparse_creation_case":  "SKIP win32_error1314 in both configurations; no permission bypass",
+                         "acceptance_valid":  true,
+                         "native_UI_or_input_run":  false,
+                         "no_HC_GET_or_SET_experiment_on_host":  true
+                     },
+    "build_environment":  {
+                              "generator":  "Visual Studio 18 2026",
+                              "compiler":  "MSVC 19.50.35729.0",
+                              "sdk":  "10.0.26100.0",
+                              "parallel":  1,
+                              "runtime":  "MultiThreaded",
+                              "flags":  "/DWIN32 /D_WINDOWS /EHsc /bigobj",
+                              "product_target_built":  false,
+                              "full_or_900_test_run":  false
+                          },
+    "drivers":  [
+                    {
+                        "configuration":  "Debug",
+                        "path":  "out/v1-hc-driver-03e5ae7/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
+                        "bytes":  11374592,
+                        "sha256":  "E638D988D0E0B85D1D10B027D59DD6DCB85CDD090DDD78DC28A82B39ED48CD4C",
+                        "source_sha":  "03e5ae7d7390ceeae1394b7ca682ca59a87476e0",
+                        "build":  "PASS",
+                        "guest_run":  "NOT_RUN"
+                    },
+                    {
+                        "configuration":  "Release",
+                        "path":  "out/v1-hc-driver-03e5ae7/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+                        "bytes":  4791808,
+                        "sha256":  "65FF5AE7CEC149D3B76EF5E0562D309E1BEEF3B45357F7F9FF02BC657EFBE96F",
+                        "source_sha":  "03e5ae7d7390ceeae1394b7ca682ca59a87476e0",
+                        "build":  "PASS",
+                        "guest_run":  "NOT_RUN"
+                    }
+                ],
+    "frozen_artifacts_checked_against_existing_receipt":  [
+                                                              {
+                                                                  "path":  "out/v1-app-sizing-465cbf3/src/platform/windows/Debug/panebind.exe",
+                                                                  "bytes":  4373504,
+                                                                  "sha256":  "7391CEC2969A4C3A11288AD6C95ED7057FDBB001E3C6859FD4EA65F9448DCA9D",
+                                                                  "matches_existing_receipt":  true
+                                                              },
+                                                              {
+                                                                  "path":  "out/v1-app-sizing-465cbf3/src/platform/windows/Release/panebind.exe",
+                                                                  "bytes":  1258496,
+                                                                  "sha256":  "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB",
+                                                                  "matches_existing_receipt":  true
+                                                              },
+                                                              {
+                                                                  "path":  "out/v1-i08-startup-driver-945160b/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
+                                                                  "bytes":  11372544,
+                                                                  "sha256":  "6AEA7D03D7812E974540FC03D58CA33970AE0270579033685D66637731F8BD0E",
+                                                                  "matches_existing_receipt":  true
+                                                              },
+                                                              {
+                                                                  "path":  "out/v1-i08-startup-driver-945160b/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+                                                                  "bytes":  4790272,
+                                                                  "sha256":  "68B7B266D8A463CDA3B040B6ACEF312DBB3AA6EFBF803E9E1C185306C0BADA84",
+                                                                  "matches_existing_receipt":  true
+                                                              }
+                                                          ],
+    "current_followup_scope_from":  "b899381818c667571687076aaa96e7f54ddc964f",
+    "current_followup_tool_only_changes":  [
+                                               "src/platform/windows/product/guest_path_scope_tests.cpp",
+                                               "src/platform/windows/product/v1_guest_high_contrast_case.h",
+                                               "src/platform/windows/product/v1_guest_high_contrast_preflight.h",
+                                               "tests/check-v1-package-identity.ps1"
+                                           ],
+    "raw_build_and_validation_pins":  [
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/configure.txt",
+                                              "bytes":  1166,
+                                              "sha256":  "91AA4D1284BC11B8B62303CEA6AF923DF7CE62E60C01E5035B364D6CCC8304AC"
+                                          },
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/Debug-build.txt",
+                                              "bytes":  14316,
+                                              "sha256":  "2A1D6AB75BDA4C1CC2ED1055BFF42F55F63B256E2B9CA660D49F8A811AA9AA53"
+                                          },
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/Release-build.txt",
+                                              "bytes":  14344,
+                                              "sha256":  "325FA3B5D367FAB4FA2431BF824EFACF77CAEB85239BFFA0A611D0644B41523A"
+                                          },
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/Debug-ctest.txt",
+                                              "bytes":  2490,
+                                              "sha256":  "FAD1C5002B09C7D4C50C6EE046E3A912815EAA2A5CBE70E96215A14785DAD97D"
+                                          },
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/Release-ctest.txt",
+                                              "bytes":  2494,
+                                              "sha256":  "D567D8709D944FBF25D978C56D6F8204B857CF498089546FD694D5636CAF3A49"
+                                          },
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/Debug-driver-identity.json",
+                                              "bytes":  275,
+                                              "sha256":  "0AB91055DC2E3D856E4B68010058C387FFB10816989B182EA302F2B6E37F5680"
+                                          },
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/Release-driver-identity.json",
+                                              "bytes":  275,
+                                              "sha256":  "0AB91055DC2E3D856E4B68010058C387FFB10816989B182EA302F2B6E37F5680"
+                                          },
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/package-identity.txt",
+                                              "bytes":  72904,
+                                              "sha256":  "39C9C86EDDE1CA01E1AF0142095E68C0247E483D65A47528C6D888FBE9087302"
+                                          },
+                                          {
+                                              "path":  "uat/v1-control/hc-preflight-offline-fa2e70ceca5448cca520fc0e638559ab/acceptance.txt",
+                                              "bytes":  696,
+                                              "sha256":  "1D64B1753D9881FA881E6BEE111620E6219F229E893DBEFA8564A1869BCFD114"
+                                          }
+                                      ],
+    "historical_scope_check":  "Strict 465-to-03e source-scope check rejects AGENTS.md retention-rule addition; not weakened or relabeled PASS. No package is generated or product evidence rebound; existing product EXE retains its original source and accepted runtime scope. Current b899-to-03e followup is TEST-only.",
+    "acceptance_updates":  {
+                               "D02":  "HISTORICAL_FAILURE_RETAINED_CONTRACT_SCOPED_REVALIDATED using existing bf5c evidence; natural uncontrolled crash NOT_RUN",
+                               "E01_to_E05":  "capability-specific next actions, no dependency on speculative VM path",
+                               "M10_F05":  "BLOCKED; safety guard offline tested, new tool field NOT_RUN",
+                               "remaining_contracts":  "docs/reports/V1_DELIVERY_REPORT.md current closeout table",
+                               "counts":  {
+                                              "implemented":  60,
+                                              "feature_DEV_PASS":  46,
+                                              "benchmark_PASS":  22,
+                                              "integration_chain_PASS":  5
+                                          },
+                               "status":  "PARTIAL",
+                               "human_uat":  "PENDING",
+                               "REA":  "NOT_STARTED"
+                           },
+    "environment_audit":  "CLOSED; no remote query, guest start, VM change, host input, CrossRec or user-resource change in this follow-up",
+    "new_package_generated":  false
+}
