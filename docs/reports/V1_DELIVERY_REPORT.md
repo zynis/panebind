@@ -1,5 +1,25 @@
 # PaneBind V1 集中交付进展
 
+## ZS Sandbox 单屏200%可行性实测（2026-11-04，c89b）
+
+**本次已尝试的官方设置页路线不成立；其它受支持入口尚未确认；未证明所有Sandbox均不支持200%。** 当前Sandbox `0.8.107.0`／guest Windows 11 Enterprise `26100.9711`中，`ms-settings:display`实际打开主页；随后在精确确认的设置外层frame中实际选择一次“系统”，该页未见“显示／缩放／200%”入口。PMv2探测窗和设置frame前后均读到**144 DPI（150%）**，未取得192 DPI。因此E02、M10-F01、B30对应200%产品UI／预览仍是`NOT_RUN_DPI_PRECONDITION_NOT_MET`，不授整个功能或对标PASS。
+
+[本轮诊断、原件pins与分项收尾](v1-evidence/20261104-sandbox-200-feasibility-review.json)、[实际系统页UIA摘录](v1-evidence/c89b-sandbox-system-uia-selected.json)、[未缩放的原尺寸截图](v1-evidence/c89b-sandbox-system-page.png)均可从仓库复核。截图是**Windows系统设置诊断**，不是PaneBind产品设置200%截图。UIA遍历在500节点／9层／3.5秒软限及15秒独立helper截止时间内完成；实际系统页112节点，列出声音、通知、专注、存储、共享、多任务处理、高级、激活、疑难解答等，没有观察到显示或缩放。原始UIA离屏rect中含非有限数值，原件不改；仓库摘录明确省略这些rect，不将其用于几何证明，DPI及frame矩形使用独立Win32回读。
+
+| 核查／实际动作 | 本轮事实及边界 |
+| --- | --- |
+| 当前版本与使用时段 | 原可信SSH核实ZS身份、host build26200.9711及Sandbox0.8.107.0；本轮交互session1的官方`wsb list --raw`实际空清单，且可用物理内存约15.6GiB／提交余量约7.8GiB，才启动本任务2048MiB guest。不把瞬时资源当其它项目空闲证明，也不停止其它项目资源。 |
+| 受支持路线 | [官方配置](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-configure-using-wsb-file)及当前CLI实际帮助没有DPI参数；不试造XML。官方[Settings URI](https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-settings)提示页面可用性依版本／SKU，因此实际探测显示入口与系统页，而不是由外部issue代替现场。 |
+| 实际身份与显示读数 | 新Settings PID892／birth`134382617239232910`、Core197280，前台frame131614包含该Core；AppFrameHost实际Microsoft签名Valid。frame与自有probe均PMv2、144DPI，目标monitor `[0,0,3050,1668]`／work `[0,0,3050,1596]`；未改宿主显示、放大客户端／图片、伪造DPI消息或模拟显示坐标。 |
+| 诊断工具修复 | 首阶段误将CoreWindow当外层frame，截图安全拒绝，关闭后三秒内退出未证；第二阶段实际确认该旧PID已退出并正确拒绝旧身份。修正为新建身份＋真实Core/frame关系后，一次System选择、截图、DPI和退出均取得。本轮不是重复采样稀释结果，旧两阶段记录全部保留，也不将其误记产品或Sandbox功能FAIL。 |
+| 独立收尾 | 销毁guest**之前**，实际观察Settings frame／Core／进程、probe及UIA helper退出，helper未被截止时间终止。之后只对本轮guest `0b669fec-283f-4cc3-9e39-c0103965b5e7`执行官方stop；最终CLI空清单、viewer43464退出，本轮临时任务全部清理。销毁guest不计产品cleanup PASS；产品从未启动，其退出验收不适用。 |
+
+收尾工具另有一次真实错误：函数名`Cli`与PowerShell的`cli -> Clear-Item`别名冲突，误对不存在的`C:\WINDOWS\system32\list --raw`调用并报PathNotFound，未清除该目标，也未执行Sandbox stop。保留原回执后改用唯一函数名，定向收尾成功；未修改别名或系统配置。部署及全部证据保留在本轮新建的`I:\PaneBindMVP1Runs\c89be26db115459ca932b49e3d0539eb\`及其input／output中，不覆盖旧批次、不删除用户文件、不改CrossRec、不重启或启用功能。普通宿主／T14p没有测试输入或VM负载。
+
+**最小缺项已缩小为单屏的受支持guest缩放入口及真实192DPI，不依赖双屏、完整五应用或新VM。** 要继续本项，需要Microsoft确认适用于该Sandbox版本的guest-only配置／入口（或明确支持它、另获授权的版本），或者一个已有授权、可丢弃且确实提供“系统→显示→缩放200%”的单屏交互会话。本轮不安装／升级、不建设／启动完整VM、不改宿主缩放，也不把一般RDP属性当作Sandbox已暴露的受支持接口。没有该新能力依据，不重复相同URI或叠加注册表／未确认API。未发现可以据此修改的产品缺陷，原465 Release EXE哈希仍为`89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB`，未重建、未重跑无关Full／900秒。
+
+HG03此前的能力化`next_action`修正随本轮证据一并入库，状态仍BLOCKED。其它历史FAIL／UNKNOWN、NF02及已闭合同不变；仍**46/60功能、22/40对标、5/12整链，V1 PARTIAL、真人UAT PENDING、REA NOT_STARTED**。Git主SSH本轮公钥认证失败，标准备用`github-https`第二次fetch成功且接续分支等于起点；本轮Git同步以该成功传输的实际核验为准，不伪造origin tracking ref。
+
 ## 当前收口：环境盘点结束，按具体合同继续（2026-11-04）
 
 以已复核`b899381818c667571687076aaa96e7f54ddc964f`接续。既有环境核查本轮收尾，结论仍为“尚未确认可复用实例”；没有新的具名线索，不再查询相同路径、注册项或进程，也不等待用户提供尚未确认存在的VM路径。下方盘点历史中的“补资源线索”仅是日后出现新线索时的可选复用入口，不是整个项目继续的前提。[原核查及范围](v1-evidence/20261104-existing-vm-reuse-review.json)保留不变。本轮不查询远端、不启动VM或其它项目资源，不恢复定时检查。

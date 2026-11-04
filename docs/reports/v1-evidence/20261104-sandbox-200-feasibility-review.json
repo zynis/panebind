@@ -1,0 +1,568 @@
+{
+  "schema": "panebind-v1-repository-evidence/1",
+  "evidence_id": "EV-C89B-SANDBOX-SINGLE-SCREEN-200-FEASIBILITY",
+  "record_date": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "base_sha": "dd5c60103e89219c319d7a9c5103df4693c733c8",
+  "run_id": "c89be26db115459ca932b49e3d0539eb",
+  "outcome": "TRIED_OFFICIAL_SETTINGS_ROUTE_NOT_ESTABLISHED_FOR_CURRENT_GUEST",
+  "scope": "Bounded guest-only single-screen 200% feasibility; no product, HC, Full or 900-second case run",
+  "host": {
+    "name": "ZS-WORKSTATION",
+    "connection": "existing crossrec-desktop strict host-key/public-key SSH",
+    "build": "26200.9711",
+    "sandbox_package": "MicrosoftWindows.WindowsSandbox 0.8.107.0",
+    "sandbox_launcher_file_version": "10.0.26100.9949",
+    "initial_running_instances": [],
+    "initial_free_physical_KiB": 16391976,
+    "initial_free_commit_KiB": 8208612,
+    "C_free_bytes": 26453368832,
+    "I_free_bytes": 684790419456
+  },
+  "guest": {
+    "id": "0b669fec-283f-4cc3-9e39-c0103965b5e7",
+    "computer": "D0A004C0-940B-4",
+    "account": "D0A004C0-940B-4\\WDAGUtilityAccount",
+    "session": 1,
+    "edition_observed_in_native_UI": "Windows 11 企业版",
+    "build_observed_in_native_UI": "26100.9711",
+    "memory_MiB": 2048,
+    "remote_root": "I:\\PaneBindMVP1Runs\\c89be26db115459ca932b49e3d0539eb",
+    "mapped_input": "C:\\PaneBindV1\\Input",
+    "mapped_input_read_only": true,
+    "only_writable_mapping": "C:\\PaneBindV1\\Output",
+    "network_clipboard_audio_video_printer_redirection": "disabled",
+    "integrity_level": "NOT_MEASURED_BY_DIAGNOSTIC; no Medium product acceptance inferred"
+  },
+  "actual_observation": {
+    "started_utc": "2026-11-04T10:28:42.9476873Z",
+    "completed_utc": "2026-11-04T10:28:53.3411033Z",
+    "probe_before": {
+      "hwnd": 131604,
+      "pid": 3784,
+      "tid": 8308,
+      "visible": true,
+      "dpi": 144,
+      "awareness_context": 34,
+      "PMv2": true,
+      "rect_known": true,
+      "rect": [
+        20,
+        20,
+        400,
+        170
+      ],
+      "monitor": 65537,
+      "monitor_known": true,
+      "monitor_rect": [
+        0,
+        0,
+        3050,
+        1668
+      ],
+      "work_rect": [
+        0,
+        0,
+        3050,
+        1596
+      ],
+      "foreground": 65804,
+      "window_class": "WindowsForms10.Window.8.app.0.287f290_r8_ad1"
+    },
+    "probe_after": {
+      "hwnd": 131604,
+      "pid": 3784,
+      "tid": 8308,
+      "visible": true,
+      "dpi": 144,
+      "awareness_context": 34,
+      "PMv2": true,
+      "rect_known": true,
+      "rect": [
+        20,
+        20,
+        400,
+        170
+      ],
+      "monitor": 65537,
+      "monitor_known": true,
+      "monitor_rect": [
+        0,
+        0,
+        3050,
+        1668
+      ],
+      "work_rect": [
+        0,
+        0,
+        3050,
+        1596
+      ],
+      "foreground": 131614,
+      "window_class": "WindowsForms10.Window.8.app.0.287f290_r8_ad1"
+    },
+    "settings_frame": {
+      "hwnd": 131614,
+      "pid": 7912,
+      "tid": 7272,
+      "visible": true,
+      "dpi": 144,
+      "awareness_context": 34,
+      "PMv2": true,
+      "rect_known": true,
+      "rect": [
+        118,
+        96,
+        1940,
+        1506
+      ],
+      "monitor": 65537,
+      "monitor_known": true,
+      "monitor_rect": [
+        0,
+        0,
+        3050,
+        1668
+      ],
+      "work_rect": [
+        0,
+        0,
+        3050,
+        1596
+      ],
+      "foreground": 131614,
+      "window_class": "ApplicationFrameWindow"
+    },
+    "settings_pid": 892,
+    "settings_birth": "134382617239232910",
+    "settings_core": 197280,
+    "official_uri": "ms-settings:display",
+    "URI_destination_observed": "主页/Home, not Display",
+    "system_navigation": {
+      "selection_attempted": true,
+      "selection_returned": true,
+      "frame_signature": {
+        "path": "C:\\Windows\\system32\\ApplicationFrameHost.exe",
+        "status": "Valid",
+        "subject": "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+        "thumbprint": "667BBA1E1F478221AA65DE4F75187A751B03A453"
+      },
+      "native_binding": {
+        "hwnd": 131614,
+        "pid": 7912,
+        "tid": 7272,
+        "window_class": "ApplicationFrameWindow",
+        "core_hwnd": 197280,
+        "core_exact": true,
+        "core_parent": 131614,
+        "core_GA_ROOT": 131614,
+        "core_GA_ROOTOWNER": 131614,
+        "core_GW_OWNER": 0,
+        "foreground": 131614,
+        "core_native_child": true,
+        "frame_visible": true,
+        "frame_process": {
+          "pid": 7912,
+          "session": 1,
+          "birth": "134382605260609845",
+          "image": "C:\\Windows\\system32\\ApplicationFrameHost.exe",
+          "name": "ApplicationFrameHost"
+        },
+        "native_binding": true,
+        "error": null
+      },
+      "bounded_nodes_after": 112,
+      "after_traversal_complete_within_bounds": true,
+      "observed_content_groups": [
+        "声音",
+        "通知",
+        "专注",
+        "存储",
+        "共享",
+        "多任务处理",
+        "高级",
+        "激活",
+        "疑难解答",
+        "剪贴板",
+        "系统组件",
+        "AI 组件",
+        "关于"
+      ],
+      "Display_Scale_or_200_percent_control_observed": false
+    },
+    "actual_192_DPI_observed": false,
+    "scale_change_attempted": false,
+    "viewer_zoom_or_screenshot_resize_used": false,
+    "synthetic_input_used": false,
+    "foreground_repair_used": false,
+    "product_started": false,
+    "all_product_settings_pages_200_percent": "NOT_RUN_DPI_PRECONDITION_NOT_MET",
+    "product_preview_200_percent": "NOT_RUN_DPI_PRECONDITION_NOT_MET"
+  },
+  "attempts_preserved": [
+    {
+      "phase": "initial",
+      "tool_result": "DIAGNOSTIC_ERROR_OR_BLOCKED",
+      "tool_error": "Screenshot UNKNOWN: exact Settings root is not foreground/visible; no focus repair attempted.",
+      "native_dpi": 144,
+      "cleanup_immediate": {
+        "settings_close_attempted": true,
+        "settings_close_native_return": true,
+        "settings_root_gone": false,
+        "settings_process_exit": false,
+        "probe_destroyed": true,
+        "uia_helper_exit": true,
+        "uia_helper_terminated_at_deadline": false,
+        "settings_process_observation": {
+          "exit_observed": false,
+          "current_birth": "134382605260576923",
+          "reason": "actual_process_birth_comparison",
+          "error": null
+        }
+      },
+      "interpretation": "CoreWindow was incorrectly treated as foreground frame. This tool refusal is not a Sandbox display-support result."
+    },
+    {
+      "phase": "fixed_old_identity_followup",
+      "tool_result": "UNKNOWN_OR_BLOCKED",
+      "tool_error": "Original run-created SystemSettings PID/birth/path not current; no adoption.",
+      "cleanup": {
+        "frame_close_attempted": false,
+        "frame_close_returned": null,
+        "frame_gone": null,
+        "core_gone": true,
+        "process_exit": {
+          "exit_observed": true,
+          "current_birth": null,
+          "reason": "PID_no_longer_exists",
+          "error": null
+        },
+        "probe_destroyed": null,
+        "helper_exit": null,
+        "helper_deadline_termination": false
+      },
+      "interpretation": "Correctly refused stale PID/birth; later confirmed old Settings exited. Does not rewrite initial immediate-exit uncertainty."
+    },
+    {
+      "phase": "fresh_identity_and_real_System_navigation",
+      "result": "EXACT_FRAME_SYSTEM_PAGE_DIAGNOSTIC_COMPLETE_NO_SCALE_CHANGE",
+      "tool_error": null,
+      "interpretation": "Dynamic exact Core/AppFrame binding and signed foreground frame observed; actual System navigation, DPI and screenshot obtained."
+    }
+  ],
+  "diagnostic_cleanup_before_guest_disposal": {
+    "frame_close_attempted": true,
+    "frame_close_returned": true,
+    "frame_gone": true,
+    "core_gone": true,
+    "process_exit": {
+      "exit_observed": true,
+      "current_birth": null,
+      "reason": "PID_no_longer_exists",
+      "error": null
+    },
+    "probe_destroyed": true,
+    "helper_exit": true,
+    "helper_deadline_termination": false
+  },
+  "host_cleanup": {
+    "first_failure": {
+      "hostname": "ZS-WORKSTATION",
+      "session": 1,
+      "guest_id": "0b669fec-283f-4cc3-9e39-c0103965b5e7",
+      "utc": "2026-11-04T10:34:20.7989064Z",
+      "before": null,
+      "stop": null,
+      "after": null,
+      "viewer_gone": null,
+      "error": "找不到路径“C:\\WINDOWS\\system32\\list --raw”，因为该路径不存在。",
+      "guest_disposal_is_product_cleanup_PASS": false
+    },
+    "first_failure_explanation": "PowerShell's existing cli alias resolved to Clear-Item instead of the Cli function. Attempt on nonexistent C:\\WINDOWS\\system32\\list --raw failed before any Sandbox stop; no item at that path was cleared. Original failure retained. Replaced with unique Invoke-PaneBindOwnedSandboxCli; no alias/global setting changed.",
+    "final": {
+      "hostname": "ZS-WORKSTATION",
+      "utc": "2026-11-04T10:36:51.3226694Z",
+      "event_timed_out": false,
+      "cleanup": {
+        "hostname": "ZS-WORKSTATION",
+        "session": 1,
+        "guest_id": "0b669fec-283f-4cc3-9e39-c0103965b5e7",
+        "utc": "2026-11-04T10:36:43.3674480Z",
+        "before": {
+          "arguments": "list --raw",
+          "timed_out": false,
+          "exit_code": 0,
+          "stdout": "{\r\n  \"WindowsSandboxEnvironments\": [\r\n    {\r\n      \"Id\": \"0b669fec-283f-4cc3-9e39-c0103965b5e7\"\r\n    }\r\n  ]\r\n}\r\n",
+          "stderr": ""
+        },
+        "stop": {
+          "arguments": "stop --id 0b669fec-283f-4cc3-9e39-c0103965b5e7 --raw",
+          "timed_out": false,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "arguments": "list --raw",
+          "timed_out": false,
+          "exit_code": 0,
+          "stdout": "{\r\n  \"WindowsSandboxEnvironments\": []\r\n}\r\n",
+          "stderr": ""
+        },
+        "viewer_gone": true,
+        "error": null,
+        "guest_disposal_is_product_cleanup_PASS": false
+      },
+      "own_tasks": [
+        {
+          "name": "PaneBindV1-DpiRead-c89be26db115459ca932b49e3d0539eb",
+          "already_absent": true
+        },
+        {
+          "name": "PaneBindV1-DpiExecRead-c89be26db115459ca932b49e3d0539eb",
+          "already_absent": true
+        },
+        {
+          "name": "PaneBindV1-DpiLaunch-c89be26db115459ca932b49e3d0539eb",
+          "already_absent": true
+        },
+        {
+          "name": "PaneBindV1-DpiFollowup-c89be26db115459ca932b49e3d0539eb",
+          "already_absent": true
+        },
+        {
+          "name": "PaneBindV1-DpiFresh-c89be26db115459ca932b49e3d0539eb",
+          "already_absent": true
+        },
+        {
+          "name": "PaneBindV1-DpiStop2-c89be26db115459ca932b49e3d0539eb",
+          "state_before": "Ready",
+          "removed": true
+        }
+      ],
+      "remaining_own_tasks": [],
+      "evidence_preserved": true,
+      "other_project_tasks_touched": false
+    },
+    "guest_disposal_is_product_cleanup_PASS": false,
+    "product_cleanup_result": "NOT_APPLICABLE_PRODUCT_NOT_STARTED"
+  },
+  "route_conclusions": {
+    "official_wsb_and_actual_CLI_help": "No supported DPI/Scale parameter observed; no invented configuration tested.",
+    "official_Settings_route": "Actual URI opens Home; System page has no observed Display/Scale entry. This route did not establish 200% on 0.8.107.0 / guest26100.9711.",
+    "other_supported_route": "NOT_CONFIRMED",
+    "all_Sandbox_versions_unsupported": "NOT_PROVEN",
+    "root_cause": "UNKNOWN; no inference from activation notice, client resolution or unrelated app failures",
+    "minimum_missing_capability": "A supported guest-only way to select 200% and read back192 DPI in a disposable single-screen interactive session. This does not require dual displays, five applications or a new VM.",
+    "minimal_external_options": [
+      "A Microsoft-confirmed guest scaling entry/configuration applicable to this Sandbox version, or a separately approved version explicitly supporting it; no upgrade was performed.",
+      "An already-authorized disposable interactive session with actual System > Display > Scale=200% and192-DPI readback; one display is sufficient. No VM construction, startup or host display changes are authorized by this result."
+    ]
+  },
+  "official_sources": [
+    {
+      "title": "Sandbox configuration",
+      "url": "https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-configure-using-wsb-file"
+    },
+    {
+      "title": "Sandbox CLI",
+      "url": "https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-cli"
+    },
+    {
+      "title": "Settings URI availability by version/SKU",
+      "url": "https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-settings"
+    },
+    {
+      "title": "Official display scaling procedure",
+      "url": "https://support.microsoft.com/en-us/windows/hardware/display-graphics/change-your-screen-resolution-and-layout-in-windows"
+    },
+    {
+      "title": "GetDpiForWindow",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdpiforwindow"
+    },
+    {
+      "title": "Public user report, not official conclusion",
+      "url": "https://github.com/microsoft/Windows-Sandbox/issues/133"
+    }
+  ],
+  "candidate_unchanged": {
+    "source_sha": "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+    "release_sha256": "89C8E212C28F977FC1EF2EBFE05C590FB00F3848BCB3C33B80E4F973F3B8D7FB",
+    "rebuilt": false,
+    "executed": false,
+    "old_runtime_evidence_rebound": false
+  },
+  "evidence_quality": {
+    "repository_UIA_excerpt": "docs/reports/v1-evidence/c89b-sandbox-system-uia-selected.json",
+    "raw_UIA_nonfinite_rectangle_tokens": 168,
+    "nonfinite_rectangles_used_as_geometry_proof": false,
+    "raw_originals_unchanged": true,
+    "screenshot_native_rect": [
+      118,
+      96,
+      1940,
+      1506
+    ],
+    "screenshot_captured_rect": [
+      118,
+      96,
+      1940,
+      1506
+    ],
+    "screenshot_pixels_unscaled": true,
+    "native_window_DPI_not_inferred_from_picture": true
+  },
+  "repository_artifacts": [
+    {
+      "path": "docs/reports/v1-evidence/c89b-sandbox-system-uia-selected.json",
+      "bytes": 32396,
+      "sha256": "8D5BA2064EF161F2139276469BBD0EB514A16DD2633B3AB20AFE83F2027732FB"
+    },
+    {
+      "path": "docs/reports/v1-evidence/c89b-sandbox-system-page.png",
+      "bytes": 428866,
+      "sha256": "BC0C24B0DB79605ED2B9A0F8DDE32C5101A1F61F15F3F15FE08B9415F0483CD8"
+    }
+  ],
+  "raw_original_pins": [
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-initial/host-cli-session.json",
+      "bytes": 2939,
+      "sha256": "706800A0E78812257B59944BB82BBF23FD7E2C7554BA70B0721228750D490DCD"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-initial/host-launch-receipt.json",
+      "bytes": 154842,
+      "sha256": "BE1ED22EFE8479BA22513FF6DC2BAD58E979389D888978C067B43594499CABA6"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-initial/output/c89be26db115459ca932b49e3d0539eb-display-diagnostic.json",
+      "bytes": 119835,
+      "sha256": "FED011E7C2CF4C169C5EC2515F57D60D64177C898AD1ECF74E2576416A17516E"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-initial/output/c89be26db115459ca932b49e3d0539eb-display-uia.json",
+      "bytes": 88667,
+      "sha256": "125F8F851E98F0F978192DBD9925580114EDE1F575C3D9295D93E0E69529BB46"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-followup/output/c89be26db115459ca932b49e3d0539eb-display-followup.json",
+      "bytes": 1589,
+      "sha256": "021D5A93F221F6807FF17BD4B95ED3342CAE0631F320FB2F418DCC232B6E1404"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-followup/host-guest-exec-receipt.json",
+      "bytes": 915,
+      "sha256": "A280EA551DFF7CAFFA6E73F049EF2B6CEC4623A663B12468571E6980F7965C89"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-final/output/c89be26db115459ca932b49e3d0539eb-display-fresh-system.json",
+      "bytes": 269837,
+      "sha256": "14E5433E3E7C345732D610ADD5F9172B19CD3E9C0524C29A57DC9F544DD7A51D"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-final/output/c89be26db115459ca932b49e3d0539eb-display-fresh-system-uia.json",
+      "bytes": 205193,
+      "sha256": "40B4A9B994BD5946B9240603A74570E1C866A8D55610ACA428F6B9460B5D30BE"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-final/output/c89be26db115459ca932b49e3d0539eb-display-fresh-system-selection-attempt.json",
+      "bytes": 306,
+      "sha256": "87945D1C67E6DAB3032013916A7ABBC39CE1BB4867D3A6F80595FF20DFBDE50F"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-final/output/c89be26db115459ca932b49e3d0539eb-display-fresh-system-page.png",
+      "bytes": 428866,
+      "sha256": "BC0C24B0DB79605ED2B9A0F8DDE32C5101A1F61F15F3F15FE08B9415F0483CD8"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-final/host-fresh-launch-receipt.json",
+      "bytes": 14997,
+      "sha256": "19B1B4EDA53A3E18BAA3F329DCE2709181A90E55664435863CEC0A90BB44DB3E"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-final/host-guest-fresh-exec-receipt.json",
+      "bytes": 923,
+      "sha256": "D3B5FED1B70C5F5E0B9D86D9683DB817D85AF63798BE13C17E098AD5EEDEA38D"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-cleanup/host-cleanup-receipt.json",
+      "bytes": 410,
+      "sha256": "2B8CC816E0CBE585D38ED312F4C54C1DD185223FB11D58DCD6E3A6110FA4A7A8"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/collection-cleanup/host-final-cleanup-v2.json",
+      "bytes": 3164,
+      "sha256": "09A74330BC917D3D7A5EC914C4125E431F3C236057B1B364EF81908D616D322A"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/remote-preflight.stdout.txt",
+      "bytes": 2160,
+      "sha256": "0D9FB239D72DB7FD0DA23FCE42AC6579833FE0CFE9F276C6D0FBF2C9810F060E"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/deployment/manifest.json",
+      "bytes": 1458,
+      "sha256": "4B965DA954B6B549AF10B7BF2D8CA1A630D371176EDF09ED09EBC83CCFD96065"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/deployment/PaneBind-SingleScreen200.wsb",
+      "bytes": 897,
+      "sha256": "0AF83A4DBC87CBD05909AE07B65C10E105D2691EADB4F1FC1F1F650B496C35B6"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/guest-display-diagnostic.ps1",
+      "bytes": 21136,
+      "sha256": "44CC0439ECA1214622E31204E2EAF3FF735686D8834E6798E1B074FF09364B2B"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/guest-display-followup.ps1",
+      "bytes": 24062,
+      "sha256": "FFA260BB75083502059F7B1DC5BAA9DB4463C0CDE7D0C62124BDDE423E064071"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/guest-display-fresh-system.ps1",
+      "bytes": 26165,
+      "sha256": "85BCBEAD2C043A17635062C8781B200DD107735D772029366CE0154C22F59AA2"
+    },
+    {
+      "path": "uat/v1-control/single-screen-200-c89be26db115459ca932b49e3d0539eb/cleanup-alias-confirmation.txt",
+      "bytes": 86,
+      "sha256": "182FDECACE810194D4F26821DFCEED0BE668FCC6DAE1F5AAF36BF5E32B92F694"
+    }
+  ],
+  "gate_effect": {
+    "affected_subitems": [
+      "E02 single-screen200%",
+      "M10-F01 single-screen200% preview",
+      "B30 single-screen200% preview"
+    ],
+    "status": "BLOCKED",
+    "new_feature_or_B_PASS": false,
+    "feature_PASS": 46,
+    "benchmark_PASS": 22,
+    "integration_chain_PASS": 5,
+    "V1": "PARTIAL",
+    "human_UAT": "PENDING",
+    "REA": "NOT_STARTED",
+    "NF02_or_closed_case_changed": false
+  },
+  "boundaries": {
+    "host_display_changed": false,
+    "feature_enable_or_reboot": false,
+    "VM_started_on_T14p_or_remote_full_VM": false,
+    "CrossRec_or_other_project_resources_changed": false,
+    "unknown_instances_adopted_or_closed": false,
+    "host_test_input_sent": false,
+    "new_directories_created_on_ZS": [
+      "I:\\PaneBindMVP1Runs\\c89be26db115459ca932b49e3d0539eb",
+      "I:\\PaneBindMVP1Runs\\c89be26db115459ca932b49e3d0539eb\\input",
+      "I:\\PaneBindMVP1Runs\\c89be26db115459ca932b49e3d0539eb\\output"
+    ],
+    "evidence_and_deployment_files_retained": true
+  },
+  "git_transport": {
+    "origin": "standard SSH public-key authentication failed; no retry as transient error",
+    "github_https": "second standard fetch succeeded, branch equal to base HEAD; no remote refs forged"
+  }
+}

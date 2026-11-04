@@ -3145,6 +3145,40 @@ read-only, and treat a named OFF scheme only as a candidate still requiring
 exact restoration and owned-buffer cleanup. No new native observation, host
 configuration change, theme workaround, external code or attribution is added.
 
+#### Sandbox single-display 200% feasibility — 2026-11-04 (Asia/Shanghai)
+
+The public `microsoft/Windows-Sandbox` repository metadata was verified at
+`28aa11afb39db3262125d693001078571fe84a44` (default branch `master`). Its
+[LICENSE](https://github.com/microsoft/Windows-Sandbox/blob/28aa11afb39db3262125d693001078571fe84a44/LICENSE)
+is MIT / Microsoft Corporation. This review inspected metadata and
+[issue #133](https://github.com/microsoft/Windows-Sandbox/issues/133), not
+implementation code. The issue is a user's report about inaccessible guest
+scaling controls, not an official finding or proof about every Sandbox. No
+upstream code was copied or adapted; existing PaneBind TEST primitives are reused.
+
+Official references actually inspected:
+
+- [Sandbox configuration](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-configure-using-wsb-file)
+  and [CLI](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-cli):
+  no documented DPI setting; guest exec requires an active user session for
+  `ExistingLogin` and does not return guest process stdout. Outputs must be
+  saved in this task's mapped output and verified separately.
+- [Settings URI](https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-settings)
+  and [display procedure](https://support.microsoft.com/en-us/windows/hardware/display-graphics/change-your-screen-resolution-and-layout-in-windows):
+  `ms-settings:display` is an official entry, but page availability varies by
+  version/SKU. A successful launch does not prove that Display/Scale exists.
+- [GetDpiForWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdpiforwindow):
+  record actual window awareness with DPI. An observed 192 DPI is the required
+  200% precondition, not proof of UI/preview acceptance. Viewer zoom, text size,
+  enlarged images, injected DPI messages and simulated coordinates are not substitutes.
+
+The one-run guest diagnostic changes only its own process awareness for accurate
+observation, not system scaling. It uses exact disposable-guest/RunId markers,
+new Settings process identities and bounded UIA helpers. It does not alter host
+display settings, registry scale values, Windows features, VM configuration or
+production input/geometry code. Actual route outcomes are kept with the run's
+original evidence; failed tool bindings are not relabeled platform limitations.
+
 ### V1 explicit guest callback-owner stop — 2026-10-22
 
 Scope: one exact disposable-guest/RunId/Medium, already-active owned source;

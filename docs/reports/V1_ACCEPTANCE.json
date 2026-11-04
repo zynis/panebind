@@ -2739,7 +2739,7 @@
       "description": "当前Release/Medium五种真实应用与E01-E05显示/环境矩阵。",
       "status": "BLOCKED",
       "remaining_conditions": "普通Explorer、Notepad/Electron/浏览器完整矩阵与E01/E03–E05真实显示环境尚缺。",
-      "next_action": "2026-11-04已沿原可信SSH定向核实ZS的非默认VirtualBox路径、注册安装项、当前账户/中央清单及Hyper-V管理入口；尚未确认可复用的具名完整guest，不代表机器没有VM。用户已暂停此前启用Hyper-V/新建VM方案，先补具体既有配置/模板路径、项目归属、允许修改及空闲时段；完整桌面和E03/E04独立双屏分别判定。T14p不承担任何VM负载，不停其它项目资源；继续原Sandbox轮流规则及不受阻合同。",
+      "next_action": "环境盘点已收口，尚未确认可复用实例；没有新具体线索不重复查询，也不把未知VM配置/模板路径作为推进前提。按E01–E05及集中报告分别补齐合格Medium/non-elevated桌面、真实应用原生可交互及正常退出、同权限托盘、单屏100%/200%显示、真实会话恢复，以及两个独立显示器/负工作区/逐屏混合DPI证据。应用初始化、客户输入及完整进程树退出各保留原失败或UNKNOWN，有具体新依据再定向推进，不统一归因Sandbox。完整桌面与独立双屏分别验收；保留已通过范围及原身份，不重复已闭专项。T14p不启动任何VM，远端完整VM启用/新建/启动/恢复/克隆仍暂停；既有Sandbox沿用轮流规则，不停其它项目资源，不开放宿主试用。",
       "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104"
     },
     {
@@ -9058,9 +9058,11 @@
       "observed": "c01原屏边preview子项保留；另21a5/4f7原EXE9790B38A...实际150% owned preview：D219 alpha255、非激活/透明命中样式与source前台/自有shield实际命中；D222实际屏像素RGB(32,96,160)，D226离区取消、D228真实UP后D231仍隐藏。其原身份/字面证据不改为ccde运行；该批没有真实Dock提交后的preview/final几何对照，不推全矩阵PASS。",
       "remaining_conditions": [
         "21a5/4f7颜色、alpha、像素/非激活命中、离区取消/UP隐藏，以及d8a3/3c21和322a/2387预览对最终提交/Maximize子范围已实际验证，均保原身份。",
-        "真实跨屏定位及100%/150%/200%的完整预览/穿透/取消退出浮层合同尚未齐；当前150%有限帧/单屏动作不替代。"
+        "真实跨屏定位及100%/150%/200%的完整预览/穿透/取消退出浮层合同尚未齐；当前150%有限帧/单屏动作不替代。",
+        "2026-11-04 c89b仅证明当前版本官方显示设置路线未取得200%；不是产品预览FAIL，也不是全部Sandbox不支持。真实192DPI产品预览仍未运行，详见单屏诊断索引。"
       ],
-      "next_action": "复用已过颜色与单屏提交，不再称其未测；只有真实显示条件具备后补跨屏/100%/200%定位与浮层退出，B30的M11-F02参数验证已PASS，不重复参数专项。",
+      "next_action": "c89b已实际诊断Sandbox0.8.107.0/guest26100.9711：PMv2前后144DPI，正式显示URI回主页，实际系统页未见显示/缩放入口，未取得192DPI，200%预览仍NOT_RUN。需具备受支持的guest-only200%入口及真实192DPI单屏条件后补定位/穿透/取消退出；与跨屏及100%缺项分判。复用既有颜色/alpha/提交原身份，不重跑已过参数；不以未知VM路径或完整五应用为前提，也不推定所有Sandbox均不支持。",
+      "single_screen_200_diagnostic_ref": "docs/reports/v1-evidence/20261104-sandbox-200-feasibility-review.json",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -13243,9 +13245,11 @@
       ],
       "observed": "M11-F02参数/视觉选项验证已按ca0e及原身份补充证据独立PASS，不再列为当前未过依赖。M10-F01预览与actual、穿透/取消/退出及真实100/150/200%/跨屏定位完整合同仍缺，现有单屏子项不能补齐；B30保持BLOCKED/0。",
       "remaining_conditions": [
-        "M11-F02参数/视觉验证已独立PASS；M10-F01还缺真实跨屏及100%/200%预览定位/穿透/取消退出完整合同。已有21a5颜色/alpha及2387预览最终Maximize子范围不再列未测。"
+        "M11-F02参数/视觉验证已独立PASS；M10-F01还缺真实跨屏及100%/200%预览定位/穿透/取消退出完整合同。已有21a5颜色/alpha及2387预览最终Maximize子范围不再列未测。",
+        "c89b当前guest实际系统页诊断及截图已取得，Scale入口未观察到、DPI仍144；未运行192DPI产品预览，不授B30或整个M10 PASS。"
       ],
-      "next_action": "只补M10-F01确切显示缺口，保原证据身份与0分；不重复参数验证或用模拟坐标/单屏通过替代真实条件。",
+      "next_action": "只补M10-F01具体显示缺口。c89b已实测当前Sandbox官方设置页路线未取得200%，不是全Sandbox不支持结论；200%单屏检查无需双屏或完整应用矩阵，但必须真实192DPI。保留原参数/颜色/alpha及最终提交子范围证据与0分，不用客户端放大、模拟坐标或反复相同采样替代；跨屏/100%合同另保留。",
+      "single_screen_200_diagnostic_ref": "docs/reports/v1-evidence/20261104-sandbox-200-feasibility-review.json",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE"
@@ -14769,9 +14773,11 @@
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
         "已实测Medium/non-elevated/session1/单屏150%下的有限功能：42ab/f78普通GUI/设置效果/Move-NormalUp、4ff精确Terminal的Move→Resize→Move/五阶段磁吸/两成员Ctrl和实际资源收尾；f06a/750各自owned范围另保身份。不能再称全部sourceGUI/VDM/实际增强未验，也不授完整E02。",
-        "当前仍缺200%主要UI/完整HC恢复、五应用及适用I01–I12。229e/2b49的Medium Shell事实不等于普通文件窗；69f4确见新Cabinet双heldRun成员，但实际RID8192/elevated=true被拒且Shell单条exact path未确认；客户nonce/菜单投递也各未通过。"
+        "当前仍缺200%主要UI/完整HC恢复、五应用及适用I01–I12。229e/2b49的Medium Shell事实不等于普通文件窗；69f4确见新Cabinet双heldRun成员，但实际RID8192/elevated=true被拒且Shell单条exact path未确认；客户nonce/菜单投递也各未通过。",
+        "c89b已在本任务guest实际完成官方显示URI、系统导航、原尺寸截图和窗口DPI诊断；当前0.8.107.0/guest26100.9711未见显示/缩放入口。200%产品UI仍NOT_RUN_DPI_PRECONDITION_NOT_MET，不以该诊断代替Medium产品验收。"
       ],
-      "next_action": "复用f78普通GUI、4ff Terminal几何及f06a/750原身份，不重放已闭专项或无变量Explorer路线。盘点已收口，VM路径不是推进前提。分别按集中报告核对应用原生可交互/正常退出、合格non-elevated Explorer、同权限托盘、单屏200%及安全HC恢复前置；有新可区分依据再补相关步骤。原初始化及权限反例保留，不统一归因Sandbox，不降低资格；现有Medium局部证据与完整Shell/应用能力、独立双屏分判。",
+      "next_action": "复用原普通GUI、Terminal几何及owned证据，不重放已闭专项。c89b完成本任务guest的单屏200%可行性诊断：实际144DPI；显示URI进入主页，系统页未见显示/缩放入口，当前路线未成立、替代受支持入口未确认。取得guest-only真实192DPI条件后单独补主要UI/点击/预览，无需等待五应用或双屏；应用初始化、正常退出、合格non-elevated Explorer、托盘及HC仍各按自己的失败/UNKNOWN推进，不统一归因Sandbox，不等待未知VM路径或擅自建设环境。",
+      "single_screen_200_diagnostic_ref": "docs/reports/v1-evidence/20261104-sandbox-200-feasibility-review.json",
       "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
