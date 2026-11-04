@@ -606,7 +606,7 @@ Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide $lifecyclePrepare $li
 Check $true 'static hide/show route retains exact guest guards, public observed ineligibility, fresh key and one real Move/UP'
 Reject {Assert-V1LifecycleHideWiring $fixtureSource ($lifecycleHide.Replace('const auto hidden_status=geometry_history_status(s);','const auto hidden_status=before_status;')) $lifecyclePrepare $lifecycleGuest} 'static hide/show rejects substituting old status for actual product observation'
 Reject {Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide ($lifecyclePrepare.Replace("'LifecycleRemainderOnly'","'DisabledLifecycle'")) $lifecycleGuest} 'static hide/show rejects a missing exact packager suite'
-function Assert-V1HighContrastWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest){
+function Assert-V1HighContrastWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest,[string]$Preflight=$highContrastPreflight){
     if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_high_contrast_case.h"') -or
        -not $Fixture.Contains('phase("actual_guest_HC_mode_and_keyboard_subset",owned_high_contrast_case);') -or
        -not $Fixture.Contains('REUSED_34F1_ORDINARY_NOTICE_NOT_RUN_HERE') -or
@@ -649,6 +649,31 @@ function Assert-V1HighContrastWiring([string]$Fixture,[string]$Cases,[string]$Pr
         'high_contrast_new_gesture_retires_actual_notice_timer')){
         if(-not $Cases.Contains($value)){throw ('High contrast lost actual GET/SET, keyboard, restoration or scope fact: '+$value)}
     }
+    foreach($value in @('#include "platform/windows/product/v1_guest_high_contrast_preflight.h"',
+        'return guest_high_contrast_preflight::classify({known,scheme_known,scheme_retained,scheme_borrowed,',
+        '(flags&HCF_AVAILABLE)!=0,(flags&HCF_OPTION_NOTHEMECHANGE)!=0,(flags&HCF_HIGHCONTRASTON)!=0,scheme.empty()',
+        'const auto admission=original.preflight();',
+        'if(admission!=guest_high_contrast_preflight::Decision::NamedSchemeCandidate)',
+        'return admission==guest_high_contrast_preflight::Decision::AlreadyEnabledReadOnly;',
+        'const auto admission=lease.original.preflight();',
+        'admission==guest_high_contrast_preflight::Decision::RejectEmptyScheme',
+        'blocked(guest_high_contrast_preflight::reason(admission));return;',
+        'native_attempted\":false','native_return\":null','native_attempted\":true',
+        'native_SET_attempted\":false','candidate_is_restore_PASS\":false')){
+        if(-not $Cases.Contains($value)){throw ('HC TEST needs shared fail-closed preflight and truthful API attempt facts: '+$value)}
+    }
+    foreach($value in @('!facts.snapshot_known||!facts.scheme_known||!facts.scheme_retained||facts.scheme_borrowed||',
+        '!facts.available||facts.no_theme_change',
+        'if(facts.enabled)return Decision::AlreadyEnabledReadOnly;',
+        'if(facts.scheme_empty)return Decision::RejectEmptyScheme;',
+        'return Decision::NamedSchemeCandidate;')){
+        if(-not $Preflight.Contains($value)){throw ('HC shared preflight lost safe snapshot/read-only/empty-scheme distinction: '+$value)}
+    }
+    if($Cases.IndexOf('const auto admission=original.preflight();') -gt $Cases.IndexOf('observe_SET_enter(request,"enable");') -or
+       $Cases.IndexOf('blocked(guest_high_contrast_preflight::reason(admission));return;') -gt $Cases.IndexOf('SettingsGui gui;') -or
+       $Preflight.IndexOf('if(facts.enabled)') -gt $Preflight.IndexOf('if(facts.scheme_empty)')){
+        throw 'Reject unsafe HC changes before SET/UI; already-ON is read-only even with an empty scheme.'
+    }
     if($Cases.IndexOf('settings_guest_scope(s);') -gt $Cases.IndexOf('GuestHighContrastLease lease{s};') -or
        [regex]::Matches($Cases,'SystemParametersInfoW\(SPI_SETHIGHCONTRAST,sizeof\(request\),&request,SPIF_SENDCHANGE\)').Count -ne 2 -or
        $Cases -match 'SPIF_UPDATEINIFILE|SetSysColors|SetTheme|RegSet|ChangeDisplaySettings|SetProcessDpi|SetThreadDpi|PostMessage|SendMessage\(' -or
@@ -656,6 +681,7 @@ function Assert-V1HighContrastWiring([string]$Fixture,[string]$Cases,[string]$Pr
         throw 'Only an exact idle guest may GET/SET/restore HC, without persistent theme/DPI edits or an inferred full PASS.'
     }
 }
+$highContrastPreflight=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_high_contrast_preflight.h'),[Text.Encoding]::UTF8)
 $highContrast=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_high_contrast_case.h'),[Text.Encoding]::UTF8)
 Assert-V1HighContrastWiring $fixtureSource $highContrast $lifecyclePrepare $lifecycleGuest
 Check $true 'static high contrast is exact-guest-only, actual bounded GET/SET/restore, real Tab focus and separately unreviewed BMP evidence'
@@ -665,6 +691,15 @@ Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('out.s
 Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('actual.GET_attempted&&!actual.scheme_borrowed&&buffers_.pointer_freed(actual.returned_scheme_pointer)','true')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects reporting pending, borrowed or unobserved storage as actually freed'
 Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('if(entries_[i].pointer==pointer){reused=true;return true;}','if(false){reused=true;return true;}')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects registering the same still-retained pointer for duplicate release'
 Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('return exact&&ownership_complete;','return exact;')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects turning state restoration into allocation-ownership or HC PASS'
+# Actual pre-fix adapter: its original snapshot checks admitted the 8d8a OFF /
+# empty-scheme state. This is source wiring evidence, not a new native HC run.
+$oldHighContrast=(@(& git -C $repository show b899381818c667571687076aaa96e7f54ddc964f:src/platform/windows/product/v1_guest_high_contrast_case.h) -join "`n")
+if($LASTEXITCODE -ne 0){throw 'Cannot read the fixed reviewed baseline for the HC counterexample.'}
+Reject {Assert-V1HighContrastWiring $fixtureSource $oldHighContrast $lifecyclePrepare $lifecycleGuest} 'new HC wiring regression rejects the actual b899 adapter that admitted the failed empty OFF snapshot'
+Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('return guest_high_contrast_preflight::classify({known,scheme_known,scheme_retained,scheme_borrowed,','return guest_high_contrast_preflight::classify({true,true,true,false,')) $lifecyclePrepare $lifecycleGuest} 'HC wiring rejects replacing real snapshot/ownership facts with permission constants'
+Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('if(admission!=guest_high_contrast_preflight::Decision::NamedSchemeCandidate)','if(false)')) $lifecyclePrepare $lifecycleGuest} 'HC lease cannot bypass the shared preflight before its native SET'
+Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('blocked(guest_high_contrast_preflight::reason(admission));return;','blocked(guest_high_contrast_preflight::reason(admission));')) $lifecyclePrepare $lifecycleGuest} 'HC rejected entry must stop before UI and lease enable'
+Reject {Assert-V1HighContrastWiring $fixtureSource $highContrast $lifecyclePrepare $lifecycleGuest ($highContrastPreflight.Replace('if(facts.scheme_empty)return Decision::RejectEmptyScheme;',''))} 'HC shared preflight cannot silently admit the original empty OFF scheme'
 function Assert-V1NativeTopDropWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest){
     if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_native_top_drop_case.h"') -or
        -not $Fixture.Contains('phase("default_top_preview_single_real_UP_actual_Maximize",owned_native_top_drop_case);') -or

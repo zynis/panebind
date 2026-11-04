@@ -7,6 +7,7 @@
 #include "platform/windows/product/v1_guest_product_log.h"
 #include "platform/windows/product/v1_guest_physical_log.h"
 #include "platform/windows/product/v1_guest_deadline.h"
+#include "platform/windows/product/v1_guest_high_contrast_preflight.h"
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -57,6 +58,39 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    namespace hc=guest_high_contrast_preflight;
+    // The real HC TEST entry and its lease use this same classifier. These are
+    // admission facts, not native SET/recovery or product-accessibility results.
+    // 8d8a D65: known retained empty scheme, flags126 (available, OFF, no
+    // OPTION_NOTHEMECHANGE). Its actual later exact scheme recovery failed.
+    const hc::Facts empty_HC_OFF{true,true,true,false,true,false,false,true};
+    if(!expect(hc::classify(empty_HC_OFF)==hc::Decision::RejectEmptyScheme,true,
+            "actual empty original HC_OFF state rejects before any TEST SET"))return 1;
+    auto hc_facts=empty_HC_OFF;hc_facts.enabled=true;
+    if(!expect(hc::classify(hc_facts)==hc::Decision::AlreadyEnabledReadOnly,true,
+            "already-enabled empty scheme remains a read-only no-SET path"))return 1;
+    hc_facts=empty_HC_OFF;hc_facts.scheme_empty=false;
+    if(!expect(hc::classify(hc_facts)==hc::Decision::NamedSchemeCandidate,true,
+            "named HC_OFF scheme is only a SET candidate, not exact recovery PASS"))return 1;
+    hc_facts.enabled=true;
+    if(!expect(hc::classify(hc_facts)==hc::Decision::AlreadyEnabledReadOnly,true,
+            "already-enabled named scheme also needs no TEST SET"))return 1;
+    for(unsigned missing=0;missing<6;++missing){
+        hc_facts=empty_HC_OFF;hc_facts.scheme_empty=false;
+        switch(missing){
+        case 0:hc_facts.snapshot_known=false;break;
+        case 1:hc_facts.scheme_known=false;break;
+        case 2:hc_facts.scheme_retained=false;break;
+        case 3:hc_facts.scheme_borrowed=true;break;
+        case 4:hc_facts.available=false;break;
+        case 5:hc_facts.no_theme_change=true;break;
+        }
+        if(!expect(hc::classify(hc_facts)==hc::Decision::RejectSnapshot,true,
+                "unknown snapshot, ownership or unavailable/theme-change constraint retains rejection"))return 1;
+        hc_facts.enabled=true;
+        if(!expect(hc::classify(hc_facts)==hc::Decision::RejectSnapshot,true,
+                "already-ON cannot bypass existing snapshot and ownership constraints"))return 1;
+    }
     const std::string fault_status=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sequence":78,"process_id":42,"type":"status","enabled":true,"hook_owner_running":false,"gesture_active":false,"native_move_handoff_pending":false,"native_operation_pending":false,"native_completion_unknown":false,"visual_restore_pending":false,"operations":1,"native_callsite_claims":1})";
     const auto fault_changed=[&](std::string_view from,std::string_view to){auto row=fault_status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"queue status mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};

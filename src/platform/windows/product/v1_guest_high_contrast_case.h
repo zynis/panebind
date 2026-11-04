@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platform/windows/product/v1_guest_high_contrast_preflight.h"
+
 // TEST ONLY. A one-use configuration lease in the exact disposable guest.
 // Neither the product nor an ordinary host entry includes a system setter.
 struct GuestHighContrastLastSet {
@@ -80,6 +82,10 @@ struct GuestHighContrastState {
     bool scheme_retained{},retained_pointer_reused{};DWORD flags{},error{};
     std::uintptr_t returned_scheme_pointer{};
     std::wstring scheme;std::array<COLORREF,6> colors{};
+    guest_high_contrast_preflight::Decision preflight()const noexcept{
+        return guest_high_contrast_preflight::classify({known,scheme_known,scheme_retained,scheme_borrowed,
+            (flags&HCF_AVAILABLE)!=0,(flags&HCF_OPTION_NOTHEMECHANGE)!=0,(flags&HCF_HIGHCONTRASTON)!=0,scheme.empty()});
+    }
     static GuestHighContrastState read(GuestHighContrastBuffers& buffers,State* first_post_SET_trace=nullptr,
         const GuestHighContrastLastSet* last_SET=nullptr){
         const auto stage=[&](const char* name){if(first_post_SET_trace)
@@ -149,14 +155,20 @@ public:
     const GuestHighContrastState original=GuestHighContrastState::read(buffers_);
     explicit GuestHighContrastLease(State& state):state_(state),buffers_(state){}
     bool enable(){
-        if(original.flags&HCF_HIGHCONTRASTON)return true;
+        const auto admission=original.preflight();
+        if(admission!=guest_high_contrast_preflight::Decision::NamedSchemeCandidate){
+            state_.log.emit("high_contrast_guest_SET","\"requested_ON\":true,\"native_attempted\":false,"
+                "\"native_return\":null,\"reason\":"+quote(guest_high_contrast_preflight::reason(admission))+
+                ",\"profile_update_requested\":false,\"host_API_called\":false");
+            return admission==guest_high_contrast_preflight::Decision::AlreadyEnabledReadOnly;
+        }
         HIGHCONTRASTW request{sizeof(request),original.flags|HCF_HIGHCONTRASTON,const_cast<LPWSTR>(original.scheme.c_str())};
         observe_SET_enter(request,"enable");
         attempted_=true;SetLastError(ERROR_SUCCESS);
         const bool returned=SystemParametersInfoW(SPI_SETHIGHCONTRAST,sizeof(request),&request,SPIF_SENDCHANGE)!=FALSE;
         const DWORD error=returned?0:GetLastError();
         observe_SET_return(returned);
-        state_.log.emit("high_contrast_guest_SET","\"requested_ON\":true,\"native_return\":"+std::string(returned?"true":"false")+
+        state_.log.emit("high_contrast_guest_SET","\"requested_ON\":true,\"native_attempted\":true,\"native_return\":"+std::string(returned?"true":"false")+
             ",\"native_error\":"+std::to_string(error)+",\"requested_flags\":"+std::to_string(request.dwFlags)+
             ",\"fWinIni\":"+std::to_string(SPIF_SENDCHANGE)+",\"profile_update_requested\":false,\"host_API_called\":false");
         return returned;
@@ -238,9 +250,12 @@ void owned_high_contrast_case(State& s){
     const auto blocked=[&](const char* why){s.log.emit("high_contrast_environment_blocked",
         std::string("\"environment_blocked\":true,\"reason\":")+quote(why)+
         ",\"theme_registry_fallback_used\":false,\"whole_M10_F05_PASS\":false");};
-    if(!lease.original.known||!lease.original.scheme_known||!lease.original.scheme_retained||lease.original.scheme_borrowed||
-       !(lease.original.flags&HCF_AVAILABLE)||(lease.original.flags&HCF_OPTION_NOTHEMECHANGE)){
-        blocked("actual_HC_availability_scheme_or_safe_restore_unknown");return;
+    const auto admission=lease.original.preflight();
+    s.log.emit("high_contrast_preflight","\"reason\":"+quote(guest_high_contrast_preflight::reason(admission))+
+        ",\"native_SET_attempted\":false,\"candidate_is_restore_PASS\":false");
+    if(admission==guest_high_contrast_preflight::Decision::RejectSnapshot||
+       admission==guest_high_contrast_preflight::Decision::RejectEmptyScheme){
+        blocked(guest_high_contrast_preflight::reason(admission));return;
     }
     SettingsGui gui;
     try{
