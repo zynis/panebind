@@ -2,7 +2,7 @@
   "schema": "panebind-v1-acceptance/1",
   "contract": "docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md",
   "contract_version": "1.0",
-  "record_date": "2026-10-29",
+  "record_date": "2026-11-04",
   "branch": "codex/r1c4b-live-magnet",
   "engineering_status": "PARTIAL",
   "dev_complete": false,
@@ -2726,7 +2726,8 @@
       "description": "当前Release/Medium五种真实应用与E01-E05显示/环境矩阵。",
       "status": "BLOCKED",
       "remaining_conditions": "普通Explorer、Notepad/Electron/浏览器完整矩阵与E01/E03–E05真实显示环境尚缺。",
-      "next_action": "2026-10-29已补可信SSH只读能力核验，集中报告现有最小方案已细化为待授权的专属完整Medium guest实施/退出步骤；未确认现成可丢弃guest，不新建/启动VM或改宿主。完整桌面可解锁的应用/托盘前置与E03/E04双独立显示仍分开判定，继续所有不受阻合同。"
+      "next_action": "2026-11-04已沿原可信SSH定向核实ZS的非默认VirtualBox路径、注册安装项、当前账户/中央清单及Hyper-V管理入口；尚未确认可复用的具名完整guest，不代表机器没有VM。用户已暂停此前启用Hyper-V/新建VM方案，先补具体既有配置/模板路径、项目归属、允许修改及空闲时段；完整桌面和E03/E04独立双屏分别判定。T14p不承担任何VM负载，不停其它项目资源；继续原Sandbox轮流规则及不受阻合同。",
+      "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104"
     },
     {
       "id": "HG04",
@@ -14689,8 +14690,8 @@
       "remaining_conditions": [
         "缺单屏100%真实隔离显示条件；当前实际150%不改写为100%。"
       ],
-      "next_action": "2026-10-29已通过原可信SSH只读复核ZS-WORKSTATION，未确认现成具名且明确可丢弃的完整guest；Hyper-V功能禁用、无Get-VM/module/vmconnect及对应CIM命名空间，不能将未知清单写成无VM。按V1_DELIVERY_REPORT现有最小方案及20261029-environment-readonly-supplement提交新建专属完整Medium单屏100%guest的具体待授权步骤；本轮不启用功能、创建/启动VM或改宿主。瞬时可用内存不等于维护资源已获分配，先继续不受阻工作。",
-      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
+      "next_action": "2026-11-04只读补查后仍尚未确认ZS上可复用的具名完整guest；已检查D盘非默认安装路径、相关注册项及可读清单，不是全盘无VM证明。此前新建方案已按用户决定暂停，下一步只补既有VM/模板确切配置路径、归属和可修改/使用时段，获针对实例的启动授权后才验证完整Medium单屏100%桌面。当前提交余量超时UNKNOWN，旧值不作分配依据；T14p任何VM均不得启动，也不停其它项目资源。",
+      "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -14754,8 +14755,8 @@
         "已实测Medium/non-elevated/session1/单屏150%下的有限功能：42ab/f78普通GUI/设置效果/Move-NormalUp、4ff精确Terminal的Move→Resize→Move/五阶段磁吸/两成员Ctrl和实际资源收尾；f06a/750各自owned范围另保身份。不能再称全部sourceGUI/VDM/实际增强未验，也不授完整E02。",
         "当前仍缺200%主要UI/完整HC恢复、五应用及适用I01–I12。229e/2b49的Medium Shell事实不等于普通文件窗；69f4确见新Cabinet双heldRun成员，但实际RID8192/elevated=true被拒且Shell单条exact path未确认；客户nonce/菜单投递也各未通过。"
       ],
-      "next_action": "复用已通过f78普通GUI、4ff Terminal真实增强、f06a/750各自合同，不重放已关闭专项或无变量Explorer路线。2026-10-29可信只读补查仍未确认现成完整guest；按集中报告待授权完整Medium桌面方案解锁non-elevated Explorer、真实托盘、应用前置及150%/200%UI，授权前不新建VM或修改宿主。Terminal客户语义、托盘菜单、应用初始化及HC exact恢复分别保具体失败/未知，不能统一归系统；双屏/混合DPI另需独立显示能力实证。",
-      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
+      "next_action": "复用f78普通GUI、4ff Terminal几何及f06a/750原身份，不重放已闭专项或无变量Explorer路线。2026-11-04定向只读补查未确认现成可复用完整guest，新建Hyper-V方案暂停；先补既有实例配置/模板位置及归属、修改许可和时段，再在另行授权的远端实例中验证non-elevated Explorer、真实托盘、应用原生前置及150%/200%UI。Terminal客户语义、菜单、初始化和HC恢复仍分别判定；动态Medium/真实应用能力不能由软件、ISO或磁盘存在推定，双屏/DPI另门。",
+      "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -14860,8 +14861,8 @@
       "remaining_conditions": [
         "当前guest真实monitors仅1，尚无双屏负坐标隔离显示能力证据。"
       ],
-      "next_action": "2026-10-29只读WMI仅一条Active显示连接；RTX模式3840×2160与Oray未知模式、SSH session0不能证明guest双屏或负坐标。具名双显示guest尚未确认；完整桌面方案和独立双显示能力分开申请/判定，不预设Hyper-V或RDP必能提供。待实际两独立显示路径、同DPI和负坐标能力可核验后执行E03；本轮不建VM、不改宿主显示、不用核心坐标代替。",
-      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
+      "next_action": "2026-11-04补查仅针对既有环境元数据，没有启动guest或重新实测显示；10月29日一条Active连接保历史，不充当当前guest拓扑。具名可复用完整guest及其两个独立显示器/负坐标仍UNKNOWN；先确认具体实例，再按获授权的真实显示能力验证E03。完整桌面、远程连接或虚拟化平台存在都不等于双屏，不能预设Hyper-V/RDP可满足；本轮不建/启VM、不改宿主显示、不用核心坐标代替。",
+      "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -14914,8 +14915,8 @@
       "remaining_conditions": [
         "当前guest真实monitors仅1，尚无双屏100/150%混合DPI能力证据。"
       ],
-      "next_action": "按2026-10-29只读补查与集中报告保留独立双显示100%/150%逐屏DPI缺口：一条Active显示连接和RTX/Oray适配器条目不是两条guest显示路径，SSH session0不能提供交互拓扑。只在真实双独立显示路径及逐屏DPI可核验后执行E04，不能由完整单屏guest或Hyper-V启用推定成立。本轮不创建VM、改宿主或安装显示驱动；单屏可推进工作继续。",
-      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
+      "next_action": "2026-11-04定向只读补查没有确认具名双独立显示guest，亦未验证逐屏100%/150%DPI；旧显卡/连接快照和可远程连接事实不能替代。先确认既有实例及实际独立显示能力，另按具体能力验证E04；完整单屏桌面与混合DPI分别判定，不把当前暂停的新建方案视为已解锁。本轮不启动/克隆VM、安装显示驱动或改宿主；现有单屏不受阻工作继续。",
+      "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -14968,8 +14969,8 @@
       "remaining_conditions": [
         "未执行真实拓扑/DPI/虚拟桌面/session变化，既有单桌面观察不能替代。"
       ],
-      "next_action": "2026-10-29只读复核未确认现成可丢弃完整guest；按集中报告最小待授权方案准备可独立登录/锁定/切换虚拟桌面的测试环境，再执行I09及恢复首手势。拓扑/DPI热变化仍须真实显示能力，不能由单屏VM或SSH连通推定；本轮不启动/新建VM、不锁宿主、不改显示或其他项目资源。",
-      "current_readonly_supplement_ref": "evidence_mapping.current_VM_display_readonly_supplement",
+      "next_action": "2026-11-04只读补查仍尚未确认归属和可修改范围清楚的现成完整guest；先补既有实例位置、恢复点/模板及允许使用时段，不自动转入已暂停的新建方案。获针对实例的另行启动授权且交互前置成立后，才执行I09、虚拟桌面/session变化及恢复首手势；拓扑/DPI变化另需实际显示能力。本轮不启动/恢复/克隆VM、不锁宿主、不停其它项目或改显示。",
+      "current_readonly_supplement_ref": "evidence_mapping.existing_VM_reuse_readonly_20261104",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -33560,6 +33561,55 @@
       "host_or_other_project_settings_changed": false,
       "VM_or_Sandbox_started_or_created": false,
       "synthetic_input_sent": false,
+      "functional_PASS_awarded": false
+    },
+    "existing_VM_reuse_readonly_20261104": {
+      "record_date": "2026-11-04",
+      "evidence_path": "docs/reports/v1-evidence/20261104-existing-vm-reuse-review.json",
+      "raw_receipts": [
+        "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/receipt.json",
+        "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/platform-receipt.json"
+      ],
+      "host_identity": "ZS-WORKSTATION",
+      "trusted_existing_SSH_result": "TWO_BOUNDED_READONLY_METADATA_COMMANDS_EXIT0_STRICT_HOST_KEY_CHECKING",
+      "remote_observed_utc": ["2026-11-04T04:21:30.0657400Z", "2026-11-04T04:24:27.8772058Z"],
+      "historical_VirtualBox_host_resolution": "STOP_LIFECYCLE_ENVIRONMENT records the installed VirtualBox on development host; local ZS-T14P D:/Applications/Oracle/VirtualBox/VirtualBox.exe 7.2.20.175154 confirmed by file metadata only, not remote ZS installation or permission to start any local VM",
+      "remote_nondefault_and_known_binaries": "D:/Applications/Oracle/VirtualBox/{VirtualBox.exe,VBoxManage.exe}, C:/Program Files/Oracle/VirtualBox/VBoxManage.exe and known C: VMware Workstation executables ABSENT in this check",
+      "remote_registry_scope": "Oracle VirtualBox HKLM/WOW6432Node/HKCU and checked VMware HKLM keys ABSENT; matching installed-software entries zero, not every account or unregistered installation",
+      "remote_VBOX_USER_HOME": "Process/User/Machine values empty; no alternate registered configuration root established",
+      "remote_registered_inventory_paths": "zs VirtualBox.xml and VMware inventory.vmls absent; checked VMware central vmInventory.xml absent",
+      "HyperV_All_and_Management_InstallState": 2,
+      "HyperV_All_and_Management_meaning": "Disabled",
+      "Sandbox_InstallState": 1,
+      "Sandbox_meaning": "Enabled_NOT_A_COMPLETE_WINDOWS_VM_OR_PROOF_OF_IDLE_SLOT",
+      "Get_VM_available": false,
+      "vmconnect_binary_exists": false,
+      "registered_complete_VM_inventory": "UNKNOWN_NOT_ENUMERATED_NOT_AN_EMPTY_SUCCESSFUL_LIST",
+      "limited_virtualization_processes_observed": 0,
+      "named_reusable_complete_guest": "NOT_CONFIRMED_NOT_PROVEN_ABSENT",
+      "candidate_owner_modification_permission_idle_slot_and_restore_point": "UNKNOWN_NO_NAMED_CANDIDATE",
+      "current_resources": {
+        "physical_bytes": 34290831360,
+        "free_physical_KB": 14861312,
+        "free_physical_bytes": 15217983488,
+        "logical_processors": 8,
+        "committed_bytes": null,
+        "commit_limit_bytes": null,
+        "commit_headroom_bytes": null,
+        "commit_query": "UNKNOWN_WMI_TIMEOUT_NOT_ZERO_OR_HISTORICAL_REUSE",
+        "C_free_bytes": 27778924544,
+        "D_free_bytes": 41498497024,
+        "I_free_bytes": 687228833792,
+        "resource_allocation_permission": "NOT_GRANTED_BY_SNAPSHOT"
+      },
+      "complete_Medium_desktop_apps_and_tray": "UNKNOWN_REQUIRES_EXACT_REMOTE_GUEST_AND_LATER_AUTHORIZED_INTERACTIVE_VERIFICATION",
+      "independent_dual_displays_and_mixed_DPI": "UNKNOWN_SEPARATE_FROM_COMPLETE_DESKTOP_AND_REMOTE_CONNECTIVITY",
+      "uncovered_scope": "Unregistered instances/templates/disks, other-account inventories and paths not present in known records remain unexamined; no drive-wide user-data scan",
+      "minimum_next_operation": "Obtain one exact existing VM configuration/template path plus platform/instance identity, owner confirmation, allowed test modification and idle slot; inspect only that metadata before proposing instance-specific use. No new-build fallback without decision.",
+      "new_HyperV_and_VM_plan": "PAUSED_BY_CURRENT_USER_DIRECTION_NOT_EXECUTED",
+      "T14p_VM_start_or_virtualization_load": "FORBIDDEN_FOR_NEW_EXISTING_CLONED_OR_RESTORED_VMS",
+      "other_project_resource_shutdown": "NOT_AUTHORIZED_WITHOUT_CORRESPONDING_PROJECT_CONFIRMATION_AND_AUTHORITY",
+      "effects": {"VM_started_restored_cloned_reconfigured": false, "software_or_host_settings_changed": false, "guest_disk_contents_read": false, "other_project_resources_stopped": false, "host_input_or_scheduled_checks": false},
       "functional_PASS_awarded": false
     }
   },

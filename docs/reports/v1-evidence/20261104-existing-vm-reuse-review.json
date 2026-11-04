@@ -1,0 +1,444 @@
+{
+    "schema":  "panebind-existing-environment-reuse-review/1",
+    "record_date":  "2026-11-04",
+    "timezone":  "Asia/Shanghai",
+    "source_head":  "9cd940198d270849cc2f9f7d53b230a6b0ca9512",
+    "kind":  "BOUNDED_READONLY_METADATA_NOT_FUNCTIONAL_ACCEPTANCE",
+    "outcome":  "NO_REUSABLE_INSTANCE_CONFIRMED",
+    "not_a_claim_machine_has_no_VM":  true,
+    "trusted_connection":  {
+                               "alias":  "crossrec-desktop",
+                               "endpoint":  "192.168.1.6:22",
+                               "strict_host_key_checking":  true,
+                               "public_key_authentication_observed":  true,
+                               "known_host_matched":  true,
+                               "actual_hostname":  "ZS-WORKSTATION",
+                               "current_result":  "PASS",
+                               "configuration_modified":  false,
+                               "credentials_added":  false
+                           },
+    "observed_client_time":  "2026-11-04T12:21:30.0657400+08:00",
+    "platform_observed_client_time":  "2026-11-04T12:24:27.8772058+08:00",
+    "historical_host_attribution":  {
+                                        "record":  "docs/reports/R1C4B_MVP1_STOP_LIFECYCLE_ENVIRONMENT.md:23-24",
+                                        "VirtualBox_7_2_20_was_T14p_not_ZS":  true,
+                                        "historical_empty_VM_lists_not_reused_as_current":  true,
+                                        "nondefault_path_user_supplied_this_round":  "D:\\Applications\\Oracle\\VirtualBox",
+                                        "path_not_found_in_scoped_repository_history_does_not_skip_actual_check":  true
+                                    },
+    "developer_host":  {
+                           "machine":  "ZS-T14P",
+                           "VirtualBox_file_metadata":  {
+                                                            "path":  "D:\\Applications\\Oracle\\VirtualBox\\VirtualBox.exe",
+                                                            "exists":  true,
+                                                            "version":  "7.2.20.175154"
+                                                        },
+                           "ISO_file_metadata":  {
+                                                     "path":  "C:\\Users\\zhang\\Downloads\\26200.6584.250915-1905.25h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso",
+                                                     "exists":  true,
+                                                     "bytes":  7371034624,
+                                                     "hash_mount_and_license_not_rechecked":  true
+                                                 },
+                           "memory_constraint":  "USER_REPORTED_SEVERELY_CONSTRAINED",
+                           "VM_testing":  "PROHIBITED_NEW_EXISTING_CLONE_RESTORE_OR_RESUME",
+                           "local_VM_registry_not_enumerated_this_round":  true,
+                           "other_project_resources_not_stopped":  true,
+                           "software_and_ISO_are_not_installed_VM_evidence":  true
+                       },
+    "remote_resources":  {
+                             "host":  "ZS-WORKSTATION",
+                             "os":  "Microsoft Windows 11 专业版",
+                             "build":  "26200",
+                             "logical_processors":  8,
+                             "physical_bytes":  34290831360,
+                             "free_physical_KB":  14861312,
+                             "free_physical_bytes":  15217983488,
+                             "free_physical_GiB":  14.173,
+                             "committed_bytes":  null,
+                             "commit_limit_bytes":  null,
+                             "commit_headroom_bytes":  null,
+                             "commit_status":  "UNKNOWN_PROVIDER_TIMEOUT",
+                             "commit_actual_error":  "已超时 ",
+                             "fixed_disk_metadata":  [
+                                                         {
+                                                             "DeviceID":  "C:",
+                                                             "Size":  246218649600,
+                                                             "FreeSpace":  27778924544
+                                                         },
+                                                         {
+                                                             "DeviceID":  "D:",
+                                                             "Size":  251595321344,
+                                                             "FreeSpace":  41498497024
+                                                         },
+                                                         {
+                                                             "DeviceID":  "E:",
+                                                             "Size":  711906553856,
+                                                             "FreeSpace":  189051428864
+                                                         },
+                                                         {
+                                                             "DeviceID":  "F:",
+                                                             "Size":  644245090304,
+                                                             "FreeSpace":  95846252544
+                                                         },
+                                                         {
+                                                             "DeviceID":  "G:",
+                                                             "Size":  644244041728,
+                                                             "FreeSpace":  45424259072
+                                                         },
+                                                         {
+                                                             "DeviceID":  "H:",
+                                                             "Size":  1000197844992,
+                                                             "FreeSpace":  52076343296
+                                                         },
+                                                         {
+                                                             "DeviceID":  "I:",
+                                                             "Size":  1000197844992,
+                                                             "FreeSpace":  687228833792
+                                                         }
+                                                     ],
+                             "reservation_or_maintenance_window":  "NOT_CONFIRMED",
+                             "snapshot_not_allocation_authorization":  true,
+                             "historical_commit_headroom_not_carried_forward":  true
+                         },
+    "remote_software_checks":  {
+                                   "dedicated_registry":  [
+                                                              {
+                                                                  "key":  "HKLM:\\SOFTWARE\\Oracle\\VirtualBox",
+                                                                  "ABSENT":  true
+                                                              },
+                                                              {
+                                                                  "key":  "HKLM:\\SOFTWARE\\WOW6432Node\\Oracle\\VirtualBox",
+                                                                  "ABSENT":  true
+                                                              },
+                                                              {
+                                                                  "key":  "HKCU:\\SOFTWARE\\Oracle\\VirtualBox",
+                                                                  "ABSENT":  true
+                                                              },
+                                                              {
+                                                                  "key":  "HKLM:\\SOFTWARE\\VMware, Inc.\\VMware Workstation",
+                                                                  "ABSENT":  true
+                                                              }
+                                                          ],
+                                   "matching_uninstall_entries":  [
+
+                                                                  ],
+                                   "known_nondefault_and_default_binary_metadata":  [
+                                                                                        {
+                                                                                            "path":  "D:\\Applications\\Oracle\\VirtualBox\\VirtualBox.exe",
+                                                                                            "ABSENT":  true
+                                                                                        },
+                                                                                        {
+                                                                                            "path":  "D:\\Applications\\Oracle\\VirtualBox\\VBoxManage.exe",
+                                                                                            "ABSENT":  true
+                                                                                        },
+                                                                                        {
+                                                                                            "path":  "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe",
+                                                                                            "ABSENT":  true
+                                                                                        },
+                                                                                        {
+                                                                                            "path":  "C:\\Program Files\\VMware\\VMware Workstation\\vmware.exe",
+                                                                                            "ABSENT":  true
+                                                                                        },
+                                                                                        {
+                                                                                            "path":  "C:\\Program Files (x86)\\VMware\\VMware Workstation\\vmware.exe",
+                                                                                            "ABSENT":  true
+                                                                                        }
+                                                                                    ],
+                                   "meaning":  "No installation established in these registry and exact-path checks; not proof no portable or other-account installation exists",
+                                   "PATH_only_absence_not_used":  true,
+                                   "configuration_roots":  [
+                                                               {
+                                                                   "VBOX_USER_HOME":  null,
+                                                                   "registered_machine_home":  null,
+                                                                   "registered_user_home":  null,
+                                                                   "profile":  "C:\\Users\\zs",
+                                                                   "vbox_inventory":  "C:\\Users\\zs\\.VirtualBox\\VirtualBox.xml",
+                                                                   "vmware_inventory":  "C:\\Users\\zs\\AppData\\Roaming\\VMware\\inventory.vmls"
+                                                               }
+                                                           ],
+                                   "registered_inventory_metadata":  [
+                                                                         {
+                                                                             "path":  "C:\\Users\\zs\\.VirtualBox\\VirtualBox.xml",
+                                                                             "ABSENT":  true
+                                                                         },
+                                                                         {
+                                                                             "path":  "C:\\Users\\zs\\AppData\\Roaming\\VMware\\inventory.vmls",
+                                                                             "ABSENT":  true
+                                                                         }
+                                                                     ],
+                                   "VMware_central_inventory":  {
+                                                                    "path":  "C:\\ProgramData\\VMware\\hostd\\vmInventory.xml",
+                                                                    "ABSENT":  true
+                                                                },
+                                   "HyperV_features":  [
+                                                           {
+                                                               "Name":  "Microsoft-Hyper-V-All",
+                                                               "InstallState":  2
+                                                           },
+                                                           {
+                                                               "Name":  "Microsoft-Hyper-V-Management-PowerShell",
+                                                               "InstallState":  2
+                                                           },
+                                                           {
+                                                               "Name":  "Containers-DisposableClientVM",
+                                                               "InstallState":  1
+                                                           }
+                                                       ],
+                                   "InstallState_meaning":  {
+                                                                "1":  "Enabled",
+                                                                "2":  "Disabled"
+                                                            },
+                                   "Get_VM_available":  false,
+                                   "vmconnect_binary_exists":  false,
+                                   "HyperV_VM_inventory":  "UNKNOWN_NOT_ENUMERATED_NO_CURRENT_ENABLED_MANAGEMENT_ENTRY"
+                               },
+    "current_process_observation":  {
+                                        "scope":  "One successful filtered Win32_Process query: VBox UI/service/VM, VMware vmx, vmwp and Sandbox client names only",
+                                        "records":  [
+
+                                                    ],
+                                        "count":  0,
+                                        "not_a_reservation_or_all_registered_guest_inventory":  true,
+                                        "no_repeated_occupancy_checks":  true
+                                    },
+    "installed_complete_guest_candidates":  [
+
+                                            ],
+    "candidate_assessment":  {
+                                 "name_UUID_config_disk":  "NO_NAMED_INSTANCE_CONFIRMED",
+                                 "running_state":  "NOT_ESTABLISHED_FOR_ANY_COMPLETE_GUEST",
+                                 "project_owner":  "UNKNOWN",
+                                 "idle_window":  "UNKNOWN",
+                                 "permission_to_modify":  "NOT_CONFIRMED",
+                                 "restore_point_or_clean_template":  "NOT_CONFIRMED",
+                                 "estimated_additional_resource_for_reuse":  "UNKNOWN_NO_INSTANCE_CONFIG",
+                                 "actual_new_VM_memory_allocation_bytes":  0
+                             },
+    "distinct_asset_types":  [
+                                 {
+                                     "host":  "ZS-T14P",
+                                     "type":  "VIRTUALIZATION_SOFTWARE",
+                                     "name":  "VirtualBox",
+                                     "path":  "D:\\Applications\\Oracle\\VirtualBox\\VirtualBox.exe",
+                                     "status":  "EXISTS_BUT_T14p_VM_USE_PROHIBITED",
+                                     "installed_Windows_guest_proved":  false
+                                 },
+                                 {
+                                     "host":  "ZS-T14P",
+                                     "type":  "INSTALLATION_ISO",
+                                     "path":  "C:\\Users\\zhang\\Downloads\\26200.6584.250915-1905.25h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso",
+                                     "exists":  true,
+                                     "bytes":  7371034624,
+                                     "status":  "INSTALLATION_MEDIA_NOT_AN_INSTALLED_VM",
+                                     "guest_install_license_not_checked":  true
+                                 },
+                                 {
+                                     "host":  "ZS-WORKSTATION",
+                                     "type":  "DISPOSABLE_SANDBOX_CAPABILITY",
+                                     "feature":  "Containers-DisposableClientVM",
+                                     "InstallState":  1,
+                                     "current_instance":  "NOT_OBSERVED_IN_SCOPED_PROCESS_QUERY",
+                                     "ownership_or_time_slot":  "NOT_RESERVED",
+                                     "full_Medium_desktop_not_proved":  true
+                                 },
+                                 {
+                                     "host":  "ZS-WORKSTATION",
+                                     "type":  "VIRTUAL_DISKS_OR_TEMPLATES",
+                                     "status":  "NO_EXACT_PATH_ESTABLISHED_FROM_CHECKED_REGISTRIES",
+                                     "unregistered_files_elsewhere_not_searched":  true
+                                 }
+                             ],
+    "dynamic_capabilities":  {
+                                 "complete_Windows_desktop":  "NOT_OBSERVED",
+                                 "standard_Medium_session":  "NOT_OBSERVED",
+                                 "native_apps_client_input_normal_exit":  "NOT_OBSERVED",
+                                 "tray":  "NOT_OBSERVED",
+                                 "guest_independent_dual_displays":  "UNKNOWN",
+                                 "negative_coordinate_work_area":  "NOT_OBSERVED",
+                                 "per_monitor_mixed_DPI":  "UNKNOWN",
+                                 "static_VM_or_RDP_support_not_a_PASS":  true,
+                                 "full_desktop_and_dual_display_separate":  true
+                             },
+    "checked_scope":  [
+                          "Actual host identity through original trusted SSH; no target-address guessing",
+                          "Exact nondefault D:\\Applications\\Oracle\\VirtualBox executables and listed default paths",
+                          "Oracle HKLM/WOW6432/HKCU and VMware dedicated registry keys",
+                          "HKLM64/HKLM32/HKCU Uninstall entries filtered to VirtualBox/VMware/QEMU",
+                          "VBOX_USER_HOME in process, registered user and machine environments",
+                          "Current SSH-account VBox XML and VMware inventory, plus VMware central inventory metadata",
+                          "Current Hyper-V platform/management and Sandbox feature state; management binary/command availability",
+                          "Current physical memory, commit provider and fixed-disk space metadata; one scoped virtualization-process observation"
+                      ],
+    "not_covered":  [
+                        "Unregistered VM/config/template/disk locations that do not appear in records or readable registries",
+                        "Other accounts private VM registries or user directories",
+                        "Whole drives, other-project guest disks/internal data, recovery-point validity or Windows installation state",
+                        "Actual interactive guest desktop, application/tray availability, independent display topology or DPI",
+                        "A reliable current commit-headroom value after provider timeout"
+                    ],
+    "minimal_next_operation":  {
+                                   "need":  "Existing remote VM/template exact configuration path or directory, instance name/ID and project ownership",
+                                   "then":  "Read only that exact configuration and resource metadata, obtain owner confirmation of allowed test mutation, usable recovery point and idle period",
+                                   "current_specific_instance_reuse_steps":  [
+
+                                                                             ],
+                                   "why_empty":  "No suitable named instance identified, so instance-specific startup and resource estimates would be fabricated",
+                                   "before_any_VM_start":  "Separate decision required: this brief authorizes complete-VM inspection only",
+                                   "no_automatic_new_build_fallback":  true,
+                                   "previous_HyperV_new_VM_scheme":  "PAUSED_BY_CURRENT_USER_INSTRUCTION_NOT_EXECUTED",
+                                   "no_local_VM_fallback":  true
+                               },
+    "transport_history":  {
+                              "network_down_not_inferred":  true,
+                              "initial_stdin_command_exit":  255,
+                              "initial_error":  "Timeout, server 192.168.1.6 not responding.",
+                              "minimal_hostname_diagnostic_exit":  0,
+                              "minimal_hostname":  "ZS-Workstation",
+                              "second_stdin_query_exit":  255,
+                              "second_query_phase":  "Known host matched and public-key auth succeeded, command sent, then timeout without valid stdout",
+                              "large_inline_command_exit":  1,
+                              "large_inline_encoded_characters":  16744,
+                              "large_inline_error":  "Garbled localized error, no lossless text retained; command-size limit suspected, not established as a platform root cause",
+                              "successful_short_query_exit":  0,
+                              "successful_short_encoded_characters":  5748,
+                              "successful_platform_followup_exit":  0,
+                              "successful_platform_encoded_characters":  4040,
+                              "no_query_execution_claim_for_failed_sessions":  "Extent unknown; failed sessions supplied no usable inventory",
+                              "local_only_errors":  "Initial restricted ssh -G config access denied, resolved using approved read permission; adding -v to ssh -G caused local PowerShell NativeCommandError before connection, corrected without configuration changes",
+                              "no_further_remote_attempts_or_polling":  true
+                          },
+    "effects":  {
+                    "VM_started_restored_cloned_reconfigured":  false,
+                    "local_virtualization_load_added":  false,
+                    "manager_or_VBoxManage_launched":  false,
+                    "guest_disk_contents_read_or_mounted":  false,
+                    "host_features_or_settings_changed":  false,
+                    "host_restarted":  false,
+                    "processes_or_other_projects_stopped":  false,
+                    "CrossRec_files_environment_tasks_changed":  false,
+                    "remote_files_deliberately_written":  false,
+                    "software_installed":  false,
+                    "host_or_guest_test_input_sent":  false,
+                    "scheduled_checks_added":  false,
+                    "product_driver_source_changed":  false,
+                    "product_or_package_rebuilt":  false,
+                    "Full_or_900_or_closed_specialties_rerun":  false
+                },
+    "raw_artifacts":  [
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/local-known-paths.json",
+                                            "bytes":  909,
+                                            "sha256":  "6B7D0C42B49D19BA3010C45B1130BE1DC997CE61D90003AA50A3A5CCFDCEBB04"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/platform-receipt.json",
+                                            "bytes":  1905,
+                                            "sha256":  "10FCB7BEC6573EC89DF29881D6BAC425D164D658CD63763823AFC5B98517AC70"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/platform-stderr.txt",
+                                            "bytes":  0,
+                                            "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/platform-stdout.json",
+                                            "bytes":  2112,
+                                            "sha256":  "1E5BD1209756828B181F5BFA16835B17EDC94AA4DE644645447E86960A28A104"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/receipt.json",
+                                            "bytes":  6972,
+                                            "sha256":  "6CED033561660F8084D11D8D073FBBCF42C5F714E442746715C0BDB2398BB11D"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/stderr.txt",
+                                            "bytes":  0,
+                                            "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-small-20261104-a1ce02eeb09a4d87a01fbd4f03c73350/stdout.json",
+                                            "bytes":  8962,
+                                            "sha256":  "07136BFAF1ADEB1948851135EBEEE82339219C6AB65ABF35C53C4479C58512C0"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-1fc79de58109482d9df5197c45126560/handshake-stderr.txt",
+                                            "bytes":  18654,
+                                            "sha256":  "0ABBC58DA6D6880B4B85F20069C5F835510B1A24E796B15E0B43C166CBEFCB07"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-1fc79de58109482d9df5197c45126560/handshake-stdout.txt",
+                                            "bytes":  34,
+                                            "sha256":  "490CCE65CE4D1829A5D165689022CD1C657387E204D09E7349C5A89A56522818"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-1fc79de58109482d9df5197c45126560/receipt.json",
+                                            "bytes":  1055,
+                                            "sha256":  "CEB0EE2B49453D8BF2265EF2C45A10DCD0148FB5E9029AF74B066EC92EB50E09"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-1fc79de58109482d9df5197c45126560/stderr.txt",
+                                            "bytes":  910,
+                                            "sha256":  "BBBF25A059175C4430E61ECEFB9E47B88D622E992476860739EB68DB64647B3E"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-1fc79de58109482d9df5197c45126560/stdout.json",
+                                            "bytes":  0,
+                                            "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-19ab6cf0631246898b2d446a5fe20af6/receipt.json",
+                                            "bytes":  1055,
+                                            "sha256":  "015ECD05AB3567E7CFC8B498B749FF74620E213A854F6EB623A785D628B8A9F7"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-19ab6cf0631246898b2d446a5fe20af6/stderr.txt",
+                                            "bytes":  10148,
+                                            "sha256":  "7091C5348505CECD8D0D22ABF2521D8198812AF96CECD3AA6C95B1E3B09E7ED3"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-19ab6cf0631246898b2d446a5fe20af6/stdout.json",
+                                            "bytes":  0,
+                                            "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-c7102a1ce22f4031993a4fc8d8a6a135/receipt.json",
+                                            "bytes":  1165,
+                                            "sha256":  "97C06E80786E29D1F4EB19E81B9456EA3684F2F1C7A632FE066B9F20573CF7F3"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-c7102a1ce22f4031993a4fc8d8a6a135/stderr.txt",
+                                            "bytes":  11702,
+                                            "sha256":  "E5B1147B6F8E9903F4F11CF074D10580D074EE494EB53121F6B377A963620321"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-readonly-20261104-c7102a1ce22f4031993a4fc8d8a6a135/stdout.json",
+                                            "bytes":  0,
+                                            "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/readonly-existing-vm-20261104.ps1",
+                                            "bytes":  16095,
+                                            "sha256":  "601E93028AA6E53BAD2DFB0A2ACB89DADEB5D32CBF121F486F65A021FFDE900D"
+                                        },
+                                        {
+                                            "path":  "uat/v1-control/existing-vm-small-query-20261104.ps1",
+                                            "bytes":  6096,
+                                            "sha256":  "AB13A13E129322F620D79AC7A6E90CDB83C004FEE5D50E8F4A212C252633C523"
+                                        }
+                      ],
+    "raw_artifact_scope":  "Local ignored originals include unredacted SSH diagnostic paths; published review contains metadata only, no credentials. Helper pins are final local audit-source versions, not separately captured byte-for-byte sources for every earlier invocation; each query payload hash remains in its original receipt.",
+    "continuation":  {
+                         "product_source_SHA":  "465cbf321d37b9f8dcdf30420aa648494a94cbf3",
+                         "driver_source_SHA":  "945160b25c6e1ec33276151a61cd08d7ba22ddb2",
+                         "functions_implemented":  60,
+                         "functions_DEV_pass":  46,
+                         "benchmark_PASS":  22,
+                         "integration_chains_PASS":  5,
+                         "V1":  "PARTIAL",
+                         "HUMAN_UAT":  "PENDING",
+                         "REA":  "NOT_STARTED",
+                         "functional_acceptance_verdict_changed":  false,
+                         "NF02":  "No new evidence or relevant code change; do not blindly alter or resample",
+                         "Sandbox":  "Existing authority and turn-taking rule retained, not started or reserved by this read-only inquiry"
+                     }
+}

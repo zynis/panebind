@@ -1,5 +1,27 @@
 # PaneBind V1 集中交付进展
 
+## 远端既有环境复用核查（2026-11-04）
+
+**结论：尚未确认可复用实例，不是“ZS没有VM”。** 本轮按用户决定先核既有资源，明确暂停“启用Hyper-V＋新建guest”旧方案；下方10月历史建设命令不是本轮执行计划，不自动转入新建。T14p因用户报告的严重内存限制，不启动新建／已有／克隆／恢复的任何VM，不关闭其它项目WSL、Docker、数据库、模拟器、VM或用户进程来腾资源。
+
+[本轮只读清单及原始回执pins](v1-evidence/20261104-existing-vm-reuse-review.json)记录了原可信`crossrec-desktop`／`192.168.1.6:22`的实际成功查询；12:21:30、12:24:27（Asia/Shanghai）分别取得资源／软件及平台补查。前两条stdin大查询无有效输出而超时，最小hostname成功、verbose已确认主机密钥匹配和公钥认证；一条16,744字符inline命令返回1且本地化错误乱码，原因未确证。改成5,748字符的定向查询及4,040字符的平台补查后均实际exit0，不能再报当前NETWORK_DOWN。失败原件全部保留，不冒称失败查询已完整执行或未执行；没有改SSH配置／校验、上传远端文件或新增凭据。
+
+| 已核对象 | 主机／实际依据 | 可复用判定与缺项 |
+| --- | --- | --- |
+| VirtualBox软件 | 历史7.2.20安装记录属于ZS-T14P；本轮该机`D:\Applications\Oracle\VirtualBox\VirtualBox.exe`实际存在，文件版本7.2.20.175154，仅读元数据 | 不是VM；本轮T14p不得承担任何VM测试，未重新枚举本机guest，旧空列表不代表当前 |
+| 远端VBox／VMware入口 | ZS给定D盘两EXE、默认VBoxManage／VMware路径均未见；Oracle64／32／HKCU及VMware专用键未见，三类卸载清单匹配项0，VBOX_USER_HOME进程／User／Machine均空 | 不以PATH缺失下结论；这些具体入口未确认安装，不排除其它账户、portable安装或未登记路径 |
+| 完整VM／模板 | 当前zs的VBox XML、VMware inventory.vmls及VMware中央清单未见；Hyper-V-All／Management实际InstallState2，Get-VM及VMConnect不可用，未枚举注册实例 | 具名实例／ID／配置与磁盘路径、项目归属、空闲时段、修改许可和有效恢复点全部未确认；不是一个成功枚举出的空VM清单 |
+| Sandbox | 功能实际InstallState1；一次限定进程查询未见VBox／VMware vmx／vmwp／Sandbox目标 | 是临时隔离能力，不是现成完整Windows VM，也不是资源预留；本轮不启动，不抢占、不轮询，继续既有轮流约定 |
+| 安装ISO | T14p用户原指定25H2 ISO当前仍存在，7,371,034,624字节；完整路径见回执 | 仅安装介质，不是安装完成的guest；本轮未挂载／传输或重核许可，不用于规避本机负载限制 |
+
+当前ZS物理内存34,290,831,360字节、空闲14.173GiB、8逻辑CPU；C／D／I空闲分别25.871／38.648／640.032GiB。提交计数提供器本次实际超时，committed／limit／headroom保持UNKNOWN，不套用10月29日8.695GiB。瞬时资源不是CrossRec或其它项目空闲证明，也不授权分配。没有合适具名实例，不能捏造其预计启动RAM／额外占用；本轮新增VM分配0。
+
+**最小下一步是补一条现成资源线索**：远端已有VM／模板的确切配置文件或目录、实例名／ID及所属项目；取得后仅定向读配置，再由所属项目确认允许测试修改、可用恢复点和空闲使用时段。当前未覆盖其它账户私有清单、未登记且未在记录出现的磁盘／模板位置，不全盘扫描、不读guest内部内容。具体实例未确认前不提交假定的启动／恢复／克隆操作；本轮完整VM仅获核查授权，启动和修改均未执行。已向用户询问上述路径线索，而非要求搬包、购买设备或立即新建。
+
+完整Windows桌面、普通Medium、原生应用／客户输入／托盘、恢复点可用性都需后续实际guest证据；独立双屏、负坐标、逐屏混合DPI另判UNKNOWN，VM或远程连接存在不替代它们。产品465、驱动945及全部旧证据身份保留，未重建／封包、未发现场输入、未盲改NF02或重跑已闭专项／Full／900秒；本轮只做环境元数据及验收表一致性复核。仍60/60接通、46/60 DEV、22/40对标、5/12整链，V1 PARTIAL、真人UAT PENDING、REA NOT_STARTED，不开放宿主试用。
+
+本轮起点`9cd940198d270849cc2f9f7d53b230a6b0ca9512`、分支`codex/r1c4b-live-magnet`，标准`git fetch origin`成功且起点同分支0/0。20份原件／辅助来源pins长度与SHA及当前资源／组件字段逐项匹配；修正了本地PowerShell序列化的pins数组包装问题，不改原始数据。`powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptance.ps1`与`git diff --check`通过；旧证据索引、功能／模块／对标／整链／NF02及旧环境快照深比较保持不变。未知`cleaner.ps1`和方案输入目录保留，不入本轮提交。
+
 ## 本地工件清理与原队列接续（2026-10-29）
 
 已实际清理，不是dry-run。[清理回执](v1-evidence/20261029-disk-cleanup.json)保留起点`dbfbb04f612757f743864198aa42a4d6998c081e`、逐构建目录汇总、逐Run原ZIP／SHA及已删条目、完整本地路径清单与原件pins。共删35,946文件／34,282,225,611字节（31.928GiB）：历史`.obj/.ilk/.tlog`14.991GiB，247个已结束Run的精确归档展开载荷16.937GiB，其中38份`VSCode-test.zip`为12.446GiB。原ZIP／manifest／脚本／标记／WSB／回执不变，output／collection不纳入删除。
@@ -126,7 +148,7 @@
 - p99 **严格小于1ms**，输入到实际几何＋post-context 完成的 p95 **严格小于50ms**；串行 follower 保留共同输入起点，不只计 native API。未解释的正常持续大于100ms停顿须调查；故意 writer stall 单独作为恢复证据。
 - 完成摘要在真实 writer stop／最后 drain 后；全部正常样本的 missing／reversed／overflow／unfinished／饱和均须核算，不能删除慢值、遗漏末次完成或把未知当0。无法解释完整分母时仍不通过。
 
-### 环境结论与一个最小方案（10月26—27日历史，29日只读补查；建设待授权）
+### 历史环境结论与最小建设方案（10月26—29日；11月4日明确暂停，先核复用）
 
 [本轮只读回执](v1-evidence/20261026-environment-readonly-review.json)区分实际观察与历史：T14p 为 Home／26200，物理内存31.49GiB，可用5.66GiB，已提交56.18／66.00GiB。已确认用户给定 ISO 文件存在（7,371,034,624字节），未挂载、未安装；未确认任何具名、可丢弃的完整 Windows VM。发现 vmwp 不等于可复用 VM，未触碰它。初次受限 CIM 的 access denied 经同一只读查询权限解决，空值转0不作为实测内存。
 

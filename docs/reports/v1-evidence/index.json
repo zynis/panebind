@@ -1,6 +1,13 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-27",
+  "existing_environment_reuse_20261104_files": [
+    {
+      "path": "docs/reports/v1-evidence/20261104-existing-vm-reuse-review.json",
+      "sha256": "EF6F5BB3CC8C547F9EC55CEB39BFB7F3F3971899FC6DCB48B5FFA9565880E7EF",
+      "bytes": 34384
+    }
+  ],
   "local_disk_cleanup_20261029_files": [
     {
       "path": "docs/reports/v1-evidence/20261029-disk-cleanup.json",
