@@ -1,0 +1,41 @@
+{
+  "schema": "panebind-settings-successor-resource-gate/1",
+  "run_id": "864324ae101c450baabf9b7eedd51f2a",
+  "trigger": "Authorized same-window successor product/driver repair Run; one fresh prelaunch gate only",
+  "actual_utc": "2026-11-05T16:45:40.5705914Z",
+  "machine": "ZS-WORKSTATION",
+  "user": "zs",
+  "measurements": {
+    "FreePhysicalMemory_KiB": 15887596,
+    "FreeVirtualMemory_KiB": 4751160,
+    "physical_min_KiB": 6291456,
+    "CIM_FreeVirtualMemory_min_KiB": 5242880,
+    "guest_MiB": 4096
+  },
+  "busy": [
+    {
+      "Name": "WindowsSandboxRemoteSession.exe",
+      "ProcessId": 57992,
+      "SessionId": 1,
+      "CommandLine": "\"C:\\Users\\zs\\AppData\\Local\\Microsoft\\WindowsApps\\WindowsSandboxRemoteSession.exe\" \"I:\\XiangFlowValidation\\e4382b2ac16546fbb2294eb1b6784493\\XiangFlow.wsb\" ",
+      "CreationDate": "/Date(1793895091565)/"
+    }
+  ],
+  "physical_gate_pass": true,
+  "CIM_FreeVirtualMemory_gate_pass": false,
+  "occupancy_gate_pass": false,
+  "allowed": false,
+  "resource_retries": 0,
+  "launch_attempted": false,
+  "temporary_task_created": false,
+  "no_own_live_resources_to_cleanup": true,
+  "no_foreign_instance_closed_or_changed": true,
+  "FreeVirtualMemory_meaning": "Original CIM field; not an independently measured commit-limit counter.",
+  "historical_a793_values_not_reused": true,
+  "original_receipt": {
+    "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/864324ae101c450baabf9b7eedd51f2a/prelaunch-new-batch-20261105T164535816Z-40f4b1438fd54fe1947fa397f6da420d.json",
+    "bytes": 752426,
+    "sha256": "87592A03F13D307E28636309D967E65A4DA6908024E4F0EA2B3B03D55E685B3F"
+  },
+  "field_result": "NOT_RUN_ENVIRONMENT_GATE_REFUSED_NOT_PRODUCT_FAIL"
+}

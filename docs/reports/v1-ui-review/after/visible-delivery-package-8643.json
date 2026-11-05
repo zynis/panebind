@@ -1,0 +1,131 @@
+{
+  "schema": "panebind-settings-visible-successor-package/1",
+  "run_id": "864324ae101c450baabf9b7eedd51f2a",
+  "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+  "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+  "packaging_head": "353d8453ca0200fc27c034af18140d66d15c2a47",
+  "product_release_sha256": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D",
+  "driver_release_sha256": "FD2F92BBA60D7A91277FCC6CC588048C644595D790D84B79E04F8D50491D2F8E",
+  "portable_package_id": "9498d52cda714a71b2a2d58748c14e81",
+  "portable_zip": {
+    "path": "uat/v1-portable/9498d52cda714a71b2a2d58748c14e81/PaneBindV1-Release-9498d52cda714a71b2a2d58748c14e81.zip",
+    "bytes": 614600,
+    "sha256": "470AAE2CF8F1CDC909183B7A60FD048889342BC398A758F2703CEADEA80E2F45"
+  },
+  "portable_manifest": {
+    "sha256": "879C4E2978AA861F3A7A0139E6F8DA5B8CDB0DA778F923B04D823ACDC0BFB09B",
+    "source": "original portable receipt"
+  },
+  "portable_receipt": {
+    "path": "uat/v1-portable/9498d52cda714a71b2a2d58748c14e81/package-receipt.json",
+    "bytes": 3652,
+    "sha256": "6C405DDB88F723C1D94AA289495C58206BC306546396D46F7FE9F42E30B75CB0"
+  },
+  "guest_zip": {
+    "path": "uat/v1-sandbox/864324ae101c450baabf9b7eedd51f2a/864324ae101c450baabf9b7eedd51f2a.zip",
+    "bytes": 7293442,
+    "sha256": "ECF9CFCB57E6282E03DED1D05774F1755013FE1430DF3D1C83611E48865F01B8"
+  },
+  "manifest": {
+    "path": "uat/v1-sandbox/864324ae101c450baabf9b7eedd51f2a/input/manifest.json",
+    "bytes": 22465,
+    "sha256": "C77CE13A28F86351AB7FE67BBB65494CD3E288310499ED7582863CFC6E4D780A"
+  },
+  "wsb": {
+    "path": "uat/v1-sandbox/864324ae101c450baabf9b7eedd51f2a/PaneBindV1.wsb",
+    "bytes": 989,
+    "sha256": "61E073C95F76AEE49CE3EEDE488C4EC459C287A29DEA9FAC82B797B8D0D5D58C"
+  },
+  "package_receipt": {
+    "path": "uat/v1-sandbox/864324ae101c450baabf9b7eedd51f2a/package-receipt.json",
+    "bytes": 13538,
+    "sha256": "F44EF74ADE030E2D17AD7C68A8E1FB0C11D985756BDC82FDAF594E37DB6FCE21"
+  },
+  "deployment": {
+    "stage": "deploy",
+    "machine": "ZS-WORKSTATION",
+    "run_id": "864324ae101c450baabf9b7eedd51f2a",
+    "source_commit": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+    "archive_sha256": "ECF9CFCB57E6282E03DED1D05774F1755013FE1430DF3D1C83611E48865F01B8",
+    "files": [
+      {
+        "path": "input\\manifest.json",
+        "size": 22465,
+        "sha256": "C77CE13A28F86351AB7FE67BBB65494CD3E288310499ED7582863CFC6E4D780A"
+      },
+      {
+        "path": "input\\panebind-v1-guest-fixture.exe",
+        "size": 5060608,
+        "sha256": "FD2F92BBA60D7A91277FCC6CC588048C644595D790D84B79E04F8D50491D2F8E"
+      },
+      {
+        "path": "input\\panebind-v1-input.marker",
+        "size": 32,
+        "sha256": "0AEDB10CD76798B8F4379DD4DA1ACF66A962C83F8A8B029BF1E5C15E319C5C3B"
+      },
+      {
+        "path": "input\\panebind.exe",
+        "size": 1305600,
+        "sha256": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D"
+      },
+      {
+        "path": "input\\PaneBindV1-portable-test.zip",
+        "size": 614600,
+        "sha256": "470AAE2CF8F1CDC909183B7A60FD048889342BC398A758F2703CEADEA80E2F45"
+      },
+      {
+        "path": "input\\v1-sandbox-guest.ps1",
+        "size": 122608,
+        "sha256": "8B3DD89E9873545A711C28C9634A8B7C7209A4AFC838311E85F776D65A500D6F"
+      },
+      {
+        "path": "input\\Debug\\panebind-v1-guest-fixture.exe",
+        "size": 11926528,
+        "sha256": "A603E57E6DB5BEB1098ABCD27594E4CC92B2CA7C55FB0D29CC3CEAF0A368E0DB"
+      },
+      {
+        "path": "input\\Debug\\panebind.exe",
+        "size": 4484608,
+        "sha256": "4FF3CB6E930794915DD4F617811467C770C90D16A7738AEA67EACC58F7DA32DB"
+      },
+      {
+        "path": "output\\panebind-v1-output.marker",
+        "size": 32,
+        "sha256": "0AEDB10CD76798B8F4379DD4DA1ACF66A962C83F8A8B029BF1E5C15E319C5C3B"
+      },
+      {
+        "path": "PaneBindV1.wsb",
+        "size": 989,
+        "sha256": "61E073C95F76AEE49CE3EEDE488C4EC459C287A29DEA9FAC82B797B8D0D5D58C"
+      }
+    ],
+    "mapping_readonly_input_only_writable_output": true,
+    "guest_started": false,
+    "utc": "2026-11-05T16:44:56.2829807Z"
+  },
+  "deploy_receipt": {
+    "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/864324ae101c450baabf9b7eedd51f2a/deploy-receipt.json",
+    "bytes": 2919,
+    "sha256": "9B80626E61289100B35020B0CFC9F994971AB1992FF88A7CFF3AC9D6929DB28E"
+  },
+  "host_expectation": {
+    "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/864324ae101c450baabf9b7eedd51f2a/host-expectation.json",
+    "bytes": 3255,
+    "sha256": "5DFA3E9F69E082CF15768A11D4411B9B0D4267B59DAAF549F102554016F67247"
+  },
+  "gate_evidence": {
+    "path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
+    "bytes": 1728,
+    "sha256": "182F325138E0BFB47120749B3888EDB2F7B4D711C42C6FA75A7C7305C5C22366"
+  },
+  "remote_root": "I:\\PaneBindMVP1Runs\\864324ae101c450baabf9b7eedd51f2a",
+  "input_readonly_only_run_output_writable": true,
+  "guest_started": false,
+  "current_product_pages": 0,
+  "current_product_demo_frames": 0,
+  "old_e60f_c77_images_not_rebound": true,
+  "old_a5_portable_unchanged": true,
+  "field": "NOT_RUN",
+  "human_UAT": "PENDING",
+  "REA": "NOT_STARTED"
+}

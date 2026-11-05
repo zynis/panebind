@@ -1,0 +1,262 @@
+{
+  "schema": "panebind-settings-visible-driver-build/1",
+  "actual_driver_receipt": {
+    "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+    "product_frozen": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+    "product_target_built": false,
+    "build_dir": "out/v1-settings-ui-click-driver-20261106",
+    "created_utc": "2026-11-05T16:40:55.6776952Z",
+    "log_root": "D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\click-driver-2f2b5-build-20261105T163409357Z",
+    "runtime": "MultiThreaded",
+    "parallelism": 1,
+    "commands": [
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+        "args": [
+          "-S",
+          ".",
+          "-B",
+          "out/v1-settings-ui-click-driver-20261106",
+          "-G",
+          "Visual Studio 18 2026",
+          "-A",
+          "x64",
+          "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+          "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /bigobj",
+          "-DBUILD_TESTING=ON"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+        "args": [
+          "--build",
+          "out/v1-settings-ui-click-driver-20261106",
+          "--config",
+          "Debug",
+          "--target",
+          "panebind-v1-guest-fixture",
+          "panebind-v1-guest-path-tests",
+          "--",
+          "/m:1",
+          "/p:CL_MPCount=1"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ctest.exe",
+        "args": [
+          "--test-dir",
+          "out/v1-settings-ui-click-driver-20261106",
+          "-C",
+          "Debug",
+          "-R",
+          "^v1-guest-path$",
+          "--output-on-failure",
+          "-V"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+        "args": [
+          "--build",
+          "out/v1-settings-ui-click-driver-20261106",
+          "--config",
+          "Release",
+          "--target",
+          "panebind-v1-guest-fixture",
+          "panebind-v1-guest-path-tests",
+          "--",
+          "/m:1",
+          "/p:CL_MPCount=1"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ctest.exe",
+        "args": [
+          "--test-dir",
+          "out/v1-settings-ui-click-driver-20261106",
+          "-C",
+          "Release",
+          "-R",
+          "^v1-guest-path$",
+          "--output-on-failure",
+          "-V"
+        ],
+        "exit": 0
+      }
+    ],
+    "artifacts": [
+      {
+        "configuration": "Debug",
+        "source": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-click-driver-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+        "bytes": 11926528,
+        "sha256": "A603E57E6DB5BEB1098ABCD27594E4CC92B2CA7C55FB0D29CC3CEAF0A368E0DB",
+        "identity": {
+          "product": "PaneBind V1 guest fixture",
+          "source_commit": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+          "host_synthetic_input": "forbidden",
+          "requires_medium_guest": true,
+          "guest_contract": "panebind-v1-guest-contract/2",
+          "product_interface": "panebind-v1-product-guest-interface/1"
+        },
+        "exit": 0
+      },
+      {
+        "configuration": "Release",
+        "source": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-click-driver-20261106\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+        "bytes": 5060608,
+        "sha256": "FD2F92BBA60D7A91277FCC6CC588048C644595D790D84B79E04F8D50491D2F8E",
+        "identity": {
+          "product": "PaneBind V1 guest fixture",
+          "source_commit": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+          "host_synthetic_input": "forbidden",
+          "requires_medium_guest": true,
+          "guest_contract": "panebind-v1-guest-contract/2",
+          "product_interface": "panebind-v1-product-guest-interface/1"
+        },
+        "exit": 0
+      }
+    ],
+    "host_guards": [
+      {
+        "configuration": "Debug",
+        "mode": "no_arguments",
+        "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-click-driver-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+        "arguments": "",
+        "started_PID": 52204,
+        "exit": 78,
+        "elapsed_ms": 72.3555,
+        "output_created": false,
+        "new_product_processes_observed": [],
+        "host_input_sent_by_probe": false,
+        "guest_tasks_created_by_probe": false,
+        "source_guard_returns_before_input_or_GUI": true,
+        "native_API_calls_traced": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "configuration": "Debug",
+        "mode": "complete_SettingsEditorsOnly",
+        "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-click-driver-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+        "arguments": "--run-id fb0418ef307e4f9793553ce9392ed63e --output \"D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\click-driver-2f2b5-build-20261105T163409357Z\\must-not-be-created-Debug\" --product \"D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind.exe\" --suite SettingsEditorsOnly",
+        "started_PID": 50572,
+        "exit": 78,
+        "elapsed_ms": 143.5188,
+        "output_created": false,
+        "new_product_processes_observed": [],
+        "host_input_sent_by_probe": false,
+        "guest_tasks_created_by_probe": false,
+        "source_guard_returns_before_input_or_GUI": true,
+        "native_API_calls_traced": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "configuration": "Release",
+        "mode": "no_arguments",
+        "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-click-driver-20261106\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+        "arguments": "",
+        "started_PID": 50676,
+        "exit": 78,
+        "elapsed_ms": 321.21860000000004,
+        "output_created": false,
+        "new_product_processes_observed": [],
+        "host_input_sent_by_probe": false,
+        "guest_tasks_created_by_probe": false,
+        "source_guard_returns_before_input_or_GUI": true,
+        "native_API_calls_traced": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "configuration": "Release",
+        "mode": "complete_SettingsEditorsOnly",
+        "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-click-driver-20261106\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+        "arguments": "--run-id dd7f2d02df304a8b9443b7f1e9dcb589 --output \"D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\click-driver-2f2b5-build-20261105T163409357Z\\must-not-be-created-Release\" --product \"D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind.exe\" --suite SettingsEditorsOnly",
+        "started_PID": 31408,
+        "exit": 78,
+        "elapsed_ms": 1182.9531,
+        "output_created": false,
+        "new_product_processes_observed": [],
+        "host_input_sent_by_probe": false,
+        "guest_tasks_created_by_probe": false,
+        "source_guard_returns_before_input_or_GUI": true,
+        "native_API_calls_traced": false,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "frozen_4d_artifacts_and_symbols": [
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind.exe",
+        "bytes_before": 4484608,
+        "sha256_before": "4FF3CB6E930794915DD4F617811467C770C90D16A7738AEA67EACC58F7DA32DB",
+        "bytes_after": 4484608,
+        "sha256_after": "4FF3CB6E930794915DD4F617811467C770C90D16A7738AEA67EACC58F7DA32DB",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind.pdb",
+        "bytes_before": 25612288,
+        "sha256_before": "F8DAF07C174B2F9BBC9A834196BEFDD659B52B6DAFB38235E2C9718D5C8A79F3",
+        "bytes_after": 25612288,
+        "sha256_after": "F8DAF07C174B2F9BBC9A834196BEFDD659B52B6DAFB38235E2C9718D5C8A79F3",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+        "bytes_before": 11926528,
+        "sha256_before": "0531E2624A359E95D4E3D8C67DB540A8620CC9AB5B9EEB7827B69B35E986944E",
+        "bytes_after": 11926528,
+        "sha256_after": "0531E2624A359E95D4E3D8C67DB540A8620CC9AB5B9EEB7827B69B35E986944E",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.pdb",
+        "bytes_before": 36163584,
+        "sha256_before": "21B737AA23A4F1C079B5F7E1D5F8539483CEBBF6BBFC81C1E91A3518444A556B",
+        "bytes_after": 36163584,
+        "sha256_after": "21B737AA23A4F1C079B5F7E1D5F8539483CEBBF6BBFC81C1E91A3518444A556B",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind.exe",
+        "bytes_before": 1305600,
+        "sha256_before": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D",
+        "bytes_after": 1305600,
+        "sha256_after": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+        "bytes_before": 5060096,
+        "sha256_before": "F8F607EAD623728EAE306F369264FCD48448BAF8F30112D9FDC905373E45F305",
+        "bytes_after": 5060096,
+        "sha256_after": "F8F607EAD623728EAE306F369264FCD48448BAF8F30112D9FDC905373E45F305",
+        "unchanged": true
+      }
+    ],
+    "summary_tests": "17 inherited from formal 4d; converter unchanged; not rerun",
+    "other_4d_offline": "five prior tests preserved; not rerun",
+    "offline_scope": "only v1-guest-path 1/1 per configuration",
+    "field_run": "NOT_RUN_for_this_driver"
+  },
+  "raw_receipt": {
+    "path": "uat/v1-control/settings-ui-followup-20261105/click-driver-2f2b5-build-20261105T163409357Z/build-test-guard-receipt.json",
+    "bytes": 17064,
+    "sha256": "CB0CC134018592FEF1238596DD80CB7DE9014D001BA5FBFEE1F23746FF5651D8"
+  },
+  "frozen_product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+  "frozen_product_release_sha256": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D",
+  "product_rebuilt_for_driver_change": false,
+  "older_product_offline_evidence": "visible-product-build-4d684.json",
+  "unchanged_converter_17_test_evidence_reused": true,
+  "native_UP_insertion_failure_fault_injection": "NOT_RUN_SOURCE_PATH_REVIEWED_ONLY",
+  "new_guest_field": "NOT_RUN_AT_BUILD"
+}

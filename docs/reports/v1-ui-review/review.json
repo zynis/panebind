@@ -3,7 +3,7 @@
   "task_date": "2026-11-05",
   "starting_sha": "42bbdb4e80528db4fc2b9e7bd051e4b59765524b",
   "branch": "codex/r1c4b-live-magnet",
-  "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+  "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
   "implementation_commits": [
     "583b9892c99f37307ad612492bdee800a5eb51a3",
     "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
@@ -24,9 +24,20 @@
       "id": "T01",
       "name": "六页、窄窗、滚动与键盘焦点",
       "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
+        "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+        "run": "e60f564f222441d6b52ab8b6cfb0fb25",
+        "status": "FAIL_VISUAL_NARROW_NOTES",
+        "evidence": [
+          "after/e60f-validation.json",
+          "after/e60f-visual-review.json"
+        ]
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "earlier_DA7_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
         "status": "PARTIAL_AUTOMATIC_REACHABILITY_PASS_VISUAL_NARROW_TEXT_FAIL",
         "evidence": [
@@ -36,84 +47,105 @@
         ],
         "scope": "原六页及窄窗实际可达检查通过；b453窄常规页三段说明右裁，不能授完整T01 PASS。",
         "fix": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a 以实际字体测量换行绘制说明；修复现场NOT_RUN。"
-      }
+      },
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T02",
       "name": "C→J映射、取消草稿与真实居中",
       "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
+        "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+        "run": "e60f564f222441d6b52ab8b6cfb0fb25",
+        "status": "PASS_SCOPED_CANCEL_SAVE_J_AND_OLD_C",
+        "evidence": [
+          "after/e60f-validation.json",
+          "after/e60f-visual-review.json"
+        ]
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "earlier_DA7_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
         "run_id": "f28241d9836c46a08d7209f78c12267a",
         "status": "PASS_SCOPED",
         "evidence": "after/f282-validation.json",
         "scope": "真实GUI取消后重开仍C；保存J后真实J居中且旧C不触发。"
-      }
+      },
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T03",
       "name": "重复/保留键及实际注册占用",
-      "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
         "run_id": "f28241d9836c46a08d7209f78c12267a",
         "status": "PASS_SCOPED",
         "evidence": "after/f282-validation.json",
         "scope": "重复/F12/紧急键拒绝；自有F9实际注册占用导致精确冲突说明，旧配置与J映射保留且再操作成功。"
-      }
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T04",
       "name": "Ctrl+中键映射的添加/生效/删除",
-      "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
         "run_id": "f28241d9836c46a08d7209f78c12267a",
         "status": "PASS_SCOPED",
         "evidence": "after/f282-validation.json",
         "scope": "实际UI新增标题栏/Ctrl/中键/单击/居中并生效，删除后不再触发该命令。"
-      }
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T05",
       "name": "排除规则、恢复及中文路径/高位",
-      "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
         "run_id": "f28241d9836c46a08d7209f78c12267a",
         "status": "PASS_SCOPED",
         "evidence": "after/f282-validation.json",
         "scope": "精确自有程序排除时零增强写入，删规则后新手势恢复；中文空格路径、未知高位往返保持。"
-      }
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T06",
       "name": "页默认、导入/导出、取消及重启",
-      "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
         "run_id": "f28241d9836c46a08d7209f78c12267a",
         "status": "PASS_SCOPED",
         "evidence": "after/f282-validation.json",
         "scope": "导入只改草稿、取消保运行配置、页默认不丢其他草稿，保存后同EXE重启读回；不替代完整损坏环境矩阵。"
-      }
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T07",
       "name": "系统选色/HEX与真实预览像素",
       "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
         "run_id": "f28241d9836c46a08d7209f78c12267a",
@@ -132,40 +164,58 @@
         ],
         "failure": "seq969工具未到实际RGB目标；seq968精确原生颜色对话框已出现，不能判产品无法打开。",
         "driver_fix": "2925e43实际Tab焦点消费修复仅构建；d8a1测试驱动进一步修退出焦点，a793未Launch。"
-      }
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T08",
       "name": "即时暂停/恢复、草稿及外部状态",
       "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
+        "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+        "run": "e60f564f222441d6b52ab8b6cfb0fb25",
+        "status": "FAIL_TOOL_COMBO_EXTRA_DRAFT_L_PRECONDITION",
+        "evidence": [
+          "after/e60f-validation.json",
+          "after/e60f-visual-review.json"
+        ]
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "earlier_DA7_field": {
         "status": "NOT_RUN",
         "reason": "f282在T07停止，后续T08–T10未执行。"
-      }
+      },
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T09",
       "name": "新ZIP普通入口/单实例/正常退出",
       "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "status": "NOT_RUN",
         "reason": "f282在T07停止，后续T08–T10未执行。"
-      }
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     },
     {
       "id": "T10",
       "name": "五段真实动作及原尺寸帧",
       "status": "NOT_RUN",
-      "reason": "新c77候选已构建，尚未取得其现场结果；da7原实测保留原源码及哈希，不移绑。",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "status": "NOT_RUN",
         "reason": "f282在T07停止，后续T08–T10未执行。"
-      }
+      },
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
     }
   ],
   "implementation": {
@@ -215,164 +265,133 @@
   },
   "builds": {
     "Debug": {
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "product_path": "out/v1-settings-ui-wrap-20261105/src/platform/windows/Debug/panebind.exe",
-      "product_bytes": 4477952,
-      "product_sha256": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46",
-      "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
-      "driver_bytes": 11938304,
-      "driver_sha256": "5269F1A27757B08390580950FBFBC933295457063AB4500C4058B1F4AA4ECA18",
-      "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
-      "product_build": "PASS",
-      "driver_build": "PASS",
-      "UI_launched_on_host": false,
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+      "product_path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind.exe",
+      "product_bytes": 4484608,
+      "product_sha256": "4FF3CB6E930794915DD4F617811467C770C90D16A7738AEA67EACC58F7DA32DB",
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "driver_path": "D:\\repository\\panebind\\out\\v1-settings-ui-click-driver-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+      "driver_bytes": 11926528,
+      "driver_sha256": "A603E57E6DB5BEB1098ABCD27594E4CC92B2CA7C55FB0D29CC3CEAF0A368E0DB",
       "product_identity": {
         "product": "PaneBind",
         "version": "1.0.0-dev",
-        "source_commit": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "source_commit": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
         "subsystem": "windows",
         "requires_elevation": false
       },
       "driver_identity": {
         "product": "PaneBind V1 guest fixture",
-        "source_commit": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "source_commit": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
         "host_synthetic_input": "forbidden",
         "requires_medium_guest": true,
         "guest_contract": "panebind-v1-guest-contract/2",
         "product_interface": "panebind-v1-product-guest-interface/1"
       },
-      "field_status": "NOT_RUN"
+      "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+      "product_build": "PASS",
+      "driver_build": "PASS",
+      "UI_launched_on_host": false
     },
     "Release": {
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "product_path": "out/v1-settings-ui-wrap-20261105/src/platform/windows/Release/panebind.exe",
-      "product_bytes": 1303040,
-      "product_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
-      "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+      "product_path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind.exe",
+      "product_bytes": 1305600,
+      "product_sha256": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D",
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "driver_path": "D:\\repository\\panebind\\out\\v1-settings-ui-click-driver-20261106\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
       "driver_bytes": 5060608,
-      "driver_sha256": "813C42FA98D962DD5FBDF62B78B4F104C5E9701624C5EB1FB7357F51BB330D53",
-      "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
-      "product_build": "PASS",
-      "driver_build": "PASS",
-      "UI_launched_on_host": false,
+      "driver_sha256": "FD2F92BBA60D7A91277FCC6CC588048C644595D790D84B79E04F8D50491D2F8E",
       "product_identity": {
         "product": "PaneBind",
         "version": "1.0.0-dev",
-        "source_commit": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "source_commit": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
         "subsystem": "windows",
         "requires_elevation": false
       },
       "driver_identity": {
         "product": "PaneBind V1 guest fixture",
-        "source_commit": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "source_commit": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
         "host_synthetic_input": "forbidden",
         "requires_medium_guest": true,
         "guest_contract": "panebind-v1-guest-contract/2",
         "product_interface": "panebind-v1-product-guest-interface/1"
       },
-      "field_status": "NOT_RUN"
+      "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+      "product_build": "PASS",
+      "driver_build": "PASS",
+      "UI_launched_on_host": false
     }
   },
   "offline": {
     "Debug": {
-      "tests": [
+      "product_tests": [
         "v1-settings",
         "v1-settings-editor",
         "v1-input-route",
-        "v1-catalog-rules"
+        "v1-catalog-rules",
+        "v1-guest-path"
       ],
-      "result": "4/4 PASS",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "receipt": {
-        "path": "uat/v1-control/settings-ui-review-20261105/wrap-c77-build-20261105T125129316Z/build-receipt.json",
-        "bytes": 12657,
-        "sha256": "CC2A46DC690A41DE8036F1C17DE56E7264E5893B901CCC12B1D75800A5ADEC7E"
-      }
+      "product_result": "5/5 PASS",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+      "product_evidence": "after/visible-product-build-4d684.json",
+      "driver_tests": [
+        "v1-guest-path"
+      ],
+      "driver_result": "1/1 PASS",
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "driver_evidence": "after/visible-driver-build-2f2b5.json",
+      "unchanged_17_summary_cases_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+      "unchanged_summary_test_result": "17 PASS; not rerun for driver-only exception branch"
     },
     "Release": {
-      "tests": [
+      "product_tests": [
         "v1-settings",
         "v1-settings-editor",
         "v1-input-route",
-        "v1-catalog-rules"
+        "v1-catalog-rules",
+        "v1-guest-path"
       ],
-      "result": "4/4 PASS",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "receipt": {
-        "path": "uat/v1-control/settings-ui-review-20261105/wrap-c77-build-20261105T125129316Z/build-receipt.json",
-        "bytes": 12657,
-        "sha256": "CC2A46DC690A41DE8036F1C17DE56E7264E5893B901CCC12B1D75800A5ADEC7E"
-      }
-    },
-    "native_UI_behavior_inferred": false
+      "product_result": "5/5 PASS",
+      "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+      "product_evidence": "after/visible-product-build-4d684.json",
+      "driver_tests": [
+        "v1-guest-path"
+      ],
+      "driver_result": "1/1 PASS",
+      "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+      "driver_evidence": "after/visible-driver-build-2f2b5.json",
+      "unchanged_17_summary_cases_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+      "unchanged_summary_test_result": "17 PASS; not rerun for driver-only exception branch"
+    }
   },
   "source_fix": {
-    "finding": "Integer control IDs bound to bool stretch_width, leaving native control ID zero",
-    "defective_product_source": "c4a9e83787aa97636249e4adb41406e0819d39a2",
-    "fixed_source": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
-    "fix": "Explicit false,id at nine call sites; deleted int overload rejects future implicit ID-to-bool calls",
-    "regression": "T01在实际guest读取GetDlgItem/GetDlgCtrlID，旧36f8、6b4、b453及f282实际ID检查通过；仅代表各自原构建范围，不赋当前c77现场PASS。",
-    "old_candidate_package": "68125bb94e734d13900674c39902f6c6",
-    "old_capture_run": "e4f8612b2a624f92967d97272de58671",
-    "old_runs_preserved": true,
-    "old_candidate_disposition": "KNOWN_UI_WIRING_DEFECT_NOT_RUN_DO_NOT_LAUNCH"
+    "source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+    "scope": "Flow notes use the existing parent WM_DRAWITEM paint route with caption/font/measurement and STATICTEXT role preserved.",
+    "role_helper_offline": "after/flow-note-accessibility-offline.json",
+    "new_candidate_visual": "NOT_RUN",
+    "previous_c77_rendering_root_cause": "UNKNOWN",
+    "geometry_rules_changed": false
   },
   "blocking_fact": {
     "host": "ZS-WORKSTATION",
-    "status": "FRESH_RESOURCE_GATES_REJECTED_WITH_NO_SANDBOX_OCCUPANT",
-    "evidence": "after/a793-resource-gate.json",
-    "measurements": [
-      {
-        "trigger": "本批首次部署后的启动前检查",
-        "raw": {
-          "machine": "ZS-WORKSTATION",
-          "user": "ZS-Workstation\\zs",
-          "utc": "2026-11-05T12:32:54.7563497Z",
-          "aux_sha256": "6BD692E9DF0F707A62F9A2F8E4E6CAFA28AAF2E141DCEB8B63F6D5A3260A31DE",
-          "free_physical_KiB": 3665364,
-          "free_commit_KiB": 392076,
-          "sandbox_processes": [],
-          "safe_to_request_own_4096MiB_launch": false
-        }
-      },
-      {
-        "trigger": "用户另行通知资源已恢复后的一次有界复查",
-        "raw": {
-          "machine": "ZS-WORKSTATION",
-          "user": "ZS-Workstation\\zs",
-          "utc": "2026-11-05T12:49:16.3667815Z",
-          "free_physical_KiB": 151196,
-          "free_commit_KiB": 744016,
-          "sandbox_processes": [],
-          "minimum_physical_KiB": 6291456,
-          "minimum_free_virtual_KiB": 5242880,
-          "guest_memory_MiB": 4096,
-          "safe_to_request_own_4096MiB_launch": false
-        }
-      }
-    ],
-    "minimum_free_physical_KiB": 6291456,
-    "minimum_CIM_FreeVirtualMemory_KiB": 5242880,
-    "requested_guest_memory_MiB": 4096,
-    "own_guests_started": 0,
-    "own_tasks_created": 0,
-    "host_input_sent": false,
-    "guest_input_sent": false,
-    "product_cleanup": "NOT_APPLICABLE_A793_NOT_STARTED",
-    "polling": false,
-    "system_changes": [],
-    "note": "这是该两次启动前实际资源门拒绝，不是新建VM要求，也不推翻已结束批次的真实功能结果。"
+    "status": "FOREIGN_SANDBOX_OCCUPIED_AND_CIM_FREEVIRTUAL_BELOW_ORIGINAL_GATE",
+    "run_id": "864324ae101c450baabf9b7eedd51f2a",
+    "utc": "2026-11-05T16:45:40.5705914Z",
+    "evidence": "after/8643-resource-gate.json",
+    "allowed": false,
+    "resource_retries": 0,
+    "launch_attempted": false,
+    "historical_values_not_used_as_current": true
   },
   "historical_images": "before/historical-captures.json",
   "new_product_images": [],
   "new_demo_frames": [],
   "pending": [
-    "待用户资源可用通知后做一次本任务启动门复核；不轮询、不停止其他项目资源。",
-    "按当前c77候选补T01窄文字视觉修复与必要影响复验；旧da7六页截图不能充新候选图。",
-    "执行受影响T07第二色真实系统选择/预览，随后T08、T09及T10五段动作和15帧。",
-    "当前候选现场通过后补新六页原尺寸PNG、中文试用说明及实际结果；未执行保持NOT_RUN。"
+    "Wait for a new normal-release/resource-availability notification; do not poll, close another project or reduce the gate.",
+    "Reuse deployed 8643/9498 and frozen 4d product + 2f2 driver; no rebuild or repack required.",
+    "After one successful current launch gate, execute T01 -> T02 -> T08 -> T09 -> T10 -> T07; T03-T06 are not selected.",
+    "Verify actual new-candidate six pages/narrow text and 16 demo frames; keep native-picker and HEX verdicts separate, unknown input/cleanup stops that Run."
   ],
   "raw_pins": [
     {
@@ -814,6 +833,598 @@
         "after/f282-validation.json"
       ],
       "disposition": "SUPERSEDED_BY_C77_NOTE_WRAPPING; old passes not rebound to new binary"
+    },
+    {
+      "role": "C77_PREPARATION_SNAPSHOT_BEFORE_4D_REPAIR",
+      "snapshot": {
+        "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "builds": {
+          "Debug": {
+            "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "product_path": "out/v1-settings-ui-wrap-20261105/src/platform/windows/Debug/panebind.exe",
+            "product_bytes": 4477952,
+            "product_sha256": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46",
+            "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
+            "driver_bytes": 11938304,
+            "driver_sha256": "5269F1A27757B08390580950FBFBC933295457063AB4500C4058B1F4AA4ECA18",
+            "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+            "product_build": "PASS",
+            "driver_build": "PASS",
+            "UI_launched_on_host": false,
+            "product_identity": {
+              "product": "PaneBind",
+              "version": "1.0.0-dev",
+              "source_commit": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+              "subsystem": "windows",
+              "requires_elevation": false
+            },
+            "driver_identity": {
+              "product": "PaneBind V1 guest fixture",
+              "source_commit": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+              "host_synthetic_input": "forbidden",
+              "requires_medium_guest": true,
+              "guest_contract": "panebind-v1-guest-contract/2",
+              "product_interface": "panebind-v1-product-guest-interface/1"
+            },
+            "field_status": "NOT_RUN"
+          },
+          "Release": {
+            "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "product_path": "out/v1-settings-ui-wrap-20261105/src/platform/windows/Release/panebind.exe",
+            "product_bytes": 1303040,
+            "product_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+            "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+            "driver_bytes": 5060608,
+            "driver_sha256": "813C42FA98D962DD5FBDF62B78B4F104C5E9701624C5EB1FB7357F51BB330D53",
+            "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+            "product_build": "PASS",
+            "driver_build": "PASS",
+            "UI_launched_on_host": false,
+            "product_identity": {
+              "product": "PaneBind",
+              "version": "1.0.0-dev",
+              "source_commit": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+              "subsystem": "windows",
+              "requires_elevation": false
+            },
+            "driver_identity": {
+              "product": "PaneBind V1 guest fixture",
+              "source_commit": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+              "host_synthetic_input": "forbidden",
+              "requires_medium_guest": true,
+              "guest_contract": "panebind-v1-guest-contract/2",
+              "product_interface": "panebind-v1-product-guest-interface/1"
+            },
+            "field_status": "NOT_RUN"
+          }
+        },
+        "offline": {
+          "Debug": {
+            "tests": [
+              "v1-settings",
+              "v1-settings-editor",
+              "v1-input-route",
+              "v1-catalog-rules"
+            ],
+            "result": "4/4 PASS",
+            "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "receipt": {
+              "path": "uat/v1-control/settings-ui-review-20261105/wrap-c77-build-20261105T125129316Z/build-receipt.json",
+              "bytes": 12657,
+              "sha256": "CC2A46DC690A41DE8036F1C17DE56E7264E5893B901CCC12B1D75800A5ADEC7E"
+            }
+          },
+          "Release": {
+            "tests": [
+              "v1-settings",
+              "v1-settings-editor",
+              "v1-input-route",
+              "v1-catalog-rules"
+            ],
+            "result": "4/4 PASS",
+            "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "receipt": {
+              "path": "uat/v1-control/settings-ui-review-20261105/wrap-c77-build-20261105T125129316Z/build-receipt.json",
+              "bytes": 12657,
+              "sha256": "CC2A46DC690A41DE8036F1C17DE56E7264E5893B901CCC12B1D75800A5ADEC7E"
+            }
+          },
+          "native_UI_behavior_inferred": false
+        },
+        "runtime_cases": [
+          {
+            "id": "T01",
+            "name": "六页、窄窗、滚动与键盘焦点",
+            "status": "NOT_RUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+              "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+              "run": "e60f564f222441d6b52ab8b6cfb0fb25",
+              "status": "FAIL_VISUAL_NARROW_NOTES",
+              "evidence": [
+                "after/e60f-validation.json",
+                "after/e60f-visual-review.json"
+              ]
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "earlier_DA7_field": {
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "status": "PARTIAL_AUTOMATIC_REACHABILITY_PASS_VISUAL_NARROW_TEXT_FAIL",
+              "evidence": [
+                "after/after-captures-b453.json",
+                "after/b453-visual-review.json",
+                "after/f282-validation.json"
+              ],
+              "scope": "原六页及窄窗实际可达检查通过；b453窄常规页三段说明右裁，不能授完整T01 PASS。",
+              "fix": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a 以实际字体测量换行绘制说明；修复现场NOT_RUN。"
+            },
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T02",
+            "name": "C→J映射、取消草稿与真实居中",
+            "status": "NOT_RUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+              "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+              "run": "e60f564f222441d6b52ab8b6cfb0fb25",
+              "status": "PASS_SCOPED_CANCEL_SAVE_J_AND_OLD_C",
+              "evidence": [
+                "after/e60f-validation.json",
+                "after/e60f-visual-review.json"
+              ]
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "earlier_DA7_field": {
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "run_id": "f28241d9836c46a08d7209f78c12267a",
+              "status": "PASS_SCOPED",
+              "evidence": "after/f282-validation.json",
+              "scope": "真实GUI取消后重开仍C；保存J后真实J居中且旧C不触发。"
+            },
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T03",
+            "name": "重复/保留键及实际注册占用",
+            "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "run_id": "f28241d9836c46a08d7209f78c12267a",
+              "status": "PASS_SCOPED",
+              "evidence": "after/f282-validation.json",
+              "scope": "重复/F12/紧急键拒绝；自有F9实际注册占用导致精确冲突说明，旧配置与J映射保留且再操作成功。"
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T04",
+            "name": "Ctrl+中键映射的添加/生效/删除",
+            "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "run_id": "f28241d9836c46a08d7209f78c12267a",
+              "status": "PASS_SCOPED",
+              "evidence": "after/f282-validation.json",
+              "scope": "实际UI新增标题栏/Ctrl/中键/单击/居中并生效，删除后不再触发该命令。"
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T05",
+            "name": "排除规则、恢复及中文路径/高位",
+            "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "run_id": "f28241d9836c46a08d7209f78c12267a",
+              "status": "PASS_SCOPED",
+              "evidence": "after/f282-validation.json",
+              "scope": "精确自有程序排除时零增强写入，删规则后新手势恢复；中文空格路径、未知高位往返保持。"
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T06",
+            "name": "页默认、导入/导出、取消及重启",
+            "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "run_id": "f28241d9836c46a08d7209f78c12267a",
+              "status": "PASS_SCOPED",
+              "evidence": "after/f282-validation.json",
+              "scope": "导入只改草稿、取消保运行配置、页默认不丢其他草稿，保存后同EXE重启读回；不替代完整损坏环境矩阵。"
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T07",
+            "name": "系统选色/HEX与真实预览像素",
+            "status": "NOT_RUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "run_id": "f28241d9836c46a08d7209f78c12267a",
+              "status": "PARTIAL_TOOL_NATIVE_COLOR_FOCUS_FAILED",
+              "evidence": "after/f282-validation.json",
+              "passed_subitems": [
+                "旧COLORREF显示为#0078D7",
+                "选色取消",
+                "非法HEX拒绝",
+                "保存蓝色及实际不透明预览像素0xD77800",
+                "该次NormalUp与预览收尾"
+              ],
+              "not_completed": [
+                "第二种明显颜色的系统RGB编辑/确认",
+                "第二色实际预览及恢复"
+              ],
+              "failure": "seq969工具未到实际RGB目标；seq968精确原生颜色对话框已出现，不能判产品无法打开。",
+              "driver_fix": "2925e43实际Tab焦点消费修复仅构建；d8a1测试驱动进一步修退出焦点，a793未Launch。"
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T08",
+            "name": "即时暂停/恢复、草稿及外部状态",
+            "status": "NOT_RUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+              "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+              "run": "e60f564f222441d6b52ab8b6cfb0fb25",
+              "status": "FAIL_TOOL_COMBO_EXTRA_DRAFT_L_PRECONDITION",
+              "evidence": [
+                "after/e60f-validation.json",
+                "after/e60f-visual-review.json"
+              ]
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "earlier_DA7_field": {
+              "status": "NOT_RUN",
+              "reason": "f282在T07停止，后续T08–T10未执行。"
+            },
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T09",
+            "name": "新ZIP普通入口/单实例/正常退出",
+            "status": "NOT_RUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "status": "NOT_RUN",
+              "reason": "f282在T07停止，后续T08–T10未执行。"
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          },
+          {
+            "id": "T10",
+            "name": "五段真实动作及原尺寸帧",
+            "status": "NOT_RUN",
+            "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+            "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+            "last_field": {
+              "status": "NOT_RUN",
+              "reason": "f282在T07停止，后续T08–T10未执行。"
+            },
+            "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+            "last_attempted_suite_run": "e60f564f222441d6b52ab8b6cfb0fb25"
+          }
+        ],
+        "new_product_images": [],
+        "new_demo_frames": [],
+        "pending": [
+          "待用户资源可用通知后做一次本任务启动门复核；不轮询、不停止其他项目资源。",
+          "按当前c77候选补T01窄文字视觉修复与必要影响复验；旧da7六页截图不能充新候选图。",
+          "执行受影响T07第二色真实系统选择/预览，随后T08、T09及T10五段动作和15帧。",
+          "当前候选现场通过后补新六页原尺寸PNG、中文试用说明及实际结果；未执行保持NOT_RUN。"
+        ],
+        "blocking_fact": {
+          "host": "ZS-WORKSTATION",
+          "status": "FRESH_RESOURCE_GATES_REJECTED_WITH_NO_SANDBOX_OCCUPANT",
+          "evidence": "after/a793-resource-gate.json",
+          "measurements": [
+            {
+              "trigger": "本批首次部署后的启动前检查",
+              "raw": {
+                "machine": "ZS-WORKSTATION",
+                "user": "ZS-Workstation\\zs",
+                "utc": "2026-11-05T12:32:54.7563497Z",
+                "aux_sha256": "6BD692E9DF0F707A62F9A2F8E4E6CAFA28AAF2E141DCEB8B63F6D5A3260A31DE",
+                "free_physical_KiB": 3665364,
+                "free_commit_KiB": 392076,
+                "sandbox_processes": [],
+                "safe_to_request_own_4096MiB_launch": false
+              }
+            },
+            {
+              "trigger": "用户另行通知资源已恢复后的一次有界复查",
+              "raw": {
+                "machine": "ZS-WORKSTATION",
+                "user": "ZS-Workstation\\zs",
+                "utc": "2026-11-05T12:49:16.3667815Z",
+                "free_physical_KiB": 151196,
+                "free_commit_KiB": 744016,
+                "sandbox_processes": [],
+                "minimum_physical_KiB": 6291456,
+                "minimum_free_virtual_KiB": 5242880,
+                "guest_memory_MiB": 4096,
+                "safe_to_request_own_4096MiB_launch": false
+              }
+            }
+          ],
+          "minimum_free_physical_KiB": 6291456,
+          "minimum_CIM_FreeVirtualMemory_KiB": 5242880,
+          "requested_guest_memory_MiB": 4096,
+          "own_guests_started": 0,
+          "own_tasks_created": 0,
+          "host_input_sent": false,
+          "guest_input_sent": false,
+          "product_cleanup": "NOT_APPLICABLE_A793_NOT_STARTED",
+          "polling": false,
+          "system_changes": [],
+          "note": "这是该两次启动前实际资源门拒绝，不是新建VM要求，也不推翻已结束批次的真实功能结果。"
+        },
+        "current_candidate_field_status": "NOT_RUN",
+        "delivery": {
+          "portable": {
+            "package_id": "a5dcf5ef3c8847649f5212f9e331e7be",
+            "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "packaging_head": "713bc83f432ba39dbaf30664ee9ccf9af035963b",
+            "status": "GENERATED_NOT_RUN",
+            "zip": "D:\\repository\\panebind\\uat\\v1-portable\\a5dcf5ef3c8847649f5212f9e331e7be\\PaneBindV1-Release-a5dcf5ef3c8847649f5212f9e331e7be.zip",
+            "zip_sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
+            "manifest_sha256": "AA87E05D148CD2BD2BC22FE9D75095D4F3D398554691163BCF41BFD70C46B439",
+            "product_exe_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+            "standalone_entry_result": "NOT_RUN",
+            "public_release": false,
+            "external_distribution_channel": "NOT_APPROVED",
+            "zip_bytes": 614076,
+            "manifest": "uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/PaneBindV1/manifest.json",
+            "package_root": "D:\\repository\\panebind\\uat\\v1-portable\\a5dcf5ef3c8847649f5212f9e331e7be",
+            "receipt": {
+              "path": "uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/package-receipt.json",
+              "bytes": 3653,
+              "sha256": "21380E90D52B2C577B3BCC7E6ADC80EBCCAEDAB0FA93DBFC27CDB051BBE36AA6"
+            }
+          },
+          "guest": {
+            "run_id": "e549eb3ee30a414397d7b64dacd9429b",
+            "suite": "SettingsEditorsOnly",
+            "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+            "status": "DEPLOYED_NOT_RUN",
+            "zip": "D:\\repository\\panebind\\uat\\v1-sandbox\\e549eb3ee30a414397d7b64dacd9429b\\e549eb3ee30a414397d7b64dacd9429b.zip",
+            "zip_sha256": "DF206DEFC2114A9122B7207A0AD3D0BBB6B505B1B14D964B566D35CD4BB387EA",
+            "manifest_sha256": "A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0",
+            "wsb_sha256": "AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF",
+            "remote_root": "I:\\PaneBindMVP1Runs\\e549eb3ee30a414397d7b64dacd9429b",
+            "deployed": true,
+            "guest_started": false,
+            "field_status": "NOT_RUN",
+            "normal_stop": "设置运行条：退出程序；有草稿默认返回设置。",
+            "emergency_pause": "Ctrl+Shift+F11",
+            "product_cleanup": "NOT_APPLICABLE_NOT_STARTED",
+            "packaging_head": "713bc83f432ba39dbaf30664ee9ccf9af035963b",
+            "zip_bytes": 7288887,
+            "manifest": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/input/manifest.json",
+            "wsb": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/PaneBindV1.wsb",
+            "receipt": {
+              "path": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/package-receipt.json",
+              "bytes": 13538,
+              "sha256": "EE1FCFAEF1108A9CD06C1C4E2060156B686178FDE9AB323A46594A3AF9146348"
+            },
+            "deployment_status": "DEPLOYED_HASH_VERIFIED_NOT_RUN",
+            "deploy_utc": "2026-11-05T13:09:45.7590152Z",
+            "deploy_receipt": {
+              "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/e549eb3ee30a414397d7b64dacd9429b/deploy-receipt.json",
+              "bytes": 2919,
+              "sha256": "60E48A6CA9B9F974F89872C7889FD7EE3B51433EB2434E0B5F21414A7841B96A"
+            },
+            "deployed_files": [
+              {
+                "path": "input\\manifest.json",
+                "size": 44874,
+                "sha256": "A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0"
+              },
+              {
+                "path": "input\\panebind-v1-guest-fixture.exe",
+                "size": 5060608,
+                "sha256": "813C42FA98D962DD5FBDF62B78B4F104C5E9701624C5EB1FB7357F51BB330D53"
+              },
+              {
+                "path": "input\\panebind-v1-input.marker",
+                "size": 32,
+                "sha256": "C96FC2EA12FAF52DC2CC0080EA8B44CE6F719C688AC89008B6393A4348F1303D"
+              },
+              {
+                "path": "input\\panebind.exe",
+                "size": 1303040,
+                "sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F"
+              },
+              {
+                "path": "input\\PaneBindV1-portable-test.zip",
+                "size": 614076,
+                "sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF"
+              },
+              {
+                "path": "input\\v1-sandbox-guest.ps1",
+                "size": 112625,
+                "sha256": "0573E590F20B41D00F35F0084E4721AC5B885E00B2DC2651D330F42EB4D13803"
+              },
+              {
+                "path": "input\\Debug\\panebind-v1-guest-fixture.exe",
+                "size": 11938304,
+                "sha256": "5269F1A27757B08390580950FBFBC933295457063AB4500C4058B1F4AA4ECA18"
+              },
+              {
+                "path": "input\\Debug\\panebind.exe",
+                "size": 4477952,
+                "sha256": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46"
+              },
+              {
+                "path": "output\\panebind-v1-output.marker",
+                "size": 32,
+                "sha256": "C96FC2EA12FAF52DC2CC0080EA8B44CE6F719C688AC89008B6393A4348F1303D"
+              },
+              {
+                "path": "PaneBindV1.wsb",
+                "size": 989,
+                "sha256": "AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF"
+              }
+            ],
+            "all_deployed_file_sizes_and_SHA256_match_local_originals": true,
+            "input_readonly_output_only_writable": true,
+            "own_task_created": false,
+            "synthetic_input_sent": false,
+            "package_receipt_is_earlier_deployed_false_snapshot": true,
+            "deployment_did_not_repeat_resource_probe": true,
+            "execution_statement_source": "Actual DeployONLY controller handoff plus deploy receipt; no Launch, task creation, or test input was requested."
+          },
+          "resume_order": [
+            "Current c77/e549 has been deployed and hash verified only; no guest/task/input.",
+            "Await an explicit actual-resource availability notification; then use exact c77/e549 identities and existing bounded resource gate. Do not poll or substitute DA7 images."
+          ],
+          "superseded_runs_retained": [
+            "e4f8612b2a624f92967d97272de58671 KNOWN_UI_WIRING_DEFECT_NOT_RUN",
+            "04e8281565b44627b8860b658e1f6c64 product1f SUPERSEDED_NOT_RUN",
+            "f3736cb15af34932b0a84692ffccbf78 product1f SUPERSEDED_NOT_RUN"
+          ],
+          "historical_portables": [
+            {
+              "package_id": "8c17956609ce4867b34ac945ac2780f3",
+              "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+              "packaging_head": "6639229987666b1ed935663812d624c337ff3409",
+              "zip": "D:\\repository\\panebind\\uat\\v1-portable\\8c17956609ce4867b34ac945ac2780f3\\PaneBindV1-Release-8c17956609ce4867b34ac945ac2780f3.zip",
+              "zip_sha256": "45789B9502CC4324CF788726552D78A6A3D94AB5E06195ED29EF17EE7489CD4D",
+              "manifest_sha256": "53D1433675C6442DE6F017362A76E950B480494B0170324AD9F9A96A5E06586E",
+              "standalone_entry_result": "NOT_RUN",
+              "public_release": false,
+              "external_distribution_channel": "NOT_APPROVED"
+            },
+            {
+              "package_id": "e6139ac739c649c286b7f2e5728ff77c",
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "packaging_head": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "zip": "D:\\repository\\panebind\\uat\\v1-portable\\e6139ac739c649c286b7f2e5728ff77c\\PaneBindV1-Release-e6139ac739c649c286b7f2e5728ff77c.zip",
+              "zip_sha256": "CCEE5AF5E189C620D7A6CAD6D68E609752195015A5CDAEB952432270877797E0",
+              "manifest_sha256": "8F56D9F93F22602642CF0B5131ED53F80A895D8F5570947FDFF4F0AE5DD17811",
+              "product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
+              "standalone_entry_result": "NOT_RUN_T09",
+              "test_extraction_and_same_EXE_restart": "f282_T06_SCOPED_PASS_NOT_T09",
+              "public_release": false
+            }
+          ],
+          "historical_guest_packages": [
+            {
+              "run_id": "36f81b0bccf641a6b48d4411b6c05bdd",
+              "suite": "SettingsEditorsOnly",
+              "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+              "driver_source_sha": "a65b3bfce57146cb75d4eba6e2bc90567a348f27",
+              "zip": "D:\\repository\\panebind\\uat\\v1-sandbox\\36f81b0bccf641a6b48d4411b6c05bdd\\36f81b0bccf641a6b48d4411b6c05bdd.zip",
+              "zip_sha256": "BB2AE02EB792E4995C4DDE8FCD659904143200BA5099EA8EFEAFB330E5C9B01D",
+              "manifest_sha256": "E8704C47F7DC6B7B9FCF3257A0E727EB22C616724750C8B17B7F9C86E8160D55",
+              "wsb_sha256": "5EBBDD54E2FCC366EE5B59E64226DFBF92871ACAF70B369DE513C1B8D8EC5C48",
+              "remote_root": "I:\\PaneBindMVP1Runs\\36f81b0bccf641a6b48d4411b6c05bdd",
+              "deployed": true,
+              "deploy_utc": "2026-11-05T09:40:33.0019018Z",
+              "guest_started": false,
+              "launch_authority": "Wait for turn notification, then one fresh occupancy/resources gate",
+              "field_status": "NOT_RUN",
+              "collect_controller": "uat/v1-control/ui-editors-controller-20261105-e772105a/run-control.ps1",
+              "startup_command_in_guest": "driver automatically extracts verified portable ZIP into its new Chinese/space path; ordinary EXE no arguments",
+              "normal_stop": "settings runtime bar: 退出程序; dirty draft defaults 返回设置",
+              "emergency_pause": "Ctrl+Shift+F11",
+              "product_cleanup": "NOT_APPLICABLE_NOT_STARTED",
+              "snapshot_at_old_review": true,
+              "later_actual_result": "after/after-captures-36f8.json; T01 tool bounds FAIL, original guest_started=false was a prelaunch snapshot"
+            },
+            {
+              "run_id": "a793c8739a984c38bdc950c101db02aa",
+              "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+              "driver_source_sha": "d8a1e833cff7a4f1824a21ea9a54c99826a851c1",
+              "deployed": true,
+              "guest_started": false,
+              "field_status": "NOT_RUN_RESOURCE_GATE_REJECTED_TWICE",
+              "evidence": "after/a793-resource-gate.json"
+            }
+          ],
+          "packaging_stage_history": [
+            {
+              "stage": "PLANNED_NOT_GENERATED",
+              "document_git_snapshot": "713bc83f432ba39dbaf30664ee9ccf9af035963b:docs/reports/v1-ui-review/review.json",
+              "portable": {
+                "package_id": "a5dcf5ef3c8847649f5212f9e331e7be",
+                "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                "packaging_head": null,
+                "status": "PLANNED_NOT_GENERATED",
+                "zip": null,
+                "zip_sha256": null,
+                "manifest_sha256": null,
+                "product_exe_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                "standalone_entry_result": "NOT_RUN",
+                "public_release": false,
+                "external_distribution_channel": "NOT_APPROVED"
+              },
+              "guest": {
+                "run_id": "e549eb3ee30a414397d7b64dacd9429b",
+                "suite": "SettingsEditorsOnly",
+                "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                "status": "PLANNED_NOT_GENERATED",
+                "zip": null,
+                "zip_sha256": null,
+                "manifest_sha256": null,
+                "wsb_sha256": null,
+                "remote_root": "I:\\PaneBindMVP1Runs\\e549eb3ee30a414397d7b64dacd9429b",
+                "deployed": false,
+                "guest_started": false,
+                "field_status": "NOT_RUN",
+                "normal_stop": "设置运行条：退出程序；有草稿默认返回设置。",
+                "emergency_pause": "Ctrl+Shift+F11",
+                "product_cleanup": "NOT_APPLICABLE_NOT_STARTED"
+              },
+              "later_generated_receipts_do_not_rewrite_this_planned_snapshot": true
+            }
+          ]
+        },
+        "source_fix": {
+          "finding": "Integer control IDs bound to bool stretch_width, leaving native control ID zero",
+          "defective_product_source": "c4a9e83787aa97636249e4adb41406e0819d39a2",
+          "fixed_source": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
+          "fix": "Explicit false,id at nine call sites; deleted int overload rejects future implicit ID-to-bool calls",
+          "regression": "T01在实际guest读取GetDlgItem/GetDlgCtrlID，旧36f8、6b4、b453及f282实际ID检查通过；仅代表各自原构建范围，不赋当前c77现场PASS。",
+          "old_candidate_package": "68125bb94e734d13900674c39902f6c6",
+          "old_capture_run": "e4f8612b2a624f92967d97272de58671",
+          "old_runs_preserved": true,
+          "old_candidate_disposition": "KNOWN_UI_WIRING_DEFECT_NOT_RUN_DO_NOT_LAUNCH"
+        }
+      },
+      "e60f_actual_field_evidence": "after/e60f-validation.json",
+      "e60f_actual_images": "after/after-captures-e60f.json",
+      "old_PASS_not_rebound": true
     }
   ],
   "immediate_runtime_ack": {
@@ -868,228 +1479,20 @@
   ],
   "six_new_pages_and_T01_T10_same_run": false,
   "delivery": {
-    "portable": {
-      "package_id": "a5dcf5ef3c8847649f5212f9e331e7be",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "packaging_head": "713bc83f432ba39dbaf30664ee9ccf9af035963b",
-      "status": "GENERATED_NOT_RUN",
-      "zip": "D:\\repository\\panebind\\uat\\v1-portable\\a5dcf5ef3c8847649f5212f9e331e7be\\PaneBindV1-Release-a5dcf5ef3c8847649f5212f9e331e7be.zip",
-      "zip_sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
-      "manifest_sha256": "AA87E05D148CD2BD2BC22FE9D75095D4F3D398554691163BCF41BFD70C46B439",
-      "product_exe_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
-      "standalone_entry_result": "NOT_RUN",
-      "public_release": false,
-      "external_distribution_channel": "NOT_APPROVED",
-      "zip_bytes": 614076,
-      "manifest": "uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/PaneBindV1/manifest.json",
-      "package_root": "D:\\repository\\panebind\\uat\\v1-portable\\a5dcf5ef3c8847649f5212f9e331e7be",
-      "receipt": {
-        "path": "uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/package-receipt.json",
-        "bytes": 3653,
-        "sha256": "21380E90D52B2C577B3BCC7E6ADC80EBCCAEDAB0FA93DBFC27CDB051BBE36AA6"
-      }
-    },
-    "guest": {
-      "run_id": "e549eb3ee30a414397d7b64dacd9429b",
-      "suite": "SettingsEditorsOnly",
-      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "status": "DEPLOYED_NOT_RUN",
-      "zip": "D:\\repository\\panebind\\uat\\v1-sandbox\\e549eb3ee30a414397d7b64dacd9429b\\e549eb3ee30a414397d7b64dacd9429b.zip",
-      "zip_sha256": "DF206DEFC2114A9122B7207A0AD3D0BBB6B505B1B14D964B566D35CD4BB387EA",
-      "manifest_sha256": "A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0",
-      "wsb_sha256": "AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF",
-      "remote_root": "I:\\PaneBindMVP1Runs\\e549eb3ee30a414397d7b64dacd9429b",
-      "deployed": true,
-      "guest_started": false,
-      "field_status": "NOT_RUN",
-      "normal_stop": "设置运行条：退出程序；有草稿默认返回设置。",
-      "emergency_pause": "Ctrl+Shift+F11",
-      "product_cleanup": "NOT_APPLICABLE_NOT_STARTED",
-      "packaging_head": "713bc83f432ba39dbaf30664ee9ccf9af035963b",
-      "zip_bytes": 7288887,
-      "manifest": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/input/manifest.json",
-      "wsb": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/PaneBindV1.wsb",
-      "receipt": {
-        "path": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/package-receipt.json",
-        "bytes": 13538,
-        "sha256": "EE1FCFAEF1108A9CD06C1C4E2060156B686178FDE9AB323A46594A3AF9146348"
-      },
-      "deployment_status": "DEPLOYED_HASH_VERIFIED_NOT_RUN",
-      "deploy_utc": "2026-11-05T13:09:45.7590152Z",
-      "deploy_receipt": {
-        "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/e549eb3ee30a414397d7b64dacd9429b/deploy-receipt.json",
-        "bytes": 2919,
-        "sha256": "60E48A6CA9B9F974F89872C7889FD7EE3B51433EB2434E0B5F21414A7841B96A"
-      },
-      "deployed_files": [
-        {
-          "path": "input\\manifest.json",
-          "size": 44874,
-          "sha256": "A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0"
-        },
-        {
-          "path": "input\\panebind-v1-guest-fixture.exe",
-          "size": 5060608,
-          "sha256": "813C42FA98D962DD5FBDF62B78B4F104C5E9701624C5EB1FB7357F51BB330D53"
-        },
-        {
-          "path": "input\\panebind-v1-input.marker",
-          "size": 32,
-          "sha256": "C96FC2EA12FAF52DC2CC0080EA8B44CE6F719C688AC89008B6393A4348F1303D"
-        },
-        {
-          "path": "input\\panebind.exe",
-          "size": 1303040,
-          "sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F"
-        },
-        {
-          "path": "input\\PaneBindV1-portable-test.zip",
-          "size": 614076,
-          "sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF"
-        },
-        {
-          "path": "input\\v1-sandbox-guest.ps1",
-          "size": 112625,
-          "sha256": "0573E590F20B41D00F35F0084E4721AC5B885E00B2DC2651D330F42EB4D13803"
-        },
-        {
-          "path": "input\\Debug\\panebind-v1-guest-fixture.exe",
-          "size": 11938304,
-          "sha256": "5269F1A27757B08390580950FBFBC933295457063AB4500C4058B1F4AA4ECA18"
-        },
-        {
-          "path": "input\\Debug\\panebind.exe",
-          "size": 4477952,
-          "sha256": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46"
-        },
-        {
-          "path": "output\\panebind-v1-output.marker",
-          "size": 32,
-          "sha256": "C96FC2EA12FAF52DC2CC0080EA8B44CE6F719C688AC89008B6393A4348F1303D"
-        },
-        {
-          "path": "PaneBindV1.wsb",
-          "size": 989,
-          "sha256": "AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF"
-        }
-      ],
-      "all_deployed_file_sizes_and_SHA256_match_local_originals": true,
-      "input_readonly_output_only_writable": true,
-      "own_task_created": false,
-      "synthetic_input_sent": false,
-      "package_receipt_is_earlier_deployed_false_snapshot": true,
-      "deployment_did_not_repeat_resource_probe": true,
-      "execution_statement_source": "Actual DeployONLY controller handoff plus deploy receipt; no Launch, task creation, or test input was requested."
-    },
-    "resume_order": [
-      "Current c77/e549 has been deployed and hash verified only; no guest/task/input.",
-      "Await an explicit actual-resource availability notification; then use exact c77/e549 identities and existing bounded resource gate. Do not poll or substitute DA7 images."
-    ],
-    "superseded_runs_retained": [
-      "e4f8612b2a624f92967d97272de58671 KNOWN_UI_WIRING_DEFECT_NOT_RUN",
-      "04e8281565b44627b8860b658e1f6c64 product1f SUPERSEDED_NOT_RUN",
-      "f3736cb15af34932b0a84692ffccbf78 product1f SUPERSEDED_NOT_RUN"
-    ],
-    "historical_portables": [
-      {
-        "package_id": "8c17956609ce4867b34ac945ac2780f3",
-        "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
-        "packaging_head": "6639229987666b1ed935663812d624c337ff3409",
-        "zip": "D:\\repository\\panebind\\uat\\v1-portable\\8c17956609ce4867b34ac945ac2780f3\\PaneBindV1-Release-8c17956609ce4867b34ac945ac2780f3.zip",
-        "zip_sha256": "45789B9502CC4324CF788726552D78A6A3D94AB5E06195ED29EF17EE7489CD4D",
-        "manifest_sha256": "53D1433675C6442DE6F017362A76E950B480494B0170324AD9F9A96A5E06586E",
-        "standalone_entry_result": "NOT_RUN",
-        "public_release": false,
-        "external_distribution_channel": "NOT_APPROVED"
-      },
-      {
-        "package_id": "e6139ac739c649c286b7f2e5728ff77c",
-        "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
-        "packaging_head": "da7a858f24e1baba6c06aac3dd317db5043ca871",
-        "zip": "D:\\repository\\panebind\\uat\\v1-portable\\e6139ac739c649c286b7f2e5728ff77c\\PaneBindV1-Release-e6139ac739c649c286b7f2e5728ff77c.zip",
-        "zip_sha256": "CCEE5AF5E189C620D7A6CAD6D68E609752195015A5CDAEB952432270877797E0",
-        "manifest_sha256": "8F56D9F93F22602642CF0B5131ED53F80A895D8F5570947FDFF4F0AE5DD17811",
-        "product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
-        "standalone_entry_result": "NOT_RUN_T09",
-        "test_extraction_and_same_EXE_restart": "f282_T06_SCOPED_PASS_NOT_T09",
-        "public_release": false
-      }
-    ],
-    "historical_guest_packages": [
-      {
-        "run_id": "36f81b0bccf641a6b48d4411b6c05bdd",
-        "suite": "SettingsEditorsOnly",
-        "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
-        "driver_source_sha": "a65b3bfce57146cb75d4eba6e2bc90567a348f27",
-        "zip": "D:\\repository\\panebind\\uat\\v1-sandbox\\36f81b0bccf641a6b48d4411b6c05bdd\\36f81b0bccf641a6b48d4411b6c05bdd.zip",
-        "zip_sha256": "BB2AE02EB792E4995C4DDE8FCD659904143200BA5099EA8EFEAFB330E5C9B01D",
-        "manifest_sha256": "E8704C47F7DC6B7B9FCF3257A0E727EB22C616724750C8B17B7F9C86E8160D55",
-        "wsb_sha256": "5EBBDD54E2FCC366EE5B59E64226DFBF92871ACAF70B369DE513C1B8D8EC5C48",
-        "remote_root": "I:\\PaneBindMVP1Runs\\36f81b0bccf641a6b48d4411b6c05bdd",
-        "deployed": true,
-        "deploy_utc": "2026-11-05T09:40:33.0019018Z",
-        "guest_started": false,
-        "launch_authority": "Wait for turn notification, then one fresh occupancy/resources gate",
-        "field_status": "NOT_RUN",
-        "collect_controller": "uat/v1-control/ui-editors-controller-20261105-e772105a/run-control.ps1",
-        "startup_command_in_guest": "driver automatically extracts verified portable ZIP into its new Chinese/space path; ordinary EXE no arguments",
-        "normal_stop": "settings runtime bar: 退出程序; dirty draft defaults 返回设置",
-        "emergency_pause": "Ctrl+Shift+F11",
-        "product_cleanup": "NOT_APPLICABLE_NOT_STARTED",
-        "snapshot_at_old_review": true,
-        "later_actual_result": "after/after-captures-36f8.json; T01 tool bounds FAIL, original guest_started=false was a prelaunch snapshot"
-      },
-      {
-        "run_id": "a793c8739a984c38bdc950c101db02aa",
-        "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
-        "driver_source_sha": "d8a1e833cff7a4f1824a21ea9a54c99826a851c1",
-        "deployed": true,
-        "guest_started": false,
-        "field_status": "NOT_RUN_RESOURCE_GATE_REJECTED_TWICE",
-        "evidence": "after/a793-resource-gate.json"
-      }
-    ],
-    "packaging_stage_history": [
-      {
-        "stage": "PLANNED_NOT_GENERATED",
-        "document_git_snapshot": "713bc83f432ba39dbaf30664ee9ccf9af035963b:docs/reports/v1-ui-review/review.json",
-        "portable": {
-          "package_id": "a5dcf5ef3c8847649f5212f9e331e7be",
-          "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-          "packaging_head": null,
-          "status": "PLANNED_NOT_GENERATED",
-          "zip": null,
-          "zip_sha256": null,
-          "manifest_sha256": null,
-          "product_exe_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
-          "standalone_entry_result": "NOT_RUN",
-          "public_release": false,
-          "external_distribution_channel": "NOT_APPROVED"
-        },
-        "guest": {
-          "run_id": "e549eb3ee30a414397d7b64dacd9429b",
-          "suite": "SettingsEditorsOnly",
-          "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-          "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-          "status": "PLANNED_NOT_GENERATED",
-          "zip": null,
-          "zip_sha256": null,
-          "manifest_sha256": null,
-          "wsb_sha256": null,
-          "remote_root": "I:\\PaneBindMVP1Runs\\e549eb3ee30a414397d7b64dacd9429b",
-          "deployed": false,
-          "guest_started": false,
-          "field_status": "NOT_RUN",
-          "normal_stop": "设置运行条：退出程序；有草稿默认返回设置。",
-          "emergency_pause": "Ctrl+Shift+F11",
-          "product_cleanup": "NOT_APPLICABLE_NOT_STARTED"
-        },
-        "later_generated_receipts_do_not_rewrite_this_planned_snapshot": true
-      }
-    ]
+    "portable_package_id": "9498d52cda714a71b2a2d58748c14e81",
+    "guest_run_id": "864324ae101c450baabf9b7eedd51f2a",
+    "source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+    "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+    "packaging_head": "353d8453ca0200fc27c034af18140d66d15c2a47",
+    "package_evidence": "after/visible-delivery-package-8643.json",
+    "deployed": true,
+    "guest_started": false,
+    "new_candidate_six_page_images": 0,
+    "new_candidate_demo_frames": 0,
+    "last_measured_six_pages_are_c77_e60f": true,
+    "public_release_or_host_trial": false
   },
-  "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+  "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
   "continuation_starting_sha": "a0e6b677dfb9e4748d6d377056847089441d8fcd",
   "historical_acceptance_counts_unchanged": {
     "features": "46/60",
@@ -1097,7 +1500,7 @@
     "integration": "5/12",
     "current_UI_work_awards_no_whole_contract_PASS": true
   },
-  "current_candidate_field_status": "NOT_RUN",
+  "current_candidate_field_status": "NOT_RUN_8643_RESOURCE_AND_OTHER_PROJECT_OCCUPANCY_GATE_REFUSED",
   "historical_blocking_facts": [
     {
       "utc": "2026-11-05T08:38:17.3174707Z",
@@ -1114,49 +1517,83 @@
       "product_cleanup": "NOT_APPLICABLE_NOT_STARTED",
       "polling": false,
       "system_changes": []
+    },
+    {
+      "host": "ZS-WORKSTATION",
+      "status": "FRESH_RESOURCE_GATES_REJECTED_WITH_NO_SANDBOX_OCCUPANT",
+      "evidence": "after/a793-resource-gate.json",
+      "measurements": [
+        {
+          "trigger": "本批首次部署后的启动前检查",
+          "raw": {
+            "machine": "ZS-WORKSTATION",
+            "user": "ZS-Workstation\\zs",
+            "utc": "2026-11-05T12:32:54.7563497Z",
+            "aux_sha256": "6BD692E9DF0F707A62F9A2F8E4E6CAFA28AAF2E141DCEB8B63F6D5A3260A31DE",
+            "free_physical_KiB": 3665364,
+            "free_commit_KiB": 392076,
+            "sandbox_processes": [],
+            "safe_to_request_own_4096MiB_launch": false
+          }
+        },
+        {
+          "trigger": "用户另行通知资源已恢复后的一次有界复查",
+          "raw": {
+            "machine": "ZS-WORKSTATION",
+            "user": "ZS-Workstation\\zs",
+            "utc": "2026-11-05T12:49:16.3667815Z",
+            "free_physical_KiB": 151196,
+            "free_commit_KiB": 744016,
+            "sandbox_processes": [],
+            "minimum_physical_KiB": 6291456,
+            "minimum_free_virtual_KiB": 5242880,
+            "guest_memory_MiB": 4096,
+            "safe_to_request_own_4096MiB_launch": false
+          }
+        }
+      ],
+      "minimum_free_physical_KiB": 6291456,
+      "minimum_CIM_FreeVirtualMemory_KiB": 5242880,
+      "requested_guest_memory_MiB": 4096,
+      "own_guests_started": 0,
+      "own_tasks_created": 0,
+      "host_input_sent": false,
+      "guest_input_sent": false,
+      "product_cleanup": "NOT_APPLICABLE_A793_NOT_STARTED",
+      "polling": false,
+      "system_changes": [],
+      "note": "这是该两次启动前实际资源门拒绝，不是新建VM要求，也不推翻已结束批次的真实功能结果。"
     }
   ],
   "baseline_images": "before/baseline465-captures.json",
   "last_field_images": {
-    "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
-    "product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
-    "run_id": "b4538983dc6a4b26a071a90e630274a6",
+    "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+    "run": "e60f564f222441d6b52ab8b6cfb0fb25",
+    "six_pages": 6,
+    "long_page_bottoms": 2,
+    "narrow_frames": 12,
     "actual_dpi": 144,
-    "actual_scaling_percent": 150,
-    "metadata": "after/after-captures-b453.json",
-    "normal_six_pages_and_long_bottoms_count": 8,
-    "narrow_count": 12,
-    "images": [
-      "docs/reports/v1-ui-review/after/b453-page-0-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-1-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-2-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-2-bottom.png",
-      "docs/reports/v1-ui-review/after/b453-page-3-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-3-bottom.png",
-      "docs/reports/v1-ui-review/after/b453-page-4-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-5-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-0-narrow-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-0-narrow-bottom.png",
-      "docs/reports/v1-ui-review/after/b453-page-1-narrow-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-1-narrow-bottom.png",
-      "docs/reports/v1-ui-review/after/b453-page-2-narrow-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-2-narrow-bottom.png",
-      "docs/reports/v1-ui-review/after/b453-page-3-narrow-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-3-narrow-bottom.png",
-      "docs/reports/v1-ui-review/after/b453-page-4-narrow-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-4-narrow-bottom.png",
-      "docs/reports/v1-ui-review/after/b453-page-5-narrow-top.png",
-      "docs/reports/v1-ui-review/after/b453-page-5-narrow-bottom.png"
-    ],
-    "is_current_c77_images": false,
-    "visual_exception": "after/b453-visual-review.json"
+    "evidence": "after/after-captures-e60f.json",
+    "not_current_4d_images": true
   },
   "demo_delivery": {
     "required_segments": 5,
     "required_frames_per_segment": 3,
     "delivered_frames": 0,
-    "status": "NOT_RUN",
-    "old_geometric_evidence_not_substituted": true
+    "status": "NOT_RUN_PRELAUNCH_GATE_REFUSED",
+    "old_geometric_evidence_not_substituted": true,
+    "required_total_frames": 16,
+    "required_frames_by_segment": [
+      3,
+      3,
+      3,
+      4,
+      3
+    ],
+    "dock_segment_extra_frame": "committed before after-Undo",
+    "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+    "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+    "run_id": "864324ae101c450baabf9b7eedd51f2a"
   },
   "commit_roles": [
     {
@@ -1357,13 +1794,13 @@
     "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
     "product_release_sha256": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D",
     "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
-    "driver_build": "PENDING_FORMAL_BINARY",
+    "driver_build": "DEBUG_RELEASE_BUILD_OFFLINE_AND_HOST_GUARD_PASS",
     "product_build_evidence": {
       "path": "docs/reports/v1-ui-review/after/visible-product-build-4d684.json",
       "bytes": 13593,
       "sha256": "06F8E4E8C9967E088768ADA7BBF7C117C823EBD25E35AEDB3B0EC23680C94CE4"
     },
-    "product_field_status": "NOT_RUN_NEW_IMPLEMENTATION",
+    "product_field_status": "NOT_RUN_RESOURCE_AND_OTHER_PROJECT_OCCUPANCY_GATE_REFUSED",
     "historical_last_observed_product": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
     "historical_last_observed_run": "e60f564f222441d6b52ab8b6cfb0fb25",
     "planned_portable_id": "9498d52cda714a71b2a2d58748c14e81",
@@ -1371,6 +1808,28 @@
     "planned_product_and_driver_contract_unchanged": true,
     "older_package_e60f_and_a5_unmodified": true,
     "field_UP_insertion_failure_case": "NOT_RUN_SOURCE_PATH_REVIEWED_ONLY",
-    "all_T01_T10_PASS": false
+    "all_T01_T10_PASS": false,
+    "driver_release_sha256": "FD2F92BBA60D7A91277FCC6CC588048C644595D790D84B79E04F8D50491D2F8E",
+    "driver_build_evidence": {
+      "path": "docs/reports/v1-ui-review/after/visible-driver-build-2f2b5.json",
+      "bytes": 11534,
+      "sha256": "CAB811F6875D14061EC38E616A6DBBA6799D2F29DB8D7C4EF22A9A00F1DB11DD"
+    },
+    "portable_id": "9498d52cda714a71b2a2d58748c14e81",
+    "portable_zip_sha256": "470AAE2CF8F1CDC909183B7A60FD048889342BC398A758F2703CEADEA80E2F45",
+    "guest_package_evidence": {
+      "path": "docs/reports/v1-ui-review/after/visible-delivery-package-8643.json",
+      "bytes": 5266,
+      "sha256": "C974A8E65C9202E33CF81EBA9F1F02DEB337139A3632D52F1C3FD21A83245E6E"
+    },
+    "resource_gate": {
+      "path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
+      "bytes": 1728,
+      "sha256": "182F325138E0BFB47120749B3888EDB2F7B4D711C42C6FA75A7C7305C5C22366"
+    },
+    "guest_deployed": true,
+    "guest_started": false,
+    "new_candidate_page_images": 0,
+    "new_candidate_demo_frames": 0
   }
 }

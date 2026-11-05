@@ -1,18 +1,13 @@
 # 五段真实动作展示
 
-e60f已实际启动，但在T08工具前置失败后安全停止，T10为NOT_EXECUTED、0/16帧；当前不再是未获资源通知。原失败保留，修复后按原顺序继续，不能用已取得的设置图充当动作帧。
+当前候选为4d产品／2f2驱动、9498便携包、8643 Run。**实际0/16帧，T10 NOT_RUN**：8643已部署但启动门未放行，没有用进程退出码或设置界面图代替演示。最近c77/e60f在T08工具前置失败后安全停止，T10同样未执行，原失败保留。
 
-当前352驱动要求实际16帧，当前仍0/16、T10 NOT_RUN。停靠段按before／preview／committed／after-Undo四帧，其余四段各三帧；不得用文字替代提交或撤销画面。先完成T08/T09，颜色T07放最后。以下原15帧表为截至2f5f836的历史交付缺口，不代表已取得任何帧。
+| 顺序 | 自有空白对象和动作 | 前／中／后 | 额外画面 |
+| --- | --- | --- | --- |
+| 01 | 普通磁吸靠近、保持、拉开、重吸及XY对齐 | NOT_RUN／NOT_RUN／NOT_RUN | 无 |
+| 02 | 三窗Ctrl联动移动 | NOT_RUN／NOT_RUN／NOT_RUN | 无 |
+| 03 | 双窗共享边Ctrl缩放 | NOT_RUN／NOT_RUN／NOT_RUN | 无 |
+| 04 | 单屏停靠预览、真实UP提交、撤销 | NOT_RUN／NOT_RUN／NOT_RUN | committed：NOT_RUN；after为撤销后 |
+| 05 | 编辑器从已保存J改K并实际生效 | NOT_RUN／NOT_RUN／NOT_RUN | 无 |
 
-
-**实际0/15帧，T10 NOT_RUN。** 新c77产品/驱动已构建；合法guest启动仍受资源门限制。源代码中已接真实五段动作、独立几何断言与原像素捕获，但没有执行就没有演示通过。
-
-| 次序 | 对象与动作 | before / during / after |
-| --- | --- | --- |
-| 01 | 自有空白source：普通磁吸靠近、XY吸附、保持、拉开、重吸 | NOT_RUN / NOT_RUN / NOT_RUN |
-| 02 | 三个精确自有空白fixture：Ctrl联动移动 | NOT_RUN / NOT_RUN / NOT_RUN |
-| 03 | 两个精确自有空白fixture：共享边Ctrl缩放 | NOT_RUN / NOT_RUN / NOT_RUN |
-| 04 | 单屏自有fixture：停靠预览、真实松键提交、撤销 | NOT_RUN / NOT_RUN / NOT_RUN |
-| 05 | 新编辑器：改变居中键后真实生效 | NOT_RUN / NOT_RUN / NOT_RUN |
-
-本轮没有安装录屏器、生成模拟图或冒称五应用兼容/真人UAT。后续实际帧必须逐张绑定真实产品源码、EXE哈希、driver、Run、DPI和独立动作回执；图片仅为展示，不能替代正常UP及实际写入/资源清理证据。
+每张实际原图必须绑定产品源码／EXE哈希、驱动、Run、场景和实际DPI；不能将e60f或DA7图片改绑4d，也不由演示授五应用、I02/I03、真人UAT或整版通过。没有安装录屏器、制作效果图或删除历史失败。[现有字段与实际启动门](../after/visible-delivery-package-8643.json)。

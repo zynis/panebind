@@ -30,25 +30,25 @@
       "U4",
       "T01-T10_and_actual_images"
     ],
-    "field_status": "PARTIAL_HISTORICAL_C77_NEW_4D_NOT_RUN",
-    "reason": "e60f的c77真实图片、T02限定实证、T01视觉FAIL和T08工具FAIL保留；已修说明绘制并构建新4d产品，新2f2驱动待正式构建。新候选现场尚未运行，不改绑旧结果。",
+    "field_status": "PARTIAL_C77_OBSERVED_NEW_4D_BLOCKED_BEFORE_LAUNCH",
+    "reason": "c77/e60f真实六页、T02限定实证及T01视觉/T08工具FAIL保留；已完成4d产品+2f2驱动构建及9498/8643新包部署。8643单次门观察到象流占用及CIM FreeVirtualMemory低于原5GiB，未启动、不轮询或抢占。",
     "review_path": "docs/reports/v1-ui-review/README.md",
     "T01_T10": {
-      "T01": "FAIL_VISUAL_NARROW_NOTES",
-      "T02": "PASS_SCOPED_DA7",
-      "T03": "PASS_SCOPED_DA7",
-      "T04": "PASS_SCOPED_DA7",
-      "T05": "PASS_SCOPED_DA7",
-      "T06": "PASS_SCOPED_DA7",
-      "T07": "PARTIAL_DA7",
-      "T08": "NOT_RUN",
+      "T01": "FAIL_VISUAL_NARROW_NOTES_C77_E60F",
+      "T02": "PASS_SCOPED_C77_E60F",
+      "T03": "PASS_SCOPED_DA7_HISTORICAL_NOT_RERUN",
+      "T04": "PASS_SCOPED_DA7_HISTORICAL_NOT_RERUN",
+      "T05": "PASS_SCOPED_DA7_HISTORICAL_NOT_RERUN",
+      "T06": "PASS_SCOPED_DA7_HISTORICAL_NOT_RERUN",
+      "T07": "PARTIAL_DA7_HISTORICAL_LAST_EXECUTED",
+      "T08": "FAIL_TOOL_COMBO_C77_E60F",
       "T09": "NOT_RUN",
       "T10": "NOT_RUN"
     },
     "current_candidate_does_not_inherit_historical_PASS": true,
     "deferred_order": "200%/100%、双屏/混合DPI、真实虚拟桌面/会话、原生Shake、真实应用初始化、托盘相同UIA前置、NF02与无关Full/900秒均为开发顺序暂缓，最后由产品经理统一安排攻坚；原BLOCKED/FAIL/NOT_RUN和最终门槛不变。",
     "current_candidate_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
-    "current_candidate_field_status": "NOT_RUN_NEW_TEXT_DRAW_IMPLEMENTATION",
+    "current_candidate_field_status": "NOT_RUN_8643_PRELAUNCH_GATE_REFUSED",
     "current_candidate_T01_T10": {
       "T01": "NOT_RUN",
       "T02": "NOT_RUN",
@@ -61,16 +61,16 @@
       "T09": "NOT_RUN",
       "T10": "NOT_RUN"
     },
-    "last_field_product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
-    "last_field_product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
-    "last_field_run_id": "f28241d9836c46a08d7209f78c12267a",
-    "last_field_evidence_path": "docs/reports/v1-ui-review/after/f282-validation.json",
-    "visual_failure_evidence_path": "docs/reports/v1-ui-review/after/b453-visual-review.json",
+    "last_field_product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+    "last_field_product_exe_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+    "last_field_run_id": "e60f564f222441d6b52ab8b6cfb0fb25",
+    "last_field_evidence_path": "docs/reports/v1-ui-review/after/e60f-validation.json",
+    "visual_failure_evidence_path": "docs/reports/v1-ui-review/after/e60f-visual-review.json",
     "current_images": "NOT_RUN_0_OF_6_NEW_4D_CANDIDATE",
-    "last_field_images": "DA7_SIX_PAGES_PLUS_TWO_BOTTOMS_ORIGINAL_144_DPI",
-    "demo_frames": "NOT_EXECUTED_0_OF_16",
+    "last_field_images": "C77_SIX_PAGES_PLUS_TWO_BOTTOMS_AND_TWELVE_NARROW_ORIGINAL_144_DPI",
+    "demo_frames": "NOT_RUN_0_OF_16_NEW_4D_CANDIDATE",
     "resource_gate_evidence_path": "docs/reports/v1-ui-review/after/a793-resource-gate.json",
-    "followup_driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+    "followup_driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
     "followup_selected_order": [
       "T01",
       "T02",
@@ -80,10 +80,10 @@
       "T07"
     ],
     "followup_preparation_evidence_path": "docs/reports/v1-ui-review/after/visible-delivery-preparation-3528059.json",
-    "followup_guest_run_id": "e60f564f222441d6b52ab8b6cfb0fb25",
-    "followup_package_evidence_path": "docs/reports/v1-ui-review/after/visible-delivery-package-e60f.json",
+    "followup_guest_run_id": "864324ae101c450baabf9b7eedd51f2a",
+    "followup_package_evidence_path": "docs/reports/v1-ui-review/after/visible-delivery-package-8643.json",
     "followup_guest_deployed": true,
-    "followup_guest_started": true,
+    "followup_guest_started": false,
     "followup_field_evidence_path": "docs/reports/v1-ui-review/after/e60f-validation.json",
     "historical_candidate_c77_e60f": {
       "current_candidate_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
@@ -103,7 +103,29 @@
       "current_images": "C77_SIX_PAGES_PLUS_TWO_BOTTOMS_AND_TWELVE_NARROW_144_DPI",
       "followup_field_evidence_path": "docs/reports/v1-ui-review/after/e60f-validation.json"
     },
-    "followup_product_build_evidence_path": "docs/reports/v1-ui-review/after/visible-product-build-4d684.json"
+    "followup_product_build_evidence_path": "docs/reports/v1-ui-review/after/visible-product-build-4d684.json",
+    "followup_resource_gate_evidence_path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
+    "historical_DA7_last_field_summary": {
+      "last_field_product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+      "last_field_product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
+      "last_field_run_id": "f28241d9836c46a08d7209f78c12267a",
+      "last_field_evidence_path": "docs/reports/v1-ui-review/after/f282-validation.json",
+      "last_field_images": "DA7_SIX_PAGES_PLUS_TWO_BOTTOMS_ORIGINAL_144_DPI",
+      "visual_failure_evidence_path": "docs/reports/v1-ui-review/after/b453-visual-review.json",
+      "T01_T10": {
+        "T01": "FAIL_VISUAL_NARROW_NOTES_C77_E60F",
+        "T02": "PASS_SCOPED_C77_E60F",
+        "T03": "PASS_SCOPED_DA7_HISTORICAL_NOT_RERUN",
+        "T04": "PASS_SCOPED_DA7_HISTORICAL_NOT_RERUN",
+        "T05": "PASS_SCOPED_DA7_HISTORICAL_NOT_RERUN",
+        "T06": "PASS_SCOPED_DA7_HISTORICAL_NOT_RERUN",
+        "T07": "PARTIAL_DA7_HISTORICAL_LAST_EXECUTED",
+        "T08": "FAIL_TOOL_COMBO_C77_E60F",
+        "T09": "NOT_RUN",
+        "T10": "NOT_RUN"
+      }
+    },
+    "T01_T10_scope": "Most recent executed scoped results per item, mixed historical identities explicitly retained; NOT current 4d candidate verdicts."
   },
   "source_identity": {
     "previous_settings_ui_candidate_1f94_20261105": {

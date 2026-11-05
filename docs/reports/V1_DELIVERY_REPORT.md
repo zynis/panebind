@@ -1,5 +1,42 @@
 # PaneBind V1 集中交付进展
 
+## 当前候选与实际可见交付（2026-11-06，后继8643）
+
+**现在能看到：** 下方六页为本轮实际取得的c77/e60f、144 DPI真实原图；其窄说明仍FAIL，不能改绑到4d。**这轮已实现并构建：** 4d说明绘制修复、静态文字角色保留、2f2测试驱动精确输入及异常收尾；产品D/R及各5项offline通过，驱动D/R及路径/宿主保护通过，17项未改汇总检查沿用4d原实测。**尚未完成：** 新4d候选现场、T08/T09/T10/T07及五段16帧；不是可试用或DEV_COMPLETE交付。
+
+[![常规：c77/e60f/144 DPI](v1-ui-review/after/e60f-page-0-top.png)](v1-ui-review/after/e60f-page-0-top.png)
+
+[![磁吸／联动：c77/e60f/144 DPI](v1-ui-review/after/e60f-page-1-top.png)](v1-ui-review/after/e60f-page-1-top.png)
+
+[![停靠／拉伸：c77/e60f/144 DPI](v1-ui-review/after/e60f-page-2-top.png)](v1-ui-review/after/e60f-page-2-top.png)
+
+[![快捷键／鼠标：c77/e60f/144 DPI](v1-ui-review/after/e60f-page-3-top.png)](v1-ui-review/after/e60f-page-3-top.png)
+
+[![应用规则：c77/e60f/144 DPI](v1-ui-review/after/e60f-page-4-top.png)](v1-ui-review/after/e60f-page-4-top.png)
+
+[![诊断／外观：c77/e60f/144 DPI](v1-ui-review/after/e60f-page-5-top.png)](v1-ui-review/after/e60f-page-5-top.png)
+
+8643已部署并逐文件核验，`2026-11-05T16:45:40.5705914Z`本新批一次必要启动门未放行：物理15,887,596 KiB达6GiB门，CIM FreeVirtualMemory4,751,160 KiB低于5GiB；同时存在象流Sandbox PID57992，指向其专属WSB。两项真实阻断分别保留，[原始数值、占用与回执](v1-ui-review/after/8643-resource-gate.json)。未Launch、未建临时任务、未发送输入；没有接管/关闭/重查该实例，也不把这次拒绝当4d产品失败。收到正常释放及资源恢复通知后复用本包单次核验，不重建或重复封包。
+
+| 当前身份 | 准确绑定 |
+| --- | --- |
+| 产品源码 | `4d684e3ca1b708b397dd9808fd38ff9b6657d9fe` |
+| 产品Release SHA-256 | `6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D` |
+| 驱动源码 | `2f2b5bd704582a4d51abb1f2c503fbd640ff62f4` |
+| 驱动Release SHA-256 | `FD2F92BBA60D7A91277FCC6CC588048C644595D790D84B79E04F8D50491D2F8E` |
+| 打包提交 | `353d8453ca0200fc27c034af18140d66d15c2a47`；文档后继，不改产品/驱动事实 |
+| 普通便携包 | [9498原ZIP](<D:/repository/panebind/uat/v1-portable/9498d52cda714a71b2a2d58748c14e81/PaneBindV1-Release-9498d52cda714a71b2a2d58748c14e81.zip>) |
+| 便携ZIP SHA-256 | `470AAE2CF8F1CDC909183B7A60FD048889342BC398A758F2703CEADEA80E2F45` |
+| guest Run／已核远端 | `864324ae101c450baabf9b7eedd51f2a`／`I:\PaneBindMVP1Runs\864324ae101c450baabf9b7eedd51f2a` |
+| guest ZIP／manifest／WSB | [完整哈希、逐文件部署与包回执](v1-ui-review/after/visible-delivery-package-8643.json) |
+
+新4d/2f2候选U1–U4均已实现；本轮构建/离线边界见[产品](v1-ui-review/after/visible-product-build-4d684.json)、[驱动](v1-ui-review/after/visible-driver-build-2f2b5.json)。T01/T02/T08/T09/T10/T07因未启动仍NOT_RUN；T03–T06本轮未重跑，DA7原限定实证保留。4d的UIA/MSAA现场角色核验、UP插入失败的实际故障注入均未运行；不由隐藏控件helper或源代码审查推成现场PASS。
+
+e60f中实际产品退出和八项资源事实已独立于guest销毁核验，但它走CLI失败收尾，不授T09运行条退出。e60f自有guest/任务已精确清理，全部证据保留；8643未启动无PaneBind live资源可清。新增部署仅本任务I盘新目录，不改系统功能/账户/显示配置或其它项目文件。100%/200%、多屏、真实应用/托盘、会话、Shake、NF02、Full/900秒继续按产品经理顺序暂缓。46/60、22/40、5/12不变，V1 PARTIAL，真人UAT PENDING，REA NOT_STARTED。
+
+以下记录保留各自历史时点；最近真实六页图仍直接展示在下方e60f段，未将“新包已部署”写成界面/功能通过。
+
+
 ## 新绘制候选准备状态（2026-11-06；现场结果尚未取得）
 
 **能看到：** 下方六页仍为刚完成的c77／e60f真实图，保留其窄文字FAIL；不是新4d候选的图片。**本轮已修：** 说明走明确WM_DRAWITEM绘制，原caption、字体、测量及静态文字可访问角色保留；对话框输入改用一次精确真实激活与逐步键盘回执。T08按任务书使用数字草稿及有效J帮助，T02/J、T10/K编辑不变。未确认释放的测试输入禁止补发或后置点击，原错误不会被成功退出掩盖。
