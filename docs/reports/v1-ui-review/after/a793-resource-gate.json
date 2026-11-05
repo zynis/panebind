@@ -1,0 +1,123 @@
+{
+  "schema": "panebind-v1-guest-resource-gate/1",
+  "review_date": "2026-11-05",
+  "run_id": "a793c8739a984c38bdc950c101db02aa",
+  "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+  "product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
+  "driver_source_sha": "d8a1e833cff7a4f1824a21ea9a54c99826a851c1",
+  "driver_exe_sha256": "4310A3E180716912086C68A3413DBF2E064090DF8418D31224CC07C079AEECD7",
+  "packaging_head": "d8a1e833cff7a4f1824a21ea9a54c99826a851c1",
+  "configuration": "Release",
+  "suite": "SettingsEditorsOnly",
+  "remote_root": "I:\\PaneBindMVP1Runs\\a793c8739a984c38bdc950c101db02aa",
+  "deployment": {
+    "status": "DEPLOYED_HASH_VERIFIED_NOT_STARTED",
+    "utc": "2026-11-05T12:31:54.3533457Z",
+    "input_readonly_output_only_writable": true,
+    "archive": {
+      "path": "uat/v1-sandbox/a793c8739a984c38bdc950c101db02aa/a793c8739a984c38bdc950c101db02aa.zip",
+      "bytes": 7284857,
+      "sha256": "D506BBB8B62A0E2072929B6977523D344A0CFC2DB80CF376EBE3BE0AFCE3E34C"
+    },
+    "all_deploy_manifest_paths_sizes_sha256_matched_local_originals": true,
+    "package_receipt_unchanged": true
+  },
+  "measurement_field_meaning": {
+    "free_physical_KiB": "本次 CIM Win32_OperatingSystem.FreePhysicalMemory 读数（KiB）。",
+    "free_commit_KiB": "原脚本字段名；实际来自 CIM Win32_OperatingSystem.FreeVirtualMemory（KiB），不是另行采集的提交计数器。"
+  },
+  "launch_gate": {
+    "decision": "REJECTED_RESOURCE_PRECONDITION",
+    "requested_guest_memory_MiB": 4096,
+    "minimum_free_physical_KiB": 6291456,
+    "minimum_CIM_FreeVirtualMemory_KiB": 5242880,
+    "physical_requirement_met": false,
+    "CIM_FreeVirtualMemory_requirement_met": false,
+    "mechanism": "本次远端控制调用中的内联启动前资源门；不是 run-control.ps1 的既有功能。",
+    "threshold_provenance": "??????????????????????? prelaunch-after-resource-restored.json ????????????????????????? prelaunch.ps1?",
+    "latest_measurement_still_rejected": true
+  },
+  "actions_after_refusal": {
+    "source": "??????????????????????????????????",
+    "new_task_created": false,
+    "new_guest_created": false,
+    "synthetic_input_sent": false,
+    "other_project_resources_stopped": false,
+    "additional_remote_polling_performed_for_this_note": false
+  },
+  "test_status": {
+    "a793_scene_execution": "NOT_RUN",
+    "T07_affected_followup": "NOT_RUN",
+    "T08_T10": "NOT_RUN",
+    "product_failure_inferred": false,
+    "cleanup_PASS_inferred_from_no_launch": false,
+    "historical_results_rebound": false
+  },
+  "raw_pins": [
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/a793c8739a984c38bdc950c101db02aa/prelaunch.json",
+      "bytes": 388,
+      "sha256": "916EEB823B15B0D6D26AF938DFB6406EBA4D7272A1020D1C09125C38954CDF0A"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/a793c8739a984c38bdc950c101db02aa/deploy-receipt.json",
+      "bytes": 2919,
+      "sha256": "38E51EB97101F72F3D5A31070BF72F2FC76B2CBC7579F77DCF99BEC21FE9FD3D"
+    },
+    {
+      "path": "uat/v1-sandbox/a793c8739a984c38bdc950c101db02aa/input/manifest.json",
+      "bytes": 21108,
+      "sha256": "4952EF5AC81FAD8E916730838C5FAF0D924DB1408D1151B6F5CE83E986AE1A47"
+    },
+    {
+      "path": "uat/v1-sandbox/a793c8739a984c38bdc950c101db02aa/package-receipt.json",
+      "bytes": 13538,
+      "sha256": "F899A3D68161EFB71E1AF3916FC01AA5239D254C6F6C4A36EAFA1C9F68ED9BEE"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/a793c8739a984c38bdc950c101db02aa/host-expectation.json",
+      "bytes": 3255,
+      "sha256": "5845875DBBED1A90A10F025AD68E2C43593905FAD9D0A5B53A0D27FBAB3C2C38"
+    },
+    {
+      "path": "uat/v1-sandbox/a793c8739a984c38bdc950c101db02aa/PaneBindV1.wsb",
+      "bytes": 989,
+      "sha256": "86B94CE8274DC27566A130B905D69836154661E2C173AB803A1851BA7699EAF7"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/a793c8739a984c38bdc950c101db02aa/prelaunch-after-resource-restored.json",
+      "bytes": 413,
+      "sha256": "A077BC082AE94BC486B3AE16C715B5C9306A0C781FB616D4904EDECDE60CD12D"
+    }
+  ],
+  "measurements": [
+    {
+      "trigger": "?????????????",
+      "raw": {
+        "machine": "ZS-WORKSTATION",
+        "user": "ZS-Workstation\\zs",
+        "utc": "2026-11-05T12:32:54.7563497Z",
+        "aux_sha256": "6BD692E9DF0F707A62F9A2F8E4E6CAFA28AAF2E141DCEB8B63F6D5A3260A31DE",
+        "free_physical_KiB": 3665364,
+        "free_commit_KiB": 392076,
+        "sandbox_processes": [],
+        "safe_to_request_own_4096MiB_launch": false
+      }
+    },
+    {
+      "trigger": "???????????????????",
+      "raw": {
+        "machine": "ZS-WORKSTATION",
+        "user": "ZS-Workstation\\zs",
+        "utc": "2026-11-05T12:49:16.3667815Z",
+        "free_physical_KiB": 151196,
+        "free_commit_KiB": 744016,
+        "sandbox_processes": [],
+        "minimum_physical_KiB": 6291456,
+        "minimum_free_virtual_KiB": 5242880,
+        "guest_memory_MiB": 4096,
+        "safe_to_request_own_4096MiB_launch": false
+      }
+    }
+  ]
+}

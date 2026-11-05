@@ -1,45 +1,40 @@
 # PaneBind V1 设置界面与演示复核（2026-11-05）
 
-**新候选已实现并构建；新界面截图、动作帧和T01–T10现场验证尚未取得。** 不把旧图片当成新界面，也不提供效果图替代。当前Sandbox属于象流，不能接管、抢占或启动第二实例；已发出释放时段询问，期间不轮询。
+现在已有六页真实界面及DA7在150% guest的键鼠编辑/规则/配置操作实证。本轮仍未完成：窄窗说明裁切修复c77未现场，T07第二颜色未完成，T08–T10和五段15帧未执行。新c77构建通过不代表可试用；真人UAT PENDING，REA NOT_STARTED，V1 PARTIAL。
 
-产品源码 `1aabd344ad88bfcf36d7d611ee809a6da1e10ea1`，Release EXE SHA-256 `11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82`。产品、驱动、包和运行各自绑定，详见[复核元数据](review.json)及[集中报告](../V1_DELIVERY_REPORT.md)。普通宿主试用未开放，真人UAT PENDING、REA NOT_STARTED。
+[六页真实PNG及两张长页下半部](after/README.md)来自DA7，不能改绑c77。[集中报告顶部](../V1_DELIVERY_REPORT.md)直接展示新界面，先看产品图而非分数。[源码/二进制/包/Run独立元数据](review.json)。
 
+## 本轮真实界面
 
-**最终候选与接续入口（已封包、已部署，未启动）：** 产品1a / 驱动a65，便携包 [8c1795 ZIP](<D:/repository/panebind/uat/v1-portable/8c17956609ce4867b34ac945ac2780f3/PaneBindV1-Release-8c17956609ce4867b34ac945ac2780f3.zip>)，SHA-256 `45789B9502CC4324CF788726552D78A6A3D94AB5E06195ED29EF17EE7489CD4D`。对应guest Run `36f81b0bccf641a6b48d4411b6c05bdd`已在`I:\PaneBindMVP1Runs\36f81b0bccf641a6b48d4411b6c05bdd`逐文件核验；其只读input含相同便携ZIP，唯一可写映射为同批output。未批准外部分发渠道，不公开发布EXE/ZIP。
+[![快捷键／鼠标：DA7／b453／144DPI](after/b453-page-3-top.png)](after/b453-page-3-top.png)
 
-普通启动/停止方法仅供该授权guest：从新ZIP解压目录无参运行`panebind.exe`，顶部运行条暂停/恢复、帮助、退出；有草稿默认“返回设置”，可明确“放弃修改并退出”；×/取消不退出程序。T09会自动在中文空格目录执行该入口，用户不需搬文件或逐项实验。**这些新入口现场NOT_RUN，不能称已可试用。** 等释放通知及一次新资源核验后，按需先68fb历史取证，再36f8同一次六页/长页与T01–T10，复用这些已核包，不重建、不轮询。当前没有本任务live资源，cleanup不适用而非PASS；最后占用观察仍为08:38Z，没有把它冒称后续实时状态。
+[常规](after/b453-page-0-top.png) · [磁吸／联动](after/b453-page-1-top.png) · [停靠／拉伸](after/b453-page-2-top.png) · [应用规则](after/b453-page-4-top.png) · [诊断／外观](after/b453-page-5-top.png)
 
-## 新界面（after）
-
-[尚缺的六页实际图片](after/README.md)明确为0/6；不能据源码或构建推断文字、裁切、焦点、点击和颜色预览通过。
-
-## 修改前／历史版本（before）
-
-下面是实际历史产品窗口，均144 DPI（150%），不是465或新候选；8d8a两图在高对比度ON时拍摄，其原恢复FAIL保留。[完整原件、像素等价、源码、EXE、Run及哈希](before/historical-captures.json)。尚缺“停靠／拉伸、应用规则、诊断／外观”三页；冻结465的独立历史UI0包已部署但未启动。
-
-[![历史常规页（4f7／8d8a，高对比ON）](before/historical-8d8a-page-0.png)](before/historical-8d8a-page-0.png)
-
-[![历史磁吸／联动页（11ae／a1cc）](before/historical-a1cc-page-1.png)](before/historical-a1cc-page-1.png)
-
-[![历史快捷键／鼠标页（4f7／8d8a，高对比ON）](before/historical-8d8a-page-3.png)](before/historical-8d8a-page-3.png)
+所有原图保持原尺寸、未修绘。[b453逐图身份](after/after-captures-b453.json)、[窄窗真实文字缺陷](after/b453-visual-review.json)。窄列表的后列使用原生横向滚动，不由正常尺寸图片推断所有列已验收。
 
 ## 指定验证
 
-| 编号 | 目标 | 实际状态 |
-| --- | --- | --- |
-| T01 | 六页、窄窗、滚动与键盘焦点 | NOT_RUN：等待合法Sandbox时段 |
-| T02 | C→J映射、取消草稿与真实居中 | NOT_RUN：等待合法Sandbox时段 |
-| T03 | 重复/保留键及实际注册占用 | NOT_RUN：等待合法Sandbox时段 |
-| T04 | Ctrl+中键映射的添加/生效/删除 | NOT_RUN：等待合法Sandbox时段 |
-| T05 | 排除规则、恢复及中文路径/高位 | NOT_RUN：等待合法Sandbox时段 |
-| T06 | 页默认、导入/导出、取消及重启 | NOT_RUN：等待合法Sandbox时段 |
-| T07 | 系统选色/HEX与真实预览像素 | NOT_RUN：等待合法Sandbox时段 |
-| T08 | 即时暂停/恢复、草稿及外部状态 | NOT_RUN：等待合法Sandbox时段 |
-| T09 | 新ZIP普通入口/单实例/正常退出 | NOT_RUN：等待合法Sandbox时段 |
-| T10 | 五段真实动作及原尺寸帧 | NOT_RUN：等待合法Sandbox时段 |
+| 项目 | 最近真实结果及身份 |
+| --- | --- |
+| T01 六页／窄窗／焦点 | DA7 自动可达与键盘导航通过；目视发现窄常规页三段长说明右裁，整体不授PASS。c77已修测量/绘制一致，现场NOT_RUN。 |
+| T02 改键与取消 | DA7／f282限定PASS：取消后重开仍C；保存J后真实居中、旧C无新调用。 |
+| T03 冲突保护 | DA7／f282限定PASS：重复/F12/保留键拒绝，真实F9占用、精确中文冲突、旧文件与J映射保留，自有注册已清理。 |
+| T04 鼠标映射 | DA7／f282限定PASS：Ctrl+中键居中；UI删除后不再触发。 |
+| T05 应用规则 | DA7／f282限定PASS：精确自有程序排除后原生START/END且零增强写入；UI删除后新手势恢复。 |
+| T06 草稿／导入／重启 | DA7／f282限定PASS：页默认保其它草稿，中文/空格路径导入导出、高位保留，实际保存及同EXE正常重启读取。 |
+| T07 颜色 | DA7／f282部分实测：取消、非法HEX、蓝色保存及真实不透明蓝预览通过；第二颜色的系统RGB定位工具失败，第二色与恢复未完成。d8后继工具修复尚未现场。 |
+| T08 运行条／帮助 | NOT_RUN。已接真实按钮、外部热键和有效映射检查；构建不算行为通过。 |
+| T09 普通新ZIP／退出 | NOT_RUN。中文空格目录无参、单实例、弃稿默认返回及运行条退出均未完成；已有CLI正常退出不能替代。 |
+| T10 五段演示 | NOT_RUN，0/15帧。没有用历史几何链、退出码或绘制图片替代。 |
 
-两个窄suite均保留exact guest、只读输入、独立输出、身份及前台守卫。`SettingsUiReviewOnly`用于实际页面捕获；`SettingsEditorsOnly`为Release专用，先采六页正常尺寸图，再做窄窗与T02–T09，T09普通ZIP检查后再起同一二进制做T10。产品固定1a，驱动a65单独构建，不为工具变化重建产品。返回/退出码不替代每项断言与人工图片复核；出现产品/驱动缺陷仍按影响修复，不增无关Full或900秒。
+[f282独立核验与原件摘录](after/f282-validation.json)记录上述DA7限定结果；c77当前现场仍全部NOT_RUN。36f8、6b4、af10、b453、c156和f282的原FAIL均保留，工具修复不改写它们。当前资源阻断详见[a793两个真实时点](after/a793-resource-gate.json)；不轮询、不操作其它项目资源。
 
-## 五段动作帧
+## 修改前／历史版本
 
-[演示次序与未运行状态](demo/README.md)。当前0/15张，不以历史几何链补写，也不外推完整I02/I03或五应用兼容。
+[465基线六页及两张长页下半部](before/baseline465-captures.json)是本轮从冻结原EXE取得的真实150%图；不是当前新界面。[此前三张历史图](before/historical-captures.json)继续保留原4f7/11ae身份及原HC恢复FAIL。
+
+[![修改前：465应用规则](before/baseline465-page-4-top.png)](before/baseline465-page-4-top.png)
+
+## 五段动作帧与候选
+
+[演示清单](demo/README.md)为0/15，不使用旧链或效果图替代。最新Release候选取得方式、包哈希与准确来源以[集中报告封包绑定](../V1_DELIVERY_REPORT.md)及review.json为准；原包和原回执不改。仅授权guest，未批准公开发布或普通宿主试用。[图形使用说明](../../V1_QUICK_START.md)不要求用户计算键码、序号或掩码。

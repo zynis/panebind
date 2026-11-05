@@ -1,5 +1,83 @@
 # PaneBind V1 集中交付进展
 
+## 本轮设置界面实证与后继候选（2026-11-05）
+
+**现在能看到：** 下方是最近实测DA7设置界面的六页真实原尺寸PNG，实际144 DPI／150%，长页另有下半页。**现在已有操作实证：** DA7的新键鼠映射、冲突保护、应用排除及配置往返/重启在本任务guest完成限定验证；完整结果见下表。普通宿主试用未开放。
+
+**这轮改了什么：** U1中文键鼠列表和表单、U2程序规则列表/六功能、U3选色器与HEX、U4实际运行条/帮助/正常退出均已实现。现场又修复了模态结束顺序及列表刷新后的可用焦点。目视发现窄窗说明裁切后，c77让说明的测量与绘制使用同一字体、实际宽度和换行规则，保留原caption、SS_LEFT控件及可访问角色；其真实续行效果尚未取得。
+
+**剩余什么：** c77候选的真实截图与受影响复验、第二颜色选择及预览、运行条/普通包入口/退出、五段15帧仍未完成。ZS两次资源门拒绝发生在启动之前；不是新VM前提，也不把“已构建/已部署”写成通过。真人UAT PENDING、REA NOT_STARTED，整版V1仍PARTIAL。
+
+### 最近实测界面（不是c77未运行界面的替代图）
+
+图片产品源码：da7a858f24e1baba6c06aac3dd317db5043ca871；EXE SHA-256：EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9；Run：b4538983dc6a4b26a071a90e630274a6。[原图/DPI/驱动/窗口身份/原件哈希](v1-ui-review/after/after-captures-b453.json)。图像未修绘，不代表整个b453运行通过，其T03旧工具文案FAIL保留。
+
+[![常规：最近实测DA7／150%](v1-ui-review/after/b453-page-0-top.png)](v1-ui-review/after/b453-page-0-top.png)
+
+[![磁吸／联动：最近实测DA7／150%](v1-ui-review/after/b453-page-1-top.png)](v1-ui-review/after/b453-page-1-top.png)
+
+[![停靠／拉伸：最近实测DA7／150%](v1-ui-review/after/b453-page-2-top.png)](v1-ui-review/after/b453-page-2-top.png)
+
+[![快捷键／鼠标：最近实测DA7／150%](v1-ui-review/after/b453-page-3-top.png)](v1-ui-review/after/b453-page-3-top.png)
+
+[![应用规则：最近实测DA7／150%](v1-ui-review/after/b453-page-4-top.png)](v1-ui-review/after/b453-page-4-top.png)
+
+[![诊断／外观：最近实测DA7／150%](v1-ui-review/after/b453-page-5-top.png)](v1-ui-review/after/b453-page-5-top.png)
+
+[停靠／拉伸下半页](v1-ui-review/after/b453-page-2-bottom.png) · [快捷键／鼠标下半页](v1-ui-review/after/b453-page-3-bottom.png) · [十二张窄窗图及其真实身份](v1-ui-review/after/after-captures-b453.json) · [窄窗文字缺陷的独立目视摘录](v1-ui-review/after/b453-visual-review.json)。
+
+### 实现、离线与现场分开判定
+
+| 整改 | 已实现 | 当前c77离线 | 最近实测与当前候选差别 |
+| --- | --- | --- | --- |
+| U1 键鼠编辑 | 列表、增删改/双击、友好键与共用动作、单一草稿、去重和真实注册保护 | D/R构建、结构化编辑/schema定向回归通过 | DA7的T02–T04限定通过；c77现场未执行，不改绑。 |
+| U2 应用规则 | 程序/文件选择/当前应用、精确类名、排除/六功能、高位保留 | D/R构建、掩码与UTF8往返回归通过 | DA7的T05–T06限定通过；不顶替五应用兼容。 |
+| U3 颜色 | 系统选色器、色块、HEX及正确COLORREF转换 | D/R构建、RGB往返回归通过 | DA7的T07部分通过，第二色与完整恢复待验。 |
+| U4 运行控制 | 实际状态、立即暂停/恢复保其它草稿、有效映射帮助、默认返回的弃稿退出 | D/R构建通过 | T08–T09 NOT_RUN；可见按钮和CLI退出不算运行条/托盘通过。 |
+
+当前产品及驱动源码：c77b2c85bcdced06afc5fcce4d7043b7fe83255a。产品Release SHA-256：6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F；Debug：183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46。新构建位于out/v1-settings-ui-wrap-20261105；实际四份EXE身份均为c77。两配置各仅运行v1-settings、v1-settings-editor、v1-input-route、v1-catalog-rules，均4/4。未启动交互CTest、历史Fix H或Full／900秒。[构建身份和原件索引](v1-ui-review/review.json)。
+
+### T01–T10实际结果
+
+| 项目 | 最近真实结果及身份 |
+| --- | --- |
+| T01 六页／窄窗／焦点 | DA7 自动可达与键盘导航通过；目视发现窄常规页三段长说明右裁，整体不授PASS。c77已修测量/绘制一致，现场NOT_RUN。 |
+| T02 改键与取消 | DA7／f282限定PASS：取消后重开仍C；保存J后真实居中、旧C无新调用。 |
+| T03 冲突保护 | DA7／f282限定PASS：重复/F12/保留键拒绝，真实F9占用、精确中文冲突、旧文件与J映射保留，自有注册已清理。 |
+| T04 鼠标映射 | DA7／f282限定PASS：Ctrl+中键居中；UI删除后不再触发。 |
+| T05 应用规则 | DA7／f282限定PASS：精确自有程序排除后原生START/END且零增强写入；UI删除后新手势恢复。 |
+| T06 草稿／导入／重启 | DA7／f282限定PASS：页默认保其它草稿，中文/空格路径导入导出、高位保留，实际保存及同EXE正常重启读取。 |
+| T07 颜色 | DA7／f282部分实测：取消、非法HEX、蓝色保存及真实不透明蓝预览通过；第二颜色的系统RGB定位工具失败，第二色与恢复未完成。d8后继工具修复尚未现场。 |
+| T08 运行条／帮助 | NOT_RUN。已接真实按钮、外部热键和有效映射检查；构建不算行为通过。 |
+| T09 普通新ZIP／退出 | NOT_RUN。中文空格目录无参、单实例、弃稿默认返回及运行条退出均未完成；已有CLI正常退出不能替代。 |
+| T10 五段演示 | NOT_RUN，0/15帧。没有用历史几何链、退出码或绘制图片替代。 |
+
+新c77的现场状态全部NOT_RUN。上述DA7通过/失败继续绑定原产品SHA、EXE和Run，不改成c77的PASS。[f282实际输入/配置/写入/退出摘录](v1-ui-review/after/f282-validation.json)保留逐项范围；[演示交付缺口](v1-ui-review/demo/README.md)明确0/15。
+
+### 当前阻断与准确接续点
+
+a793c8739a984c38bdc950c101db02aa的DA7/d8包已经在本任务I盘目录逐文件部署；12:32:54Z资源门实查物理空闲3665364KiB、FreeVirtualMemory392076KiB，未启动。收到用户资源恢复通知后只复核一次，12:49:16Z仍为151196KiB／744016KiB，Sandbox为空但未达到既有物理6GiB／FreeVirtualMemory5GiB的启动门；guest保持4096MiB。没有新任务、guest或输入，不停其它项目、不调门槛、不轮询。[两个时点与部署pins](v1-ui-review/after/a793-resource-gate.json)。FreeVirtualMemory是本次CIM原始字段，资源门脚本使用free_commit_KiB别名，不冒充另取了一份性能计数器或完整commit-limit测量。
+
+最新文字修复候选c77应以新的包和Run承接，不能拿已部署的DA7包验证c77。后续只需本任务Sandbox时段与真实资源门满足；无需用户搬文件或新建VM。资源恢复后先确认c77窄窗说明完整，再继续未完成的颜色、运行控制、普通包入口和五段演示；原已闭合且未受影响的范围保留证据，不追加稳定性矩阵。
+
+### 候选取得与操作说明
+
+新c77便携包计划ID为a5dcf5ef3c8847649f5212f9e331e7be，guest计划Run为e549eb3ee30a414397d7b64dacd9429b；此段写入时尚未封包，最终实际路径/哈希/部署回执由下方“封包绑定”补充。旧e613（DA7）和8c（1a）ZIP原样保留。未批准外部EXE/ZIP分发渠道，不公开发布；仓库中的图片、说明与证据可直接复核。
+
+图形操作见[中文快速入门](../V1_QUICK_START.md)：只在获准guest中完整解压候选ZIP，无参启动panebind.exe；使用列表/表单和保存并关闭，不填写count、键码、掩码或颜色整数。顶部按钮立即暂停/恢复、帮助、退出；脏草稿退出默认返回设置。右上角×/取消只关闭设置。紧急暂停为Ctrl+Shift+F11。这些说明不预填T08/T09通过。
+
+### 保留的缺陷与工具修复
+
+- 原c4a控件ID误绑定bool、1a即时enabled回读、DA7模态返回/列表焦点，以及c77窄说明绘制分别保留其源码身份和验证范围；未抹去原失败。
+- 36f8的单次Combo矩形过早读回、6b4缺首次保存前置、b453旧冲突文案预期、c156下拉键盘消费及f282颜色Tab焦点工具失败全部保留。后继只确认真实公共选择/焦点，不直接改值、不补发按键或假造成功。
+- f282原Collect因两精确中文conf拒绝；受限oneoff只允许这两文件并逐项路径/长度/SHA核验，原FAIL保留，guest/task在产品实际清理后单独销毁，绝不算产品PASS。
+- 旧DA7 driver Debug PDB未提前独立留存，该Debug未执行现场；Release配置原无同名PDB，实际运行EXE保留在原ZIP。d449及后继驱动的EXE/实际存在PDB已逐份留存，产品1a/DA7/c77独立构建目录保留，未补造符号。
+
+历史分母/结果仍为46/60功能、22/40对标、5/12整链；U1–U4可用性整改不新增功能分母、不自动授整项PASS。100%/200%、双屏/混合DPI、真实应用、托盘、会话、Shake共存、NF02及无关Full/900秒按产品经理顺序暂缓，保留各自FAIL/BLOCKED/NOT_RUN及最终重要门槛。HG03仍BLOCKED，不要求未知VM路径。T14p不启动VM；远端完整VM建设/启动暂停，不开放宿主试用。
+
+
+## 历史准备快照（截至a0e6b67，原NOT_RUN描述保留历史时点）
+
 ## 本轮：可见设置整改与真实界面交付进度（2026-11-05）
 
 **现在能看到：三张修改前真实产品图；新候选六页和五段动作帧尚未取得。现在能操作什么：U1–U4候选代码与便携构建已接通，但尚未在guest验证，不能称“可直接使用”或已交付真实新界面演示。** [直接查看历史实图与当前缺项](v1-ui-review/README.md)，[逐项构建/证据元数据](v1-ui-review/review.json)。图像不是效果图；没有用系统设置页或UIA文本冒充产品截图。

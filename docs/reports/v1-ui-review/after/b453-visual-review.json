@@ -1,0 +1,79 @@
+{
+  "schema": "panebind-v1-ui-visual-review/1",
+  "review_date": "2026-11-05",
+  "run_id": "b4538983dc6a4b26a071a90e630274a6",
+  "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+  "product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
+  "driver_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+  "driver_exe_sha256": "6ADE1DAE4C85EA50DB83067509BF041BDE1C0F3486DB2F79C11E55ECFADE8A5C",
+  "configuration": "Release",
+  "actual_dpi": 144,
+  "actual_scaling_percent": 150,
+  "page": "常规",
+  "viewport": "narrow-bottom",
+  "image": {
+    "path": "docs/reports/v1-ui-review/after/b453-page-0-narrow-bottom.png",
+    "bytes": 102610,
+    "sha256": "B473714B05D59AACD6C3CF517EE91522E8B315D7AFDA6DF0D53EEBCE984E8FA6",
+    "width": 855,
+    "height": 840,
+    "source_bytes_unchanged": true,
+    "retouched": false
+  },
+  "original_image": {
+    "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/b4538983dc6a4b26a071a90e630274a6/collection-20261105T114807421Z-dddc8daeca604957b978b7a30be03487/b4538983dc6a4b26a071a90e630274a6-Release-ui-page-0-narrow-bottom.png",
+    "bytes": 102610,
+    "sha256": "B473714B05D59AACD6C3CF517EE91522E8B315D7AFDA6DF0D53EEBCE984E8FA6"
+  },
+  "capture_sequence": 112,
+  "window_rect": [
+    932,
+    258,
+    1787,
+    1098
+  ],
+  "source_at_capture": {
+    "path": "src/platform/windows/product/settings_window.cpp",
+    "commit": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+    "git_blob": "504f6486c5a1fd0f9186bbad8c39b589ab7c1ec0"
+  },
+  "method": "直接目视原尺寸、未经修绘的真实产品 PNG，再与该产品源码中的原文核对；未从控件可达断言推断完整可读性。",
+  "visual_status": "FAIL_SCOPED_NARROW_GENERAL_NOTE_TEXT_CLIPPING",
+  "observations": [
+    {
+      "control": "常规页保存/取消说明",
+      "source_text": "设置仅在点击“保存并关闭”且保存成功后生效。取消或关闭只放弃草稿，不退出程序；即时暂停／恢复会保留。",
+      "last_visible_text": "不退出程序",
+      "not_visible_on_this_original_frame": "；即时暂停／恢复会保留。",
+      "observation": "第一段右侧尾部被裁，下一行已直接显示紧急暂停说明；没有将该缺失尾部换行显示。"
+    },
+    {
+      "control": "设置窗口动画说明",
+      "source_text": "动画只作用于 PaneBind 设置窗口。关闭、系统减少动画或高对比度模式时直接显示；增强手势不会等待此动画。",
+      "last_visible_text": "高对比度模式时直接显示",
+      "not_visible_on_this_original_frame": "；增强手势不会等待此动画。",
+      "observation": "说明只显示一行，右侧尾部不可见；下方留有空白。"
+    },
+    {
+      "control": "合格窗口范围说明",
+      "source_text": "普通产品只操作同用户、同会话、普通权限的合格窗口。被排除应用、高权限窗口和系统桌面不会进入增强手势。",
+      "last_visible_text": "被排除应用、高权限窗口和",
+      "not_visible_on_this_original_frame": "系统桌面不会进入增强手势。",
+      "observation": "末段说明的右侧尾部不可见，未在本帧换行显示。"
+    }
+  ],
+  "other_visible_facts": [
+    "运行条和底部操作按钮可见。",
+    "动画复选框及其可见焦点虚线可见。"
+  ],
+  "automatic_reachability_status": "PASS_SCOPED_FROM_ORIGINAL_CAPTURE_METADATA",
+  "automatic_reachability_is_not_visual_readability_PASS": true,
+  "whole_T01_PASS": false,
+  "unreviewed_scope": "本摘录仅覆盖此原帧；不据此推断其他窄页是否裁切。",
+  "repair_status": "后续绘制修复尚无新的现场截图及复验，本文件不授修复 PASS。",
+  "prior_metadata_unchanged": {
+    "path": "docs/reports/v1-ui-review/after/after-captures-b453.json",
+    "bytes": 38245,
+    "sha256": "F2F8F2CB4DFFE911FBB6D6A961BA3FBABFEA499D3D927DFB9BB38E11C31E912A"
+  }
+}

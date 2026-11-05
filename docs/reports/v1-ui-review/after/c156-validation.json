@@ -1,0 +1,165 @@
+{
+  "schema": "panebind-v1-settings-ui-targeted-validation/1",
+  "review_date": "2026-11-05",
+  "run_id": "c1569491906441e58a2cb8aa653b859e",
+  "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
+  "product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
+  "driver_source_sha": "d449d2d3469ac31eb31ba46970198f92e4a90917",
+  "driver_exe_sha256": "D80B9D44611A843B52CF78078AAECE52705D1D575967A041C1B3FCF9CFC9634B",
+  "configuration": "Release",
+  "suite": "SettingsEditorsOnly",
+  "actual_dpi": 144,
+  "scaling_percent": 150,
+  "actual_integrity_rid": 8192,
+  "actual_elevated": false,
+  "actual_interactive_session": 1,
+  "product_PID": 1468,
+  "overall_result": "FAIL_T02_COMBO_SELECTION_ASSERTION",
+  "raw_integrity": {
+    "driver_rows": 333,
+    "product_rows": 13,
+    "driver_cases": 201,
+    "case_FAIL_count": 1,
+    "all_lines_JSON": true,
+    "continuous_sequences_per_producer": true,
+    "cross_producer_native_order_not_inferred": true
+  },
+  "T01": {
+    "status": "PASS_SCOPED_ACTUAL_NAVIGATION_REACHABILITY_PENDING_VISUAL_REVIEW",
+    "actual_reachable_controls": 43,
+    "original_pixel_frames": 20,
+    "whole_T01_visual_PASS_inferred": false,
+    "duplicate_PNG_copy_not_created": true
+  },
+  "T02": {
+    "status": "PARTIAL_FAIL_BEFORE_J_ACCEPT_SAVE_AND_ACTUAL_HOTKEY",
+    "baseline_actual_GUI_Save": "PASS_GENERATION_2_DEFAULT_C",
+    "cancel_and_reopened_C": "PASS_ACTUAL_ITEM_DATA_67_SEQUENCE_303",
+    "last_confirmed_focus": {
+      "sequence": 315,
+      "actual_editor_control_id": 1300,
+      "actual_Tab_key_pairs": 1,
+      "result": "PASS"
+    },
+    "failed_selection": {
+      "sequence": 316,
+      "desired_item_data": 74,
+      "actual_selection_index": "UNKNOWN_NOT_RECORDED",
+      "actual_item_data": "UNKNOWN_NOT_RECORDED",
+      "actual_foreground_at_failure": "UNKNOWN_NOT_RECORDED",
+      "actual_focus_at_failure": "UNKNOWN_NOT_RECORDED",
+      "reason": "settings_review_combo_actual_keys",
+      "per_key_public_control_consumption_receipts": "NOT_RECORDED_IN_THIS_DRIVER",
+      "system_dropped_key_cause_proven": false,
+      "product_ComboBox_defect_proven": false
+    },
+    "saved_configuration": {
+      "generation": 2,
+      "mapping": "Ctrl+Alt+C -> Center",
+      "J_saved": false,
+      "sha256": "11BC81A7C74D940C9B1A51A04A315B06748D5A844B069565FC482C445B8E3C34"
+    },
+    "actual_J_or_C_function_check": "NOT_RUN",
+    "earlier_b453_PASS_not_rebound": true
+  },
+  "T03_T10": "NOT_RUN_PHASES_NOT_ENTERED",
+  "next_tool_change_scope": "Real Home and each Down keep the same exact target and await read-only public CB_GETCURSEL; no extra key retransmission or product mutation. Matching new Run must retain its own evidence.",
+  "new_feature_PASS_awarded": 0,
+  "whole_contract_PASS": false,
+  "human_UAT": "NOT_RUN",
+  "product_cleanup": {
+    "normal_public_quit_command_completed": true,
+    "process_exit_code": 0,
+    "shutdown_facts": {
+      "own_hooks_stopped": true,
+      "own_overlay_destroyed": true,
+      "native_worker_exited": true,
+      "visual_recovery_stopped": true,
+      "visual_restore_confirmed": true,
+      "own_input_resources_stopped": true,
+      "own_capture_released": true,
+      "own_input_association_detached": true,
+      "issued_native_completion_unknown": false
+    },
+    "actual_post_stop_fixture_client_DOWN_UP": [
+      1,
+      1
+    ],
+    "inferred_from_guest_disposal": false
+  },
+  "host_cleanup": {
+    "exact_own_viewer_PID": 40852,
+    "dedicated_guest_exited": true,
+    "own_task_removed": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "cleanup_utc": "2026-11-05T12:01:03.3339566Z"
+  },
+  "raw_driver_excerpt": [
+    {
+      "sequence": 269,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d449d2d3469ac31eb31ba46970198f92e4a90917\",\"sequence\":269,\"tick\":40937,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_missing_baseline_created_by_actual_unedited_GUI_Save\",\"result\":\"PASS\",\"product_source_sha\":\"da7a858f24e1baba6c06aac3dd317db5043ca871\",\"product_EXE_sha256\":\"EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9\",\"product_PID\":1468,\"before_GetFileAttributes_error\":2,\"actual_saved_file_sha256\":\"11BC81A7C74D940C9B1A51A04A315B06748D5A844B069565FC482C445B8E3C34\",\"actual_saved_generation\":2,\"actual_driver_GUI_input_receipt\":\"{\\\"schema\\\":\\\"panebind-v1-owned-driver/1\\\",\\\"source_sha\\\":\\\"d449d2d3469ac31eb31ba46970198f92e4a90917\\\",\\\"sequence\\\":268,\\\"tick\\\":40921,\\\"automated_guest_driver\\\":true,\\\"type\\\":\\\"case\\\",\\\"case\\\":\\\"GUI_actual_Enter_saved_and_closed\\\",\\\"result\\\":\\\"PASS\\\",\\\"input_kind\\\":\\\"actual_Enter_on_focused_IDOK\\\"}\",\"product_save_callback_return_separately_instrumented\":false,\"direct_test_configuration_write\":false,\"parse_failure_fallback\":false}"
+    },
+    {
+      "sequence": 303,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d449d2d3469ac31eb31ba46970198f92e4a90917\",\"sequence\":303,\"tick\":43375,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"T02_Cancel_preserves_the_structured_draft_not_only_disk\",\"result\":\"PASS\",\"actual_reopened_combo_item_data\":67}"
+    },
+    {
+      "sequence": 307,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d449d2d3469ac31eb31ba46970198f92e4a90917\",\"sequence\":307,\"tick\":43640,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_actual_editor_accept_or_cancel\",\"result\":\"PASS\",\"accepted\":false,\"editor_destroyed\":true,\"root\":328482,\"root_exact\":true,\"tab_exact\":true,\"foreground\":328482,\"foreground_exact\":true,\"focus\":262842,\"focus_exact\":true,\"focus_pid\":1468,\"focus_tid\":1472,\"focus_class\":\"Button\",\"focus_id\":1202,\"focus_visible\":true,\"focus_enabled\":true}"
+    },
+    {
+      "sequence": 312,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d449d2d3469ac31eb31ba46970198f92e4a90917\",\"sequence\":312,\"tick\":44390,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_exact_product_editor\",\"result\":\"PASS\"}"
+    },
+    {
+      "sequence": 315,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d449d2d3469ac31eb31ba46970198f92e4a90917\",\"sequence\":315,\"tick\":44390,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_actual_editor_Tab\",\"result\":\"PASS\",\"id\":1300,\"actual_key_pairs\":1}"
+    },
+    {
+      "sequence": 316,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d449d2d3469ac31eb31ba46970198f92e4a90917\",\"sequence\":316,\"tick\":48000,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_combo_actual_keys\",\"result\":\"FAIL\",\"id\":1300,\"item_data\":74}"
+    },
+    {
+      "sequence": 317,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d449d2d3469ac31eb31ba46970198f92e4a90917\",\"sequence\":317,\"tick\":48000,\"automated_guest_driver\":true,\"type\":\"settings_editors_failure\",\"reason\":\"settings_review_combo_actual_keys\",\"original_failure_preserved\":true}"
+    }
+  ],
+  "raw_pins": [
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/c1569491906441e58a2cb8aa653b859e/collection-20261105T115909245Z-eafe9daeff764fb298097e30ea477d99/c1569491906441e58a2cb8aa653b859e-release-fixture.jsonl",
+      "bytes": 216154,
+      "sha256": "36826A02BD916B46057C9EF70CF5D541B1AF9156B802541F4E96B55ABE29558A"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/c1569491906441e58a2cb8aa653b859e/collection-20261105T115909245Z-eafe9daeff764fb298097e30ea477d99/c1569491906441e58a2cb8aa653b859e-product-Release/panebind.log.jsonl",
+      "bytes": 5639,
+      "sha256": "3C34F9CA4E71B16B4742F3EF128F0520E6603082775F4916E2E5758A2D778462"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/c1569491906441e58a2cb8aa653b859e/collection-20261105T115909245Z-eafe9daeff764fb298097e30ea477d99/c1569491906441e58a2cb8aa653b859e-product-Release/settings.ini",
+      "bytes": 1216,
+      "sha256": "11BC81A7C74D940C9B1A51A04A315B06748D5A844B069565FC482C445B8E3C34"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/c1569491906441e58a2cb8aa653b859e/collection-20261105T115909245Z-eafe9daeff764fb298097e30ea477d99/c1569491906441e58a2cb8aa653b859e-Release-launch.json",
+      "bytes": 9883,
+      "sha256": "F9693D93998C202B4E733446B5DBB6F38ABDF3EB6F1AAF82986F56F8EBDFBE91"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/c1569491906441e58a2cb8aa653b859e/collection-20261105T115909245Z-eafe9daeff764fb298097e30ea477d99/c1569491906441e58a2cb8aa653b859e-guest-summary.json",
+      "bytes": 21783,
+      "sha256": "598FC44214FBC09E690DCF3B040A76A56A4AC26D70F9119D221E889301A8F839"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/c1569491906441e58a2cb8aa653b859e/cleanup-receipt.json",
+      "bytes": 34868,
+      "sha256": "7C1A02CE6927B5E37A55D85E60B45A04772EE6C5E924B0D161D3EC843A1F5927"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/c1569491906441e58a2cb8aa653b859e/collection-20261105T115909245Z-eafe9daeff764fb298097e30ea477d99/collection-receipt.json",
+      "bytes": 36492,
+      "sha256": "D9119F9E97D9EA5B1FD4DF342C73680CCD295EB4EEE1BA02D56FB82D450A74CC"
+    }
+  ]
+}

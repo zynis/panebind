@@ -1,0 +1,216 @@
+{
+  "schema": "panebind-v1-settings-ui-targeted-validation/1",
+  "review_date": "2026-11-05",
+  "run_id": "af10f14e548b4fd29c06bc844de1637a",
+  "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+  "product_exe_sha256": "11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82",
+  "driver_source_sha": "d9c7b7b2d4821b10daa9874401c25acf56586bc3",
+  "driver_exe_sha256": "FE0CF9480980BE43FD6AFFEF8A1BAF07ED0CF9F69499E159F641215EBC83618A",
+  "configuration": "Release",
+  "suite": "SettingsEditorsOnly",
+  "actual_dpi": 144,
+  "scaling_percent": 150,
+  "actual_integrity_rid": 8192,
+  "actual_elevated": false,
+  "actual_interactive_session": 1,
+  "product_PID": 6840,
+  "product_settings_HWND": 328502,
+  "product_settings_TID": 6828,
+  "overall_result": "FAIL",
+  "raw_JSONL_integrity": {
+    "driver_rows": 341,
+    "product_rows": 13,
+    "driver_checks": 203,
+    "case_FAIL_count": 0,
+    "sequences_continuous_per_producer": true,
+    "all_lines_strict_JSON": true,
+    "exception_failure_not_hidden_by_zero_case_FAIL_count": true,
+    "cross_producer_native_order_not_inferred": true
+  },
+  "T01": {
+    "status": "PASS_SCOPED_ACTUAL_CAPTURE_NAVIGATION_REACHABILITY_PENDING_VISUAL_REVIEW",
+    "original_six_pages": 6,
+    "original_pixel_PNG_count": 20,
+    "narrow_actual_reachable_controls": 43,
+    "whole_contract_PASS_inferred": false,
+    "raw_captures_retained_without_duplicate_repo_copy": true,
+    "previous_same_binary_image_index": "docs/reports/v1-ui-review/after/after-captures-6b4.json",
+    "previous_image_Run_not_rebound": true
+  },
+  "T02": {
+    "status": "PARTIAL_FAIL_BEFORE_SAVE_AND_ACTUAL_HOTKEY",
+    "baseline_saved_through_real_unedited_GUI": {
+      "status": "PASS",
+      "driver_sequences": [
+        268,
+        269
+      ],
+      "before_GetFileAttributes_error": 2,
+      "generation": 2,
+      "saved_file_SHA256": "11BC81A7C74D940C9B1A51A04A315B06748D5A844B069565FC482C445B8E3C34",
+      "direct_test_configuration_write": false,
+      "malformed_file_default_fallback": false
+    },
+    "cancel_preserves_mapping_and_draft": {
+      "status": "PASS",
+      "driver_sequences": [
+        290,
+        295,
+        296,
+        302,
+        308
+      ],
+      "J_selected_before_Cancel": 74,
+      "actual_reopened_key_after_Cancel": 67,
+      "saved_file_unchanged": true
+    },
+    "accept_and_next_action": {
+      "driver_sequences": [
+        319,
+        320,
+        323,
+        324
+      ],
+      "J_selected": 74,
+      "actual_Tab_reached_editor_IDOK": true,
+      "editor_closed_and_parent_foreground_predicate_observed": true,
+      "next_attempt": "gui_save_enter -> gui_press -> gui_require_input",
+      "failure": "GUI_keyboard_target_no_longer_exact_product",
+      "instant_parent_tab_identity": "UNKNOWN_NOT_RECORDED",
+      "instant_parent_exists": "UNKNOWN_NOT_RECORDED",
+      "instant_parent_focus_HWND": "UNKNOWN_NOT_RECORDED",
+      "instant_foreground_predicate_breakdown": "UNKNOWN_NOT_RECORDED",
+      "parent_closed_proven": false,
+      "J_saved_or_used": false,
+      "final_saved_mapping": "Ctrl+Alt+C",
+      "final_saved_generation": 2,
+      "production_geometry_or_hotkey_attempts_observed": 0
+    },
+    "source_correlated_hypothesis": {
+      "status": "PENDING_MATCHING_CANDIDATE_FIELD_CONFIRMATION",
+      "candidate": "Accepted row refresh clears list selection and can disable the previously focused Edit button; the prior modal close path did not restore a valid final keyboard focus after refresh. Cancel does not refresh.",
+      "raw_current_failure_does_not_isolate_which_guard_failed": true,
+      "unknown_foreground_system_root_cause_not_asserted": true
+    }
+  },
+  "T03_T10": "NOT_RUN_PHASES_NOT_ENTERED",
+  "new_feature_PASS_awarded": 0,
+  "whole_contract_PASS": false,
+  "human_UAT": "NOT_RUN",
+  "product_cleanup": {
+    "normal_public_quit_command_completed": true,
+    "process_exit_code": 0,
+    "shutdown_facts": {
+      "own_hooks_stopped": true,
+      "own_overlay_destroyed": true,
+      "native_worker_exited": true,
+      "visual_recovery_stopped": true,
+      "visual_restore_confirmed": true,
+      "own_input_resources_stopped": true,
+      "own_capture_released": true,
+      "own_input_association_detached": true,
+      "issued_native_completion_unknown": false
+    },
+    "actual_post_stop_fixture_client_DOWN_UP": [
+      1,
+      1
+    ],
+    "product_cleanup_before_guest_disposal_confirmed": true,
+    "inferred_from_guest_disposal": false
+  },
+  "host_cleanup": {
+    "exact_own_viewer_PID": 55464,
+    "dedicated_guest_exited": true,
+    "own_task_removed": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "cleanup_utc": "2026-11-05T11:28:53.2625594Z"
+  },
+  "raw_driver_excerpt": [
+    {
+      "driver_sequence": 268,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":268,\"tick\":39296,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"GUI_actual_Enter_saved_and_closed\",\"result\":\"PASS\",\"input_kind\":\"actual_Enter_on_focused_IDOK\"}"
+    },
+    {
+      "driver_sequence": 269,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":269,\"tick\":39296,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_missing_baseline_created_by_actual_unedited_GUI_Save\",\"result\":\"PASS\",\"product_source_sha\":\"1aabd344ad88bfcf36d7d611ee809a6da1e10ea1\",\"product_EXE_sha256\":\"11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82\",\"product_PID\":6840,\"before_GetFileAttributes_error\":2,\"actual_saved_file_sha256\":\"11BC81A7C74D940C9B1A51A04A315B06748D5A844B069565FC482C445B8E3C34\",\"actual_saved_generation\":2,\"actual_driver_GUI_input_receipt\":\"{\\\"schema\\\":\\\"panebind-v1-owned-driver/1\\\",\\\"source_sha\\\":\\\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\\\",\\\"sequence\\\":268,\\\"tick\\\":39296,\\\"automated_guest_driver\\\":true,\\\"type\\\":\\\"case\\\",\\\"case\\\":\\\"GUI_actual_Enter_saved_and_closed\\\",\\\"result\\\":\\\"PASS\\\",\\\"input_kind\\\":\\\"actual_Enter_on_focused_IDOK\\\"}\",\"product_save_callback_return_separately_instrumented\":false,\"direct_test_configuration_write\":false,\"parse_failure_fallback\":false}"
+    },
+    {
+      "driver_sequence": 290,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":290,\"tick\":40687,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_combo_actual_keys\",\"result\":\"PASS\",\"id\":1300,\"item_data\":74}"
+    },
+    {
+      "driver_sequence": 295,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":295,\"tick\":40937,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_actual_editor_accept_or_cancel\",\"result\":\"PASS\",\"accepted\":false}"
+    },
+    {
+      "driver_sequence": 296,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":296,\"tick\":40937,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"T02_editor_Cancel_does_not_change_saved_config\",\"result\":\"PASS\"}"
+    },
+    {
+      "driver_sequence": 302,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":302,\"tick\":41250,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"T02_Cancel_preserves_the_structured_draft_not_only_disk\",\"result\":\"PASS\",\"actual_reopened_combo_item_data\":67}"
+    },
+    {
+      "driver_sequence": 308,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":308,\"tick\":41531,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_actual_editor_accept_or_cancel\",\"result\":\"PASS\",\"accepted\":false}"
+    },
+    {
+      "driver_sequence": 319,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":319,\"tick\":42312,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_combo_actual_keys\",\"result\":\"PASS\",\"id\":1300,\"item_data\":74}"
+    },
+    {
+      "driver_sequence": 320,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":320,\"tick\":42500,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_actual_editor_Tab\",\"result\":\"PASS\",\"id\":1,\"actual_key_pairs\":6}"
+    },
+    {
+      "driver_sequence": 321,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":321,\"tick\":42531,\"automated_guest_driver\":true,\"type\":\"guest_foreground_observed\",\"observer_slot\":14,\"event\":3,\"hwnd\":131684,\"object_id\":0,\"child_id\":0,\"event_tid\":3904,\"native_event_time_u32\":42500,\"callback_tid\":3904,\"callback_begin_qpc\":425463411,\"callback_end_qpc\":425465441,\"callback_window_pid_before\":3840,\"callback_window_tid_before\":3904,\"callback_window_pid_after\":3840,\"callback_window_tid_after\":3904,\"callback_window_identity_stable\":true,\"callback_process_birth_known\":true,\"callback_process_birth_filetime\":134383515875546705,\"process_open_error\":0,\"process_birth_error\":0,\"process_image_query_attempted\":true,\"process_image_query_return\":true,\"process_image_query_error\":0,\"process_image_size_returned\":49,\"callback_process_image_basename_known\":true,\"callback_process_image_basename\":\"panebind-v1-guest-fixture.exe\",\"process_full_path_logged\":false,\"basename_is_not_role_or_activation_authority\":true,\"process_handle_closed\":true,\"class_query_return\":57,\"class_query_error\":0,\"class_may_be_truncated\":false,\"class_utf8_known\":true,\"callback_class\":\"PaneBind.V1.OwnedFixture.af10f14e548b4fd29c06bc844de1637a\",\"callback_foreground_before\":131684,\"callback_foreground_after\":131684,\"registered_task_PID_birth_match\":true,\"registered_task_roles\":[\"fixture\"],\"flush_current_window_pid\":3840,\"flush_current_window_tid\":3904,\"flush_window_matches_callback_PID_TID\":true,\"flush_qpc\":425660684,\"identity_sample_phase\":\"callback_delivery_not_native_event_time\",\"event_producer_or_activation_initiator_proven\":false,\"JSONL_order_is_not_cross_producer_native_order\":true,\"title_or_content_read\":false,\"not_window_control_authority\":true}"
+    },
+    {
+      "driver_sequence": 323,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":323,\"tick\":42546,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"settings_review_actual_editor_accept_or_cancel\",\"result\":\"PASS\",\"accepted\":true}"
+    },
+    {
+      "driver_sequence": 324,
+      "original_JSONL": "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"d9c7b7b2d4821b10daa9874401c25acf56586bc3\",\"sequence\":324,\"tick\":42546,\"automated_guest_driver\":true,\"type\":\"settings_editors_failure\",\"reason\":\"GUI_keyboard_target_no_longer_exact_product\",\"original_failure_preserved\":true}"
+    }
+  ],
+  "raw_pins": [
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/af10f14e548b4fd29c06bc844de1637a/collection-20261105T112724962Z-0ab4dfee1e61452b936acd2a57b59eaf/af10f14e548b4fd29c06bc844de1637a-release-fixture.jsonl",
+      "bytes": 223755,
+      "sha256": "8FE343FF6C79F665DD9564A2349F8E00EF001932C48D27D440A3F5C15E4278C5"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/af10f14e548b4fd29c06bc844de1637a/collection-20261105T112724962Z-0ab4dfee1e61452b936acd2a57b59eaf/af10f14e548b4fd29c06bc844de1637a-product-Release/panebind.log.jsonl",
+      "bytes": 5638,
+      "sha256": "3E48B99E232F5BD318C27C225E2B7995D54BF2FE2DEF161F01CA1CAB09CCDB7B"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/af10f14e548b4fd29c06bc844de1637a/collection-20261105T112724962Z-0ab4dfee1e61452b936acd2a57b59eaf/af10f14e548b4fd29c06bc844de1637a-product-Release/settings.ini",
+      "bytes": 1216,
+      "sha256": "11BC81A7C74D940C9B1A51A04A315B06748D5A844B069565FC482C445B8E3C34"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/af10f14e548b4fd29c06bc844de1637a/collection-20261105T112724962Z-0ab4dfee1e61452b936acd2a57b59eaf/af10f14e548b4fd29c06bc844de1637a-Release-launch.json",
+      "bytes": 9883,
+      "sha256": "03922C11A06CBD3F71C49EF8D34B7DD05AAAA7F748228B7405375E05E84772FE"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/af10f14e548b4fd29c06bc844de1637a/collection-20261105T112724962Z-0ab4dfee1e61452b936acd2a57b59eaf/af10f14e548b4fd29c06bc844de1637a-guest-summary.json",
+      "bytes": 21783,
+      "sha256": "24EA2870A0074C660481A7FADF6019CAE9B60990D48D5D0FE81A0CE41042D0C7"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/af10f14e548b4fd29c06bc844de1637a/cleanup-receipt.json",
+      "bytes": 34868,
+      "sha256": "BA78D8E813C9568145FF7E26FB6F48592D3C1EE326DFC8758EC8CCD37985E7C8"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/af10f14e548b4fd29c06bc844de1637a/collection-20261105T112724962Z-0ab4dfee1e61452b936acd2a57b59eaf/collection-receipt.json",
+      "bytes": 36492,
+      "sha256": "0669B86007FBD795B15503DE63A366A110AF1EA01B692A55EBA60A5F5FD35358"
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 # 五段真实动作展示
 
-当前现场NOT_RUN，0/15帧。按下列顺序使用精确自有空白fixture，逐帧保留源码/EXE/Run/DPI与实际动作回执。
+**实际0/15帧，T10 NOT_RUN。** 新c77产品/驱动已构建；合法guest启动仍受资源门限制。源代码中已接真实五段动作、独立几何断言与原像素捕获，但没有执行就没有演示通过。
 
-| 次序 | 动作 | before / during / after |
+| 次序 | 对象与动作 | before / during / after |
 | --- | --- | --- |
-| 01 | 普通磁吸靠近、保持、拉开、重吸 | NOT_RUN / NOT_RUN / NOT_RUN |
-| 02 | 三窗Ctrl联动移动 | NOT_RUN / NOT_RUN / NOT_RUN |
-| 03 | 双窗共享边Ctrl缩放 | NOT_RUN / NOT_RUN / NOT_RUN |
-| 04 | 单屏停靠预览、松手提交、撤销 | NOT_RUN / NOT_RUN / NOT_RUN |
-| 05 | 新编辑器改快捷键后实际生效 | NOT_RUN / NOT_RUN / NOT_RUN |
+| 01 | 自有空白source：普通磁吸靠近、XY吸附、保持、拉开、重吸 | NOT_RUN / NOT_RUN / NOT_RUN |
+| 02 | 三个精确自有空白fixture：Ctrl联动移动 | NOT_RUN / NOT_RUN / NOT_RUN |
+| 03 | 两个精确自有空白fixture：共享边Ctrl缩放 | NOT_RUN / NOT_RUN / NOT_RUN |
+| 04 | 单屏自有fixture：停靠预览、真实松键提交、撤销 | NOT_RUN / NOT_RUN / NOT_RUN |
+| 05 | 新编辑器：改变居中键后真实生效 | NOT_RUN / NOT_RUN / NOT_RUN |
 
-驱动已接入具名15帧输出；编译不证明上述操作完成。截图须经真实原件复核，不补写整版或真人PASS。
+本轮没有安装录屏器、生成模拟图或冒称五应用兼容/真人UAT。后续实际帧必须逐张绑定真实产品源码、EXE哈希、driver、Run、DPI和独立动作回执；图片仅为展示，不能替代正常UP及实际写入/资源清理证据。
