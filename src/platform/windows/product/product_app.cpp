@@ -8,6 +8,7 @@
 #include "guest_queue_failure_command.h"
 #include "core/v1/layout.h"
 #include "core/v1/settings.h"
+#include "core/v1/settings_editor.h"
 #include "core/v1/gesture.h"
 #include "core/v1/caption_hit_guard.h"
 #include "core/v1/visual_ownership.h"
@@ -148,17 +149,67 @@ v::Edges stretch_edges(v::Action action){
         action==v::Action::StretchBottom||action==v::Action::StretchVertical||action==v::Action::StretchAll};
 }
 std::wstring action_label(v::Action a){
-    constexpr std::array<const wchar_t*,37> labels{
-        L"不执行",L"最小化",L"最大化",L"恢复",L"居中",L"置于后方",
-        L"向左微移",L"向右微移",L"向上微移",L"向下微移",L"减小宽度",L"增加宽度",L"减小高度",L"增加高度",
-        L"移到最近相邻显示器",L"切换置顶",L"降低不透明度",L"提高不透明度",
-        L"左半屏",L"右半屏",L"上半屏",L"下半屏",L"左上四分屏",L"右上四分屏",L"左下四分屏",L"右下四分屏",
-        L"向左拉伸",L"向右拉伸",L"向上拉伸",L"向下拉伸",L"水平双向拉伸",L"垂直双向拉伸",L"双轴拉伸",
-        L"撤销布局",L"暂停／恢复",L"打开设置",L"退出"};
-    static_assert(labels.size()==v::settings_detail::action_names.size());
-    const auto index=static_cast<std::size_t>(a);
-    return index<labels.size()?labels[index]:L"不支持的操作";
+    return std::wstring(v::settings_editor::action_label(a));
 }
+struct HelpDialog {
+    std::wstring content;
+    HWND edit{},close{};
+    HFONT font{};
+    int scale{96};
+    int px(int value)const{return MulDiv(value,scale,96);}
+    void layout(HWND window){
+        RECT bounds{};GetClientRect(window,&bounds);
+        MoveWindow(edit,px(12),px(12),std::max(1,static_cast<int>(bounds.right)-px(24)),
+            std::max(1,static_cast<int>(bounds.bottom)-px(64)),TRUE);
+        MoveWindow(close,std::max(px(12),static_cast<int>(bounds.right)-px(112)),
+            std::max(px(12),static_cast<int>(bounds.bottom)-px(40)),px(100),px(28),TRUE);
+    }
+    static INT_PTR CALLBACK procedure(HWND hwnd,UINT message,WPARAM w,LPARAM l){
+        auto* self=reinterpret_cast<HelpDialog*>(GetWindowLongPtrW(hwnd,DWLP_USER));
+        if(message==WM_INITDIALOG){
+            self=reinterpret_cast<HelpDialog*>(l);SetWindowLongPtrW(hwnd,DWLP_USER,reinterpret_cast<LONG_PTR>(self));
+            self->scale=static_cast<int>(GetDpiForWindow(hwnd));if(!self->scale)self->scale=96;
+            self->font=CreateFontW(-MulDiv(10,self->scale,72),0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,
+                DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,
+                DEFAULT_PITCH|FF_DONTCARE,L"Microsoft YaHei UI");
+            self->edit=CreateWindowExW(WS_EX_CLIENTEDGE,L"EDIT",self->content.c_str(),
+                WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_VSCROLL|ES_MULTILINE|ES_READONLY|ES_AUTOVSCROLL,
+                0,0,0,0,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
+            self->close=CreateWindowExW(0,L"BUTTON",L"关闭帮助",WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_DEFPUSHBUTTON,
+                0,0,0,0,hwnd,reinterpret_cast<HMENU>(static_cast<INT_PTR>(IDOK)),GetModuleHandleW(nullptr),nullptr);
+            const auto font=self->font?self->font:static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
+            SendMessageW(self->edit,WM_SETFONT,reinterpret_cast<WPARAM>(font),FALSE);
+            SendMessageW(self->close,WM_SETFONT,reinterpret_cast<WPARAM>(font),FALSE);
+            MONITORINFO monitor{sizeof(monitor)};
+            if(GetMonitorInfoW(MonitorFromWindow(hwnd,MONITOR_DEFAULTTONEAREST),&monitor)){
+                const int width=std::min(self->px(720),static_cast<int>(monitor.rcWork.right-monitor.rcWork.left));
+                const int height=std::min(self->px(620),static_cast<int>(monitor.rcWork.bottom-monitor.rcWork.top));
+                SetWindowPos(hwnd,nullptr,monitor.rcWork.left+(monitor.rcWork.right-monitor.rcWork.left-width)/2,
+                    monitor.rcWork.top+(monitor.rcWork.bottom-monitor.rcWork.top-height)/2,width,height,SWP_NOZORDER);
+            }
+            self->layout(hwnd);SetFocus(self->close);return FALSE;
+        }
+        if(!self)return FALSE;
+        if(message==WM_SIZE){self->layout(hwnd);return TRUE;}
+        if(message==WM_COMMAND&&(LOWORD(w)==IDOK||LOWORD(w)==IDCANCEL)){EndDialog(hwnd,0);return TRUE;}
+        if(message==WM_CLOSE){EndDialog(hwnd,0);return TRUE;}
+        return FALSE;
+    }
+    void show(HWND owner){
+        // No resources or framework: a zero-control standard dialog template;
+        // its two native children are created by the normal dialog procedure.
+        std::vector<WORD> bytes(128);
+        auto* dialog=reinterpret_cast<DLGTEMPLATE*>(bytes.data());
+        dialog->style=WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|DS_MODALFRAME;
+        dialog->dwExtendedStyle=WS_EX_CONTROLPARENT;dialog->cdit=0;dialog->cx=350;dialog->cy=270;
+        auto* cursor=reinterpret_cast<WORD*>(reinterpret_cast<BYTE*>(dialog)+sizeof(DLGTEMPLATE));
+        *cursor++=0;*cursor++=0;
+        constexpr wchar_t title[]=L"PaneBind 帮助 — 当前有效映射";
+        std::copy(std::begin(title),std::end(title),cursor);
+        DialogBoxIndirectParamW(GetModuleHandleW(nullptr),dialog,owner,procedure,reinterpret_cast<LPARAM>(this));
+        if(font){DeleteObject(font);font=nullptr;}
+    }
+};
 class Log {
     fs::path path_;std::uint64_t sequence_{};std::ofstream stream_;
     void close_stream(){if(stream_.is_open())stream_.close();stream_.clear();}
@@ -331,7 +382,8 @@ public:
     void tray(){NOTIFYICONDATAW n{};n.cbSize=sizeof(n);n.hWnd=window;n.uID=1;n.uFlags=NIF_MESSAGE|NIF_ICON|NIF_TIP;
         n.uCallbackMessage=tray_message;n.hIcon=LoadIconW(nullptr,settings.enabled&&input.healthy()?IDI_APPLICATION:IDI_WARNING);
         const auto tip=std::wstring(L"PaneBind — ")+(settings.enabled?(input.healthy()?L"运行中；Shift 起手为原生操作":L"输入故障"):L"已暂停");
-        wcsncpy_s(n.szTip,tip.c_str(),_TRUNCATE);Shell_NotifyIconW(NIM_MODIFY,&n);}
+        wcsncpy_s(n.szTip,tip.c_str(),_TRUNCATE);Shell_NotifyIconW(NIM_MODIFY,&n);
+        settings_ui.sync_runtime(settings.enabled,input.healthy());}
     void log_status(){
         const auto windows=catalog.all(settings);log.event("status","\"enabled\":"+std::string(settings.enabled?"true":"false")+
             ",\"hook_owner_running\":"+(input.healthy()?"true":"false")+",\"gesture_active\":"+(gesture?"true":"false")+
@@ -1039,6 +1091,7 @@ public:
     void consume();
     void drain_button_admissions(bool final=false);
     void show_settings();
+    void show_help();
     void register_keys();
     std::optional<std::vector<BoundKey>> prepare_keys(const v::Settings&);
     void discard_new_keys(const std::vector<BoundKey>&);
@@ -2341,7 +2394,8 @@ std::optional<std::vector<Application::BoundKey>> Application::prepare_keys(cons
         int id=1000;for(;id<1256;++id)if(std::none_of(bound_keys.begin(),bound_keys.end(),[&](const auto& key){return key.id==id;})&&
             std::none_of(next.begin(),next.end(),[&](const auto& key){return key.id==id;}))break;
         if(id==1256||!RegisterHotKey(window,id,hotkey.modifiers|MOD_NOREPEAT,hotkey.key)){
-            discard_new_keys(next);notify(L"快捷键注册冲突："+action_label(hotkey.action)+L"。原有效映射保留，配置未提交。");return {};}
+            discard_new_keys(next);notify(L"快捷键注册冲突："+v::settings_editor::hotkey_label(hotkey)+L"（"+
+                action_label(hotkey.action)+L"）。原有效映射保留，配置未提交。");return {};}
         next.push_back({id,hotkey});
     }return next;
 }
@@ -2387,10 +2441,34 @@ void Application::show_settings(){
         const auto fresh=catalog.get(last_target->hwnd,settings);
         if(!fresh||!Catalog::same(*last_target,*fresh))return {};
         return v::Rule{utf8(fresh->exe),utf8(fresh->window_class),true,0xffffffffu};
-    });
+    },[this]{command(v::Action::Pause);},[this]{show_help();},[this]{
+        // Queue the existing normal-exit route so the settings click handler
+        // may return without accessing controls destroyed by Application::stop.
+        PostMessageW(window,WM_CLOSE,0,0);
+    },input.healthy(),[this]{return problem;});
     log.event("settings_open","\"created\":"+std::string(settings_ui.handle()?"true":"false")+
         ",\"foreground_is_settings\":"+(GetForegroundWindow()==settings_ui.handle()?"true":"false")+
         ",\"own_focus_present\":"+(GetFocus()?"true":"false"));
+}
+void Application::show_help(){
+    HelpDialog help;
+    help.content=L"普通权限运行。标题栏移动；边角缩放。Ctrl 起手联动当前邻接组，Shift 起手临时绕过增强。\r\n"
+        L"边双击拉伸，Shift 双击沿同轴拉伸；屏边显示停靠预览，正常松键提交，移离预览区域撤销。\r\n"
+        L"Ctrl+Shift+F11 紧急暂停，Esc 取消当前增强手势。设置顶部可立即暂停／恢复，并提供正常“退出程序”。\r\n"
+        L"设置右上角关闭和底部取消只关闭设置；它们不会退出 PaneBind，也不会撤销已经执行的立即暂停／恢复。\r\n"
+        L"未准备或不合格窗口保留原生操作；不控制高权限／安全桌面窗口。当前验证范围与限制请看随包中文说明。\r\n\r\n"
+        L"当前有效键盘快捷键（未保存草稿不在此列）：\r\n";
+    if(settings.hotkeys.empty())help.content+=L"尚无自定义键盘快捷键。\r\n";
+    for(const auto& key:settings.hotkeys)
+        help.content+=v::settings_editor::hotkey_label(key)+L" → "+action_label(key.action)+L"\r\n";
+    help.content+=L"\r\n当前有效鼠标操作：\r\n";
+    if(settings.mouse_bindings.empty())help.content+=L"尚无自定义鼠标操作；普通 Move／Resize、Ctrl 联动及 Shift 绕过仍按全局设置生效。\r\n";
+    for(const auto& mouse:settings.mouse_bindings){
+        help.content+=std::wstring(v::settings_editor::region_label(mouse.region))+L"／"+
+            std::wstring(v::settings_editor::button_label(mouse.button))+L"／"+(mouse.clicks==2?L"双击":L"单击")+L"／"+
+            v::settings_editor::modifier_label(mouse.modifiers)+L" → "+action_label(mouse.action)+L"\r\n";
+    }
+    help.show(settings_ui.handle()?settings_ui.handle():window);
 }
 void Application::export_diagnostic(){
     const auto failure=[this](const wchar_t* message){
@@ -2661,13 +2739,8 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
                     }
                     next.rules.push_back({exe,"",true,0xffffffffu});a->save(next);
                 }a->prepare();
-            }else if(id==menu_help){
-                MessageBoxW(w,L"普通权限运行。标题栏移动；边角缩放；Ctrl 起手联动邻接组，Shift 移动临时透传。\n"
-                    L"边双击拉伸，Shift 双击沿同轴拉伸；屏边显示停靠预览，松开提交。\n"
-                    L"托盘提供设置、窗口命令、排除、暂停和退出。Ctrl+Shift+F11 紧急暂停，Esc 取消当前增强手势。\n"
-                    L"未准备或不合格窗口保留原生操作；不控制高权限／安全桌面窗口。\n"
-                    L"当前构建的实际验证及限制请看随包中文说明，不将开发状态当作验收通过。",L"PaneBind 帮助",MB_OK|MB_ICONINFORMATION);
-            }else if(id==menu_diagnostic)a->export_diagnostic();
+            }else if(id==menu_help)a->show_help();
+            else if(id==menu_diagnostic)a->export_diagnostic();
             else if(id==menu_exit)DestroyWindow(w);return 0;}
         case external_message:
             if(wp==1)DestroyWindow(w);else if(wp==2)a->set_paused(true);else if(wp==3)a->log_status();else a->show_settings();return 0;
@@ -2858,7 +2931,13 @@ int run(HINSTANCE instance,const wchar_t*){
         // shell cannot publish our notification icon. Background login and
         // diagnostic modes retain their existing no-window startup.
         if(argv.empty()||argv[0]==L"--settings")app.show_settings();
-        MSG msg{};while(GetMessageW(&msg,nullptr,0,0)>0){if(app.settings_ui.translate(msg))continue;TranslateMessage(&msg);DispatchMessageW(&msg);}
+        MSG msg{};while(GetMessageW(&msg,nullptr,0,0)>0){
+            if(!app.settings_ui.translate(msg)){TranslateMessage(&msg);DispatchMessageW(&msg);}
+            // State publication follows actual GUI/input events, never a
+            // resident timer. Only runtime enabled/health are synchronized;
+            // unrelated settings drafts remain owned by SettingsWindow.
+            app.settings_ui.sync_runtime(app.settings.enabled,app.input.healthy());
+        }
         app.stop();application=nullptr;UnregisterClassW(ow.lpszClassName,instance);UnregisterClassW(app_class,instance);result=0;
     }catch(const std::exception& e){application=nullptr;MessageBoxW(nullptr,wide(e.what()).c_str(),L"PaneBind 启动失败",MB_OK|MB_ICONERROR);}
     CloseHandle(mutex);CoUninitialize();return result;

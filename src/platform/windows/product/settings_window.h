@@ -25,7 +25,11 @@ public:
     void show(HWND owner, const core::v1::Settings& settings,
               std::function<bool(const core::v1::Settings&)> save,
               std::function<void()> diagnostic,
-              std::function<std::optional<core::v1::Rule>()> current_application = {});
+              std::function<std::optional<core::v1::Rule>()> current_application = {},
+              std::function<void()> toggle_pause = {}, std::function<void()> help = {},
+              std::function<void()> exit = {}, bool input_healthy = true,
+              std::function<std::wstring()> save_error = {});
+    void sync_runtime(bool enabled, bool input_healthy);
     void close();
     [[nodiscard]] HWND handle() const;
     bool translate(MSG& message);

@@ -6,7 +6,7 @@ execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${PROJECT_SOURCE_D
     OUTPUT_VARIABLE PANEBIND_V1_SHA OUTPUT_STRIP_TRAILING_WHITESPACE)
 add_library(panebind_windows_product STATIC
     product/window_catalog.cpp product/window_writer.cpp
-    product/input_service.cpp product/settings_window.cpp product/visual_recovery.cpp product/product_app.cpp)
+    product/input_service.cpp product/settings_window.cpp product/settings_edit_dialogs.cpp product/visual_recovery.cpp product/product_app.cpp)
 target_link_libraries(panebind_windows_product PUBLIC panebind_core PRIVATE
     user32 gdi32 dwmapi advapi32 ole32 uuid shell32 comctl32 comdlg32 wtsapi32
     panebind_windows_operation_geometry panebind_windows_gesture_input_shield)
@@ -26,7 +26,7 @@ target_compile_definitions(panebind-v1-guest-fixture PRIVATE
     PANEBIND_BUILD_SHA="${PANEBIND_V1_SHA}")
 target_link_libraries(panebind-v1-guest-fixture PRIVATE
     panebind_windows_product panebind_windows_explorer
-    user32 gdi32 dwmapi wtsapi32 advapi32 shell32 ole32 oleaut32)
+    user32 gdi32 dwmapi wtsapi32 advapi32 shell32 ole32 oleaut32 windowscodecs)
 target_compile_features(panebind-v1-guest-fixture PRIVATE cxx_std_20)
 panebind_enable_warnings(panebind-v1-guest-fixture)
 if(MSVC)

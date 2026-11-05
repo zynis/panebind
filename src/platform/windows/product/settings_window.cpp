@@ -1,4 +1,6 @@
 #include "settings_window.h"
+#include "settings_edit_dialogs.h"
+#include "core/v1/settings_editor.h"
 
 #include <commctrl.h>
 #include <commdlg.h>
@@ -20,13 +22,12 @@ constexpr wchar_t page_class[]=L"PaneBindV1SettingsPage";
 constexpr int id_tab=100,id_page_defaults=110,id_all_defaults=111,id_import=112,id_export=113,id_diagnostic=114;
 constexpr int id_current_app_rule=115;
 constexpr std::array<const wchar_t*,6> page_names{L"常规",L"磁吸／联动",L"停靠／拉伸",L"快捷键／鼠标",L"应用规则",L"诊断／外观"};
-constexpr std::array<const wchar_t*,37> action_labels{
-    L"不执行",L"最小化",L"最大化",L"恢复",L"居中",L"置后",
-    L"向左微移",L"向右微移",L"向上微移",L"向下微移",L"减小宽度",L"增加宽度",L"减小高度",L"增加高度",
-    L"移到最近相邻显示器",L"切换置顶",L"降低不透明度",L"提高不透明度",
-    L"左半屏",L"右半屏",L"上半屏",L"下半屏",L"左上四分屏",L"右上四分屏",L"左下四分屏",L"右下四分屏",
-    L"向左拉伸",L"向右拉伸",L"向上拉伸",L"向下拉伸",L"水平双向拉伸",L"垂直双向拉伸",L"双轴拉伸",
-    L"撤销布局",L"暂停／恢复",L"打开设置",L"退出"};
+namespace ed=v::settings_editor;
+constexpr auto& action_labels=ed::action_labels;
+constexpr int id_hotkeys=1200,id_hotkey_add=1201,id_hotkey_edit=1202,id_hotkey_delete=1203;
+constexpr int id_mouse=1210,id_mouse_add=1211,id_mouse_edit=1212,id_mouse_delete=1213;
+constexpr int id_rules=1220,id_rule_add=1221,id_rule_edit=1222,id_rule_delete=1223;
+constexpr int id_color=1230,id_choose_color=1231,id_pause=1240,id_help=1241,id_exit=1242;
 std::wstring widen(std::string_view value) {
     if (value.empty()) return {};
     const int length=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,value.data(),static_cast<int>(value.size()),nullptr,0);
@@ -49,14 +50,6 @@ std::wstring text(HWND window) {
     const int copied=GetWindowTextW(window,result.data(),length+1);
     result.resize(static_cast<std::size_t>(std::max(0,copied)));
     return result;
-}
-std::wstring lines_for(const v::Settings& settings,std::string_view prefix,std::string_view count) {
-    const auto all=v::serialize(settings);
-    std::string result;
-    for (const auto row:v::settings_detail::split(all,'\n')) {
-        if (row.starts_with(prefix) || row.starts_with(count)) {result+=row;result+="\r\n";}
-    }
-    return widen(result);
 }
 std::optional<std::wstring> select_file(HWND owner,bool save) {
     std::array<wchar_t,32768> path{};
@@ -91,14 +84,20 @@ struct SettingsWindow::Impl {
     HWND window{},tab{};
     HFONT font{};
     UINT dpi{96};
-    v::Settings draft;
+    v::Settings draft,baseline;
+    bool runtime_enabled{true},runtime_healthy{true};
+    std::function<void()> toggle_pause,help,exit;
+    std::function<std::wstring()> save_error;
     std::function<bool(const v::Settings&)> save;
     std::function<void()> diagnostic;
     std::function<std::optional<v::Rule>()> current_application;
     std::array<Page,6> pages;
     std::vector<Field> fields;
     std::array<HWND,8> dock_actions{};
-    HWND hotkey_text{},mouse_text{},rules_text{},legend_text{},metadata{},rule_class_filter{};
+    HWND hotkeys{},mouse{},rules{},hotkey_empty{},mouse_empty{},rules_empty{},metadata{};
+    HWND color_text{},color_swatch{},run_status{},pause_button{},help_button{},exit_button{};
+    std::array<HWND,6> row_actions{};
+    std::array<COLORREF,16> custom_colors{};
     std::array<HWND,7> footer{};
     int selected{};
     int px(int value) const {return MulDiv(value,static_cast<int>(dpi),96);}
@@ -148,11 +147,92 @@ struct SettingsWindow::Impl {
         SendMessageW(hwnd,EM_SETLIMITTEXT,v::settings_detail::max_file_bytes,0);
         page.next_y+=height+12; return hwnd;
     }
+    HWND note_control(Page& page,const wchar_t* label,int height) {
+        const auto h=add(page,L"STATIC",label,SS_LEFT,12,page.next_y,0,height,true);
+        page.controls.back().flow_text=true;page.next_y+=height+6;return h;
+    }
+    HWND list(Page& page,const wchar_t* label,int id,std::initializer_list<const wchar_t*> columns,int height) {
+        note(page,label,26);
+        const auto h=add(page,WC_LISTVIEWW,L"",WS_TABSTOP|WS_BORDER|LVS_REPORT|LVS_SINGLESEL|LVS_SHOWSELALWAYS,
+                         12,page.next_y,0,height,true,id);
+        ListView_SetExtendedListViewStyle(h,LVS_EX_FULLROWSELECT|LVS_EX_DOUBLEBUFFER|LVS_EX_LABELTIP);
+        int i{};for(const auto name:columns){LVCOLUMNW c{LVCF_TEXT|LVCF_WIDTH};c.pszText=const_cast<wchar_t*>(name);c.cx=px(columns.size()==2?250:columns.size()==3?(i==0?300:180):135);ListView_InsertColumn(h,i++,&c);}
+        page.next_y+=height+8;return h;
+    }
+    void list_buttons(Page& page,int add_id,int edit_id,int delete_id,std::size_t offset) {
+        add(page,L"BUTTON",L"添加",WS_TABSTOP|BS_PUSHBUTTON,12,page.next_y,120,32,add_id);
+        row_actions[offset]=add(page,L"BUTTON",L"编辑",WS_TABSTOP|BS_PUSHBUTTON,144,page.next_y,120,32,edit_id);
+        row_actions[offset+1]=add(page,L"BUTTON",L"删除",WS_TABSTOP|BS_PUSHBUTTON,276,page.next_y,120,32,delete_id);
+        page.next_y+=48;
+    }
+    static void row(HWND list,int n,std::initializer_list<std::wstring> cells) {
+        int column{};for(const auto& cell:cells){
+            if(column==0){LVITEMW i{LVIF_TEXT};i.iItem=n;i.pszText=const_cast<wchar_t*>(cell.c_str());ListView_InsertItem(list,&i);}
+            else ListView_SetItemText(list,n,column,const_cast<wchar_t*>(cell.c_str()));++column;
+        }
+    }
+    void enable_row_actions() {
+        for(std::size_t i=0;i<3;++i){const HWND h=i==0?hotkeys:i==1?mouse:rules;const bool chosen=ListView_GetNextItem(h,-1,LVNI_SELECTED)>=0;EnableWindow(row_actions[i*2],chosen);EnableWindow(row_actions[i*2+1],chosen);}
+    }
+    void refresh_lists() {
+        ListView_DeleteAllItems(hotkeys);ListView_DeleteAllItems(mouse);ListView_DeleteAllItems(rules);
+        for(std::size_t i=0;i<draft.hotkeys.size();++i){const auto& h=draft.hotkeys[i];row(hotkeys,static_cast<int>(i),{(h.modifiers?ed::modifier_label(h.modifiers)+L"+":L"")+settings_key_label(h.key),std::wstring(ed::action_label(h.action))});}
+        for(std::size_t i=0;i<draft.mouse_bindings.size();++i){const auto& m=draft.mouse_bindings[i];row(mouse,static_cast<int>(i),{std::wstring(ed::region_label(m.region)),std::wstring(ed::button_label(m.button)),m.clicks==1?L"单击":L"双击",ed::modifier_label(m.modifiers),std::wstring(ed::action_label(m.action))});}
+        constexpr std::array names{L"磁吸",L"联动",L"停靠",L"拉伸",L"窗口命令",L"视觉效果"};
+        for(std::size_t i=0;i<draft.rules.size();++i){const auto& r=draft.rules[i];std::wstring description=r.excluded?L"排除此应用":L"自定义：";if(!r.excluded){for(std::size_t b=0;b<6;++b)if(r.feature_mask&(1U<<b)){if(description.back()!=L'：')description+=L"、";description+=names[b];}if((r.feature_mask&63)==0)description+=L"不允许增强";}row(rules,static_cast<int>(i),{widen(r.exe),r.window_class.empty()?L"全部窗口类":widen(r.window_class),description});}
+        ShowWindow(hotkey_empty,draft.hotkeys.empty()?SW_SHOW:SW_HIDE);ShowWindow(mouse_empty,draft.mouse_bindings.empty()?SW_SHOW:SW_HIDE);ShowWindow(rules_empty,draft.rules.empty()?SW_SHOW:SW_HIDE);enable_row_actions();
+    }
+    void mapping_command(int id) {
+        const int kind=id>=id_rule_add?2:id>=id_mouse_add?1:0;
+        const int first=kind==0?id_hotkey_add:kind==1?id_mouse_add:id_rule_add;
+        const HWND list=kind==0?hotkeys:kind==1?mouse:rules;
+        const int operation=id-first;const int n=ListView_GetNextItem(list,-1,LVNI_SELECTED);
+        if(operation!=0&&n<0)return;
+        if(operation==2){if(kind==0)ed::erase_hotkey(draft,static_cast<std::size_t>(n));else if(kind==1)ed::erase_mouse(draft,static_cast<std::size_t>(n));else ed::erase_rule(draft,static_cast<std::size_t>(n));refresh_lists();return;}
+        if(edit_settings_mapping(window,draft,kind,operation==0?std::nullopt:std::optional<std::size_t>(n)))refresh_lists();
+    }
+    bool list_notification(const NMHDR* header) {
+        if(header->hwndFrom!=hotkeys&&header->hwndFrom!=mouse&&header->hwndFrom!=rules)return false;
+        if(header->code==LVN_ITEMCHANGED)enable_row_actions();
+        if(header->code==NM_DBLCLK){mapping_command(header->hwndFrom==hotkeys?id_hotkey_edit:header->hwndFrom==mouse?id_mouse_edit:id_rule_edit);}
+        return true;
+    }
+    void choose_color() {
+        const auto raw=narrow(text(color_text));const auto color=raw?ed::parse_color_hex(*raw):std::nullopt;
+        if(!color){error(L"请先输入有效的 #RRGGBB 颜色。");return;}
+        CHOOSECOLORW choice{sizeof(choice)};choice.hwndOwner=window;choice.rgbResult=static_cast<COLORREF>(*color);choice.lpCustColors=custom_colors.data();choice.Flags=CC_FULLOPEN|CC_RGBINIT;
+        if(ChooseColorW(&choice)){SetWindowTextW(color_text,widen(ed::color_hex(static_cast<int>(choice.rgbResult))).c_str());InvalidateRect(color_swatch,nullptr,TRUE);}
+        else if(const auto failure=CommDlgExtendedError())error(L"颜色选择器未完成，错误码 "+std::to_wstring(failure));
+    }
+    void refresh_runtime() {
+        SetWindowTextW(run_status,!runtime_healthy?L"输入故障":runtime_enabled?L"运行中":L"已暂停");
+        SetWindowTextW(pause_button,runtime_enabled?L"立即暂停":L"立即恢复");
+        EnableWindow(pause_button,static_cast<bool>(toggle_pause));EnableWindow(help_button,static_cast<bool>(help));EnableWindow(exit_button,static_cast<bool>(exit));
+    }
+    void sync_runtime(bool enabled,bool healthy) {
+        if(runtime_enabled==enabled&&runtime_healthy==healthy)return;
+        if(runtime_enabled!=enabled){draft.enabled=enabled;baseline.enabled=enabled;for(const auto& f:fields)if(f.boolean==&v::Settings::enabled)SendMessageW(f.control,BM_SETCHECK,enabled?BST_CHECKED:BST_UNCHECKED,0);}
+        runtime_enabled=enabled;runtime_healthy=healthy;if(window)refresh_runtime();
+    }
+    void request_exit() {
+        const auto candidate=gather(false);const bool dirty=!candidate||*candidate!=baseline;
+        if(dirty){
+            constexpr TASKDIALOG_BUTTON buttons[]{{IDYES,L"放弃修改并退出"},{IDCANCEL,L"返回设置"}};
+            TASKDIALOGCONFIG dialog{sizeof(dialog)};dialog.hwndParent=window;dialog.dwFlags=TDF_ALLOW_DIALOG_CANCELLATION|TDF_POSITION_RELATIVE_TO_WINDOW;dialog.pszWindowTitle=L"PaneBind";dialog.pszMainInstruction=L"设置还有未保存的修改";dialog.pszContent=L"退出将放弃草稿；已执行的即时暂停／恢复不会被取消。";dialog.cButtons=2;dialog.pButtons=buttons;dialog.nDefaultButton=IDCANCEL;
+            int selected_button=IDCANCEL;if(FAILED(TaskDialogIndirect(&dialog,&selected_button,nullptr,nullptr))||selected_button!=IDYES)return;
+        }
+        if(exit)exit();
+    }
     void create() {
-        INITCOMMONCONTROLSEX common{sizeof(common),ICC_TAB_CLASSES}; InitCommonControlsEx(&common);
+        INITCOMMONCONTROLSEX common{sizeof(common),ICC_TAB_CLASSES|ICC_LISTVIEW_CLASSES}; InitCommonControlsEx(&common);
         dpi=GetDpiForWindow(window); if(!dpi)dpi=96;
         font=CreateFontW(-MulDiv(10,static_cast<int>(dpi),72),0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,
             DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,L"Microsoft YaHei UI");
+        run_status=CreateWindowExW(0,L"STATIC",L"",WS_CHILD|WS_VISIBLE|SS_LEFT,0,0,0,0,window,nullptr,GetModuleHandleW(nullptr),nullptr);
+        pause_button=CreateWindowExW(0,L"BUTTON",L"",WS_CHILD|WS_VISIBLE|WS_TABSTOP,0,0,0,0,window,reinterpret_cast<HMENU>(static_cast<INT_PTR>(id_pause)),GetModuleHandleW(nullptr),nullptr);
+        help_button=CreateWindowExW(0,L"BUTTON",L"帮助",WS_CHILD|WS_VISIBLE|WS_TABSTOP,0,0,0,0,window,reinterpret_cast<HMENU>(static_cast<INT_PTR>(id_help)),GetModuleHandleW(nullptr),nullptr);
+        exit_button=CreateWindowExW(0,L"BUTTON",L"退出程序",WS_CHILD|WS_VISIBLE|WS_TABSTOP,0,0,0,0,window,reinterpret_cast<HMENU>(static_cast<INT_PTR>(id_exit)),GetModuleHandleW(nullptr),nullptr);
+        for(auto h:{run_status,pause_button,help_button,exit_button})SendMessageW(h,WM_SETFONT,reinterpret_cast<WPARAM>(font),FALSE);
         tab=CreateWindowExW(0,WC_TABCONTROLW,L"",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPSIBLINGS,
             0,0,0,0,window,reinterpret_cast<HMENU>(static_cast<INT_PTR>(id_tab)),GetModuleHandleW(nullptr),nullptr);
         SendMessageW(tab,WM_SETFONT,reinterpret_cast<WPARAM>(font),FALSE);
@@ -164,7 +244,7 @@ struct SettingsWindow::Impl {
                 0,0,0,0,window,nullptr,GetModuleHandleW(nullptr),&page);
         }
         auto& general=pages[0];
-        note(general,L"设置仅在点击“保存并关闭”且保存成功后生效。取消或关闭窗口不会改变运行配置。\r\n紧急暂停：Ctrl+Shift+F11；系统 Win+方向键保持原有行为。",58);
+        note(general,L"设置仅在点击“保存并关闭”且保存成功后生效。取消或关闭只放弃草稿，不退出程序；即时暂停／恢复会保留。\r\n紧急暂停：Ctrl+Shift+F11；系统 Win+方向键保持原有行为。",58);
         checkbox(general,L"启用 PaneBind 窗口增强",&v::Settings::enabled);
         checkbox(general,L"用户登录后启动（默认关闭；仅保存明确选择）",&v::Settings::startup);
         checkbox(general,L"设置窗口打开时淡入（100 毫秒；不插值窗口几何）",&v::Settings::animations);
@@ -186,7 +266,11 @@ struct SettingsWindow::Impl {
         checkbox(dock,L"智能拉伸：止于最近相交邻窗",&v::Settings::smart_stretch);
         checkbox(dock,L"显示非激活停靠／拉伸预览",&v::Settings::preview);
         number(dock,L"预览不透明度（1–255）",&v::Settings::preview_alpha);
-        number(dock,L"预览颜色（十进制，0–16777215）",&v::Settings::preview_color);
+        note(dock,L"预览颜色：使用 #RRGGBB 或系统颜色选择器；保存后用于下一次预览。",32);
+        color_swatch=add(dock,L"STATIC",L"",SS_OWNERDRAW,12,dock.next_y,48,30);
+        color_text=add(dock,L"EDIT",L"",WS_TABSTOP|ES_AUTOHSCROLL,72,dock.next_y,132,30,id_color);
+        SendMessageW(color_text,EM_SETLIMITTEXT,7,0);
+        add(dock,L"BUTTON",L"选择颜色…",WS_TABSTOP|BS_PUSHBUTTON,218,dock.next_y,150,30,id_choose_color);dock.next_y+=44;
         number(dock,L"显示器接缝停留（毫秒，100–3000）",&v::Settings::seam_dwell_ms);
         note(dock,L"按方向设置停靠动作；“最大化”与“上半屏”不同。移出预览区撤销，正常抬键才提交。",44);
         constexpr std::array<const wchar_t*,8> direction{L"左边",L"右边",L"顶部",L"底部",L"左上角",L"右上角",L"左下角",L"右下角"};
@@ -199,30 +283,30 @@ struct SettingsWindow::Impl {
                 const auto action=static_cast<v::Action>(a);
                 if (action!=v::Action::None && action!=v::Action::Maximize &&
                     !(action>=v::Action::DockLeft && action<=v::Action::DockBottomRight)) continue;
-                const auto index=SendMessageW(dock_actions[i],CB_ADDSTRING,0,reinterpret_cast<LPARAM>(action_labels[a]));
+                const auto index=SendMessageW(dock_actions[i],CB_ADDSTRING,0,reinterpret_cast<LPARAM>(action_labels[a].data()));
                 SendMessageW(dock_actions[i],CB_SETITEMDATA,static_cast<WPARAM>(index),static_cast<LPARAM>(a));
             }
             dock.next_y+=36;
         }
         auto& shortcuts=pages[3];
         number(shortcuts,L"键盘微移／调尺寸步长（DIP，1–1000）",&v::Settings::step_dip);
-        note(shortcuts,L"映射编辑使用下方配置片段；删除条目须同时修改 count 并重新连续编号。修饰键为 Alt=1、Ctrl=2、Shift=4、Win=8，相加组合。F12 及 Ctrl+Shift+F11 不可占用。",64);
-        hotkey_text=multiline(shortcuts,L"键盘：hotkey.编号=修饰键数值,虚拟键十进制,动作标识\r\n例：hotkey.0=3,67,Center 表示 Ctrl+Alt+C 居中。",146);
-        mouse_text=multiline(shortcuts,L"鼠标：mouse.编号=区域,按键,点击次数,修饰键,动作标识\r\n区域：标题0、左1、右2、上3、下4、左上5、右上6、左下7、右下8。",146);
-        note(shortcuts,L"鼠标按键：左1、右2、中3、X1=4、X2=5；点击次数1或2。未映射的按钮／客户区默认透传，系统按钮不作为标题栏。",48);
-        std::wstring actions=L"动作标识 → 中文行为：\r\n";
-        for(std::size_t i=1;i<action_labels.size();++i) actions+=widen(v::action_name(static_cast<v::Action>(i)))+L" → "+action_labels[i]+L"\r\n";
-        legend_text=add(shortcuts,L"EDIT",actions.c_str(),WS_TABSTOP|WS_VSCROLL|ES_MULTILINE|ES_READONLY|ES_AUTOVSCROLL,12,shortcuts.next_y,0,200,true);
-        shortcuts.next_y+=212;
-        auto& rules=pages[4];
-        note(rules,L"可以从打开设置前的合格前台应用添加排除规则。产品会重新核验其身份；此操作只修改草稿，保存后才应用。",56);
-        add(rules,L"BUTTON",L"添加已核验前台应用的排除规则 (&A)",WS_TABSTOP|BS_PUSHBUTTON,12,rules.next_y,0,32,true,id_current_app_rule);
-        rules.next_y+=40;
-        rule_class_filter=add(rules,L"BUTTON",L"仅限制为该窗口类名（不勾选时排除此程序全部窗口）",WS_TABSTOP|BS_AUTOCHECKBOX|BS_MULTILINE,12,rules.next_y,0,44,true);
-        rules.next_y+=52;
-        note(rules,L"按实际 exe 名称或完整路径匹配，可选精确窗口类名；不按标题猜应用，不支持通配符。编辑完成后保存才生效。true 表示排除；4294967295 表示允许全部功能位。",70);
-        rules_text=multiline(rules,L"rule.编号=程序|可选类名|排除true/false|功能掩码\r\n例：rule_count=1 及 rule.0=notepad.exe||true|4294967295",260);
-        note(rules,L"路径中的空格、%、|、=、# 按 UTF-8 字节写成 %HH：空格=%20，百分号=%25。导入／导出使用同一严格格式；重复规则或无效编码会拒绝保存。功能掩码按设置文件说明使用。",76);
+        note(shortcuts,L"添加或编辑一行即可设置组合。确定只改草稿，保存并关闭后应用。F12 与 Ctrl+Shift+F11 为保留组合。",48);
+        hotkeys=list(shortcuts,L"键盘快捷键",id_hotkeys,{L"快捷键",L"执行动作"},180);
+        hotkey_empty=note_control(shortcuts,L"尚无键盘快捷键，点击“添加”创建。",26);
+        list_buttons(shortcuts,id_hotkey_add,id_hotkey_edit,id_hotkey_delete,0);
+        mouse=list(shortcuts,L"鼠标操作",id_mouse,{L"触发区域",L"按键",L"单击／双击",L"修饰键",L"执行动作"},210);
+        mouse_empty=note_control(shortcuts,L"尚无鼠标映射；未映射的操作保持原生行为。",26);
+        list_buttons(shortcuts,id_mouse_add,id_mouse_edit,id_mouse_delete,2);
+        note(shortcuts,L"双击选中行可编辑。未映射按钮与客户区默认透传，系统按钮不作为标题栏。",44);
+        auto& rule_page=pages[4];
+        note(rule_page,L"按程序名或完整路径匹配，可选精确窗口类名。规则只改草稿，保存后生效；不匹配窗口标题。",52);
+        rules=list(rule_page,L"应用规则",id_rules,{L"程序",L"窗口类（可选）",L"规则"},250);
+        rules_empty=note_control(rule_page,L"尚无应用规则。可以添加程序，或添加打开设置前已核验的应用。",40);
+        add(rule_page,L"BUTTON",L"添加程序…",WS_TABSTOP|BS_PUSHBUTTON,12,rule_page.next_y,138,32,id_rule_add);
+        add(rule_page,L"BUTTON",L"添加当前应用",WS_TABSTOP|BS_PUSHBUTTON,160,rule_page.next_y,150,32,id_current_app_rule);
+        row_actions[4]=add(rule_page,L"BUTTON",L"编辑",WS_TABSTOP|BS_PUSHBUTTON,320,rule_page.next_y,90,32,id_rule_edit);
+        row_actions[5]=add(rule_page,L"BUTTON",L"删除",WS_TABSTOP|BS_PUSHBUTTON,420,rule_page.next_y,90,32,id_rule_delete);rule_page.next_y+=46;
+        note(rule_page,L"“添加当前应用”仅使用打开设置前已核验的身份。新规则默认排除；自定义功能仍受全局开关及“窗口命令”许可控制。",64);
         auto& visual=pages[5];
         checkbox(visual,L"显示实际吸附／联动关系提示",&v::Settings::feedback);
         checkbox(visual,L"拖动期间临时透明（结束恢复原状态）",&v::Settings::drag_transparency);
@@ -256,9 +340,8 @@ struct SettingsWindow::Impl {
                 SendMessageW(dock_actions[i],CB_SETCURSEL,static_cast<WPARAM>(index),0);break;
             }
         }
-        SetWindowTextW(hotkey_text,lines_for(draft,"hotkey.","hotkey_count=").c_str());
-        SetWindowTextW(mouse_text,lines_for(draft,"mouse.","mouse_count=").c_str());
-        SetWindowTextW(rules_text,lines_for(draft,"rule.","rule_count=").c_str());
+        SetWindowTextW(color_text,widen(ed::color_hex(draft.preview_color)).c_str());
+        refresh_lists();refresh_runtime();
         const std::wstring version=L"设置仅在“保存并关闭”成功后生效。\r\n取消或关闭设置窗口不会更改正在使用的选项。";
         SetWindowTextW(metadata,version.c_str());
     }
@@ -269,7 +352,7 @@ struct SettingsWindow::Impl {
             if(f.number) {
                 const auto raw=narrow(text(f.control)); int number{};
                 if(!raw || !v::settings_detail::number(*raw,number)) {
-                    if(report) {selected=f.page;TabCtrl_SetCurSel(tab,selected);layout();SetFocus(f.control);error(L"数字格式无效，请输入范围内的十进制整数。预览颜色也使用十进制数值。");}
+                    if(report) {selected=f.page;TabCtrl_SetCurSel(tab,selected);layout();SetFocus(f.control);error(L"数字格式无效，请输入范围内的十进制整数。");}
                     return std::nullopt;
                 }
                 candidate.*(f.number)=number;
@@ -281,37 +364,28 @@ struct SettingsWindow::Impl {
             candidate.dock_actions[i]=static_cast<v::Action>(SendMessageW(dock_actions[i],CB_GETITEMDATA,static_cast<WPARAM>(index),0));
         }
         if(const auto failure=v::validate(candidate);!failure.empty()) {if(report)error(widen(failure));return std::nullopt;}
-        std::string combined;
-        const auto serialized=v::serialize(candidate);
-        for(const auto row:v::settings_detail::split(serialized,'\n')) {
-            if(row.starts_with("hotkey.") || row.starts_with("hotkey_count=") || row.starts_with("mouse.") ||
-               row.starts_with("mouse_count=") || row.starts_with("rule.") || row.starts_with("rule_count=")) continue;
-            combined+=row;combined+='\n';
-        }
-        for(const auto edit:{hotkey_text,mouse_text,rules_text}) {
-            const auto fragment=narrow(text(edit));
-            if(!fragment) {if(report)error(L"映射或规则包含无效 Unicode 字符。");return std::nullopt;}
-            combined+=*fragment;combined+='\n';
-        }
-        auto parsed=v::parse(combined);
-        if(!parsed.value) {if(report)error(widen(parsed.error));return std::nullopt;}
-        return parsed.value;
+        const auto raw_color=narrow(text(color_text));
+        const auto parsed_color=raw_color?ed::parse_color_hex(*raw_color):std::nullopt;
+        if(!parsed_color){if(report){selected=2;TabCtrl_SetCurSel(tab,selected);layout();SetFocus(color_text);error(L"颜色格式无效，请输入 #RRGGBB，例如 #0078D7。");}return std::nullopt;}
+        candidate.preview_color=*parsed_color;
+        return candidate;
     }
     void defaults(bool all) {
-        const auto baseline=v::default_settings();
-        if(all) {const auto schema=draft.schema;const auto generation=draft.generation;draft=baseline;draft.schema=schema;draft.generation=generation;load();return;}
+        const auto defaults=v::default_settings();
+        if(all) {const auto schema=draft.schema;const auto generation=draft.generation;draft=defaults;draft.schema=schema;draft.generation=generation;load();return;}
         // Preserve all other pages, including invalid draft text. A page reset
         // cannot silently discard another page's not-yet-saved edits.
         for(const auto& f:fields) if(f.page==selected) {
-            if(f.boolean) SendMessageW(f.control,BM_SETCHECK,baseline.*(f.boolean)?BST_CHECKED:BST_UNCHECKED,0);
-            if(f.number) SetWindowTextW(f.control,std::to_wstring(baseline.*(f.number)).c_str());
+            if(f.boolean) SendMessageW(f.control,BM_SETCHECK,defaults.*(f.boolean)?BST_CHECKED:BST_UNCHECKED,0);
+            if(f.number) SetWindowTextW(f.control,std::to_wstring(defaults.*(f.number)).c_str());
         }
         if(selected==2) for(std::size_t i=0;i<dock_actions.size();++i) {
             const auto count=SendMessageW(dock_actions[i],CB_GETCOUNT,0,0);
-            for(LRESULT n=0;n<count;++n) if(SendMessageW(dock_actions[i],CB_GETITEMDATA,static_cast<WPARAM>(n),0)==static_cast<LRESULT>(baseline.dock_actions[i])) SendMessageW(dock_actions[i],CB_SETCURSEL,static_cast<WPARAM>(n),0);
+            for(LRESULT n=0;n<count;++n) if(SendMessageW(dock_actions[i],CB_GETITEMDATA,static_cast<WPARAM>(n),0)==static_cast<LRESULT>(defaults.dock_actions[i])) SendMessageW(dock_actions[i],CB_SETCURSEL,static_cast<WPARAM>(n),0);
         }
-        if(selected==3) {SetWindowTextW(hotkey_text,lines_for(baseline,"hotkey.","hotkey_count=").c_str());SetWindowTextW(mouse_text,lines_for(baseline,"mouse.","mouse_count=").c_str());}
-        if(selected==4) SetWindowTextW(rules_text,lines_for(baseline,"rule.","rule_count=").c_str());
+        if(selected==2){draft.preview_color=defaults.preview_color;SetWindowTextW(color_text,widen(ed::color_hex(defaults.preview_color)).c_str());}
+        if(selected==3){draft.hotkeys=defaults.hotkeys;draft.mouse_bindings=defaults.mouse_bindings;refresh_lists();}
+        if(selected==4){draft.rules=defaults.rules;refresh_lists();}
     }
     void import_file() {
         const auto path=select_file(window,false);if(!path)return;
@@ -347,21 +421,8 @@ struct SettingsWindow::Impl {
         std::optional<v::Rule> observed;
         try{observed=current_application();}catch(...){error(L"无法重新核验前台应用，未添加任何规则。");return;}
         if(!observed||observed->exe.empty()){error(L"打开设置前的应用身份已失效或不符合权限规则，未添加规则。");return;}
-        auto candidate=gather();if(!candidate)return;
         observed->excluded=true;
-        if(SendMessageW(rule_class_filter,BM_GETCHECK,0,0)!=BST_CHECKED)observed->window_class.clear();
-        const auto same=[&](const v::Rule& item){
-            return v::settings_detail::ascii_fold(item.exe)==v::settings_detail::ascii_fold(observed->exe)&&
-                v::settings_detail::ascii_case_fold(item.window_class)==v::settings_detail::ascii_case_fold(observed->window_class);};
-        const auto existing=std::find_if(candidate->rules.begin(),candidate->rules.end(),same);
-        if(existing!=candidate->rules.end())existing->excluded=true;
-        else candidate->rules.push_back(*observed);
-        if(const auto failure=v::validate(*candidate);!failure.empty()){error(widen(failure));return;}
-        // Update only the rules editor. Other pages keep their in-progress
-        // unsaved text, and the normal save callback remains the sole commit.
-        SetWindowTextW(rules_text,lines_for(*candidate,"rule.","rule_count=").c_str());
-        SetFocus(rules_text);
-        MessageBoxW(window,L"已将重新核验的应用加入排除草稿。点击“保存并关闭”后生效；取消仍会保留原运行配置。",L"PaneBind",MB_OK|MB_ICONINFORMATION);
+        if(edit_settings_mapping(window,draft,2,std::nullopt,*observed))refresh_lists();
     }
     void reveal(Page& page,HWND child) {
         if(!child||!page.hwnd||page.index!=selected)return;
@@ -377,18 +438,6 @@ struct SettingsWindow::Impl {
     }
     static LRESULT CALLBACK control_proc(HWND child,UINT message,WPARAM w,LPARAM l,UINT_PTR id,DWORD_PTR data) {
         auto* page=reinterpret_cast<Page*>(data);
-        if(message==WM_GETDLGCODE&&page&&page->owner&&
-           (child==page->owner->hotkey_text||child==page->owner->mouse_text||child==page->owner->rules_text||child==page->owner->legend_text)) {
-            const auto code=DefSubclassProc(child,message,w,l);
-            // Multiline EDIT claims all keys. Its immediate parent is our
-            // scrolling page, not a dialog procedure, so its own TAB handling
-            // cannot navigate the root and ESC is otherwise retained by EDIT.
-            // Delegate only these two actual keys to the root IsDialogMessage
-            // path; keep ENTER/newline, selection and editing behavior intact.
-            if(w==VK_TAB||w==VK_ESCAPE)
-                return code&~static_cast<LRESULT>(DLGC_WANTALLKEYS|DLGC_WANTTAB|DLGC_WANTCHARS);
-            return code;
-        }
         if(message==WM_SETFOCUS&&page&&page->owner)page->owner->reveal(*page,child);
         if(message==WM_NCDESTROY)RemoveWindowSubclass(child,control_proc,id);
         return DefSubclassProc(child,message,w,l);
@@ -430,7 +479,11 @@ struct SettingsWindow::Impl {
         const int columns=std::clamp((width-margin)/px(150),1,4);
         const int rows=(static_cast<int>(footer.size())+columns-1)/columns;
         const int footer_height=px(rows*36+12);
-        MoveWindow(tab,margin,margin,std::max(px(150),width-margin*2),std::max(px(120),static_cast<int>(r.bottom)-footer_height-margin*2),TRUE);
+        MoveWindow(run_status,margin,px(14),px(150),px(26),TRUE);
+        MoveWindow(pause_button,px(170),px(8),px(126),px(34),TRUE);
+        MoveWindow(help_button,px(306),px(8),px(90),px(34),TRUE);
+        MoveWindow(exit_button,px(406),px(8),px(136),px(34),TRUE);
+        MoveWindow(tab,margin,px(52),std::max(px(150),width-margin*2),std::max(px(120),static_cast<int>(r.bottom)-footer_height-px(52)-margin),TRUE);
         RECT inner{};GetClientRect(tab,&inner);TabCtrl_AdjustRect(tab,FALSE,&inner);
         MapWindowPoints(tab,window,reinterpret_cast<POINT*>(&inner),2);
         for(auto& page:pages) {
@@ -454,6 +507,7 @@ struct SettingsWindow::Impl {
         SendMessageW(tab,WM_SETFONT,reinterpret_cast<WPARAM>(font),TRUE);
         for(auto& page:pages) for(const auto& c:page.controls) SendMessageW(c.hwnd,WM_SETFONT,reinterpret_cast<WPARAM>(font),TRUE);
         for(const auto button:footer)SendMessageW(button,WM_SETFONT,reinterpret_cast<WPARAM>(font),TRUE);
+        for(auto h:{run_status,pause_button,help_button,exit_button})SendMessageW(h,WM_SETFONT,reinterpret_cast<WPARAM>(font),TRUE);
         layout();
     }
     void close(){if(window)DestroyWindow(window);}
@@ -477,6 +531,7 @@ struct SettingsWindow::Impl {
             }
             page->scroll=next;page->owner->arrange_page(*page);return 0;
         }
+        if(message==WM_NOTIFY||message==WM_DRAWITEM)return SendMessageW(page->owner->window,message,w,l);
         if(message==WM_COMMAND) {
             // Keyboard navigation must make the newly focused control visible
             // even on a small/high-DPI work area. Text areas keep their own
@@ -501,11 +556,11 @@ struct SettingsWindow::Impl {
                     std::min<LONG>(self->px(360),monitor.rcWork.bottom-monitor.rcWork.top)};
             else limits->ptMinTrackSize={self->px(400),self->px(300)};
             return 0;}
-        case WM_NOTIFY:if(reinterpret_cast<NMHDR*>(l)->hwndFrom==self->tab && reinterpret_cast<NMHDR*>(l)->code==TCN_SELCHANGE){self->selected=TabCtrl_GetCurSel(self->tab);self->layout();return 0;}break;
+        case WM_NOTIFY:if(self->list_notification(reinterpret_cast<NMHDR*>(l)))return 0;if(reinterpret_cast<NMHDR*>(l)->hwndFrom==self->tab && reinterpret_cast<NMHDR*>(l)->code==TCN_SELCHANGE){self->selected=TabCtrl_GetCurSel(self->tab);self->layout();return 0;}break;
         case WM_COMMAND:
             switch(LOWORD(w)) {
             case IDOK:if(const auto candidate=self->gather()) {
-                if(!self->save || !self->save(*candidate)){self->error(L"保存或应用失败，原有效配置应保持不变。请检查快捷键冲突、目录权限或诊断记录；草稿仍保留。");return 0;}
+                if(!self->save || !self->save(*candidate)){const auto why=self->save_error?self->save_error():std::wstring{};self->error(why.empty()?L"保存或应用失败，原有效配置应保持不变。请检查快捷键冲突、目录权限或诊断记录；草稿仍保留。":why);return 0;}
                 self->draft=*candidate;self->close();
             }return 0;
             case IDCANCEL:self->close();return 0;
@@ -515,8 +570,17 @@ struct SettingsWindow::Impl {
             case id_export:self->export_file();return 0;
             case id_diagnostic:if(self->diagnostic)self->diagnostic();else self->error(L"诊断入口尚不可用，未导出文件。");return 0;
             case id_current_app_rule:self->add_current_rule();return 0;
+            case id_hotkey_add:case id_hotkey_edit:case id_hotkey_delete:
+            case id_mouse_add:case id_mouse_edit:case id_mouse_delete:
+            case id_rule_add:case id_rule_edit:case id_rule_delete:self->mapping_command(LOWORD(w));return 0;
+            case id_choose_color:self->choose_color();return 0;
+            case id_color:if(HIWORD(w)==EN_CHANGE)InvalidateRect(self->color_swatch,nullptr,TRUE);return 0;
+            case id_pause:if(self->toggle_pause)self->toggle_pause();return 0;
+            case id_help:if(self->help)self->help();return 0;
+            case id_exit:self->request_exit();return 0;
             default:break;
             }break;
+        case WM_DRAWITEM:{const auto* item=reinterpret_cast<DRAWITEMSTRUCT*>(l);if(item->hwndItem==self->color_swatch){const auto raw=narrow(text(self->color_text));const auto color=raw?ed::parse_color_hex(*raw):std::nullopt;const auto brush=CreateSolidBrush(color?static_cast<COLORREF>(*color):GetSysColor(COLOR_BTNFACE));FillRect(item->hDC,&item->rcItem,brush);DeleteObject(brush);FrameRect(item->hDC,&item->rcItem,GetSysColorBrush(COLOR_WINDOWTEXT));return TRUE;}break;}
         case WM_MOUSEWHEEL:return SendMessageW(self->pages[static_cast<std::size_t>(self->selected)].hwnd,message,w,l);
         case WM_SETTINGCHANGE:case WM_SYSCOLORCHANGE:case WM_THEMECHANGED:
             InvalidateRect(hwnd,nullptr,TRUE);for(auto& page:self->pages)InvalidateRect(page.hwnd,nullptr,TRUE);return 0;
@@ -527,9 +591,9 @@ struct SettingsWindow::Impl {
         return DefWindowProcW(hwnd,message,w,l);
     }
     void show(HWND owner,const v::Settings& settings,std::function<bool(const v::Settings&)> callback,std::function<void()> diagnosis,
-              std::function<std::optional<v::Rule>()> application) {
+              std::function<std::optional<v::Rule>()> application,std::function<void()> pause_callback,std::function<void()> help_callback,std::function<void()> exit_callback,bool healthy,std::function<std::wstring()> failure_callback) {
         if(window){ShowWindow(window,SW_RESTORE);SetForegroundWindow(window);return;}
-        draft=settings;save=std::move(callback);diagnostic=std::move(diagnosis);current_application=std::move(application);selected=0;
+        save_error=std::move(failure_callback);draft=settings;baseline=settings;runtime_enabled=settings.enabled;runtime_healthy=healthy;toggle_pause=std::move(pause_callback);help=std::move(help_callback);exit=std::move(exit_callback);save=std::move(callback);diagnostic=std::move(diagnosis);current_application=std::move(application);selected=0;
         WNDCLASSW wc{};wc.hInstance=GetModuleHandleW(nullptr);wc.lpfnWndProc=proc;wc.lpszClassName=main_class;wc.hCursor=LoadCursorW(nullptr,MAKEINTRESOURCEW(32512));wc.hbrBackground=reinterpret_cast<HBRUSH>(COLOR_BTNFACE+1);RegisterClassW(&wc);
         wc.lpfnWndProc=page_proc;wc.lpszClassName=page_class;wc.hbrBackground=reinterpret_cast<HBRUSH>(COLOR_WINDOW+1);RegisterClassW(&wc);
         const auto monitor=MonitorFromWindow(owner,MONITOR_DEFAULTTONEAREST);MONITORINFO info{sizeof(info)};GetMonitorInfoW(monitor,&info);
@@ -551,7 +615,8 @@ struct SettingsWindow::Impl {
 SettingsWindow::SettingsWindow():impl_(std::make_unique<Impl>()){}
 SettingsWindow::~SettingsWindow()=default;
 void SettingsWindow::show(HWND owner,const core::v1::Settings& settings,std::function<bool(const core::v1::Settings&)> save,std::function<void()> diagnostic,
-                          std::function<std::optional<core::v1::Rule>()> application){impl_->show(owner,settings,std::move(save),std::move(diagnostic),std::move(application));}
+                          std::function<std::optional<core::v1::Rule>()> application,std::function<void()> pause,std::function<void()> help,std::function<void()> exit,bool healthy,std::function<std::wstring()> failure){impl_->show(owner,settings,std::move(save),std::move(diagnostic),std::move(application),std::move(pause),std::move(help),std::move(exit),healthy,std::move(failure));}
+void SettingsWindow::sync_runtime(bool enabled,bool healthy){impl_->sync_runtime(enabled,healthy);}
 void SettingsWindow::close(){impl_->close();}
 HWND SettingsWindow::handle()const{return impl_->window;}
 bool SettingsWindow::translate(MSG& message){
@@ -562,24 +627,6 @@ bool SettingsWindow::translate(MSG& message){
         const int direction=(GetKeyState(VK_SHIFT)&0x8000)?-1:1;
         impl_->selected=(impl_->selected+static_cast<int>(impl_->pages.size())+direction)%static_cast<int>(impl_->pages.size());
         TabCtrl_SetCurSel(impl_->tab,impl_->selected);impl_->layout();SetFocus(impl_->tab);return true;
-    }
-    const auto focus=GetFocus();
-    const bool own_multiline=focus&&(focus==impl_->hotkey_text||focus==impl_->mouse_text||focus==impl_->rules_text||focus==impl_->legend_text)&&
-        message.hwnd==focus&&IsChild(impl_->window,focus)&&GetForegroundWindow()==impl_->window&&
-        GetWindowThreadProcessId(focus,nullptr)==GetCurrentThreadId()&&GetActiveWindow()==impl_->window&&
-        IsWindowEnabled(impl_->window)&&IsWindowVisible(focus)&&IsWindowEnabled(focus);
-    if(message.message==WM_KEYDOWN&&own_multiline&&!(GetKeyState(VK_CONTROL)&0x8000)&&!system_modifier){
-        // Navigate the root's actual tab order, not EDIT's immediate scrolling
-        // page. Do not rely solely on EDIT's WM_GETDLGCODE negotiation after
-        // multiline input, and never focus another application's window.
-        if(message.wParam==VK_TAB){
-            const auto next=GetNextDlgTabItem(impl_->window,focus,(GetKeyState(VK_SHIFT)&0x8000)!=0);
-            if(next&&next!=focus&&IsChild(impl_->window,next)&&IsWindowVisible(next)&&IsWindowEnabled(next)&&
-               GetWindowThreadProcessId(next,nullptr)==GetCurrentThreadId()){
-                SetFocus(next);return true;
-            }
-        }
-        if(message.wParam==VK_ESCAPE){impl_->close();return true;}
     }
     return IsDialogMessageW(impl_->window,&message)!=FALSE;
 }

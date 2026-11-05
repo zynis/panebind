@@ -17,7 +17,10 @@ Release/Medium integration and product usability gates.
 - The current round includes all P0–P5 milestones in that guide. Continue
   implementation, integration, testing and in-scope repairs through whole-version
   delivery; do not stop at an old Fix, module or internal milestone to request
-  approval again.
+  approval again. The product manager owns scope, priorities, interaction
+  specifications and the next round's task list. Engineers implement and report
+  against that explicit list, order and acceptance criteria; they do not choose
+  the next task or change product requirements independently.
 - The guide's section 2 explicitly supersedes historical narrow-round limits,
   the blanket exclusion of `WH_MOUSE_LL`, fixed-three-Explorer product scope,
   and Debug-before-all-Release gates for this new product path. Old experiments
