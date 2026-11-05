@@ -62,9 +62,32 @@ a793c8739a984c38bdc950c101db02aa的DA7/d8包已经在本任务I盘目录逐文�
 
 ### 候选取得与操作说明
 
-新c77便携包计划ID为a5dcf5ef3c8847649f5212f9e331e7be，guest计划Run为e549eb3ee30a414397d7b64dacd9429b；此段写入时尚未封包，最终实际路径/哈希/部署回执由下方“封包绑定”补充。旧e613（DA7）和8c（1a）ZIP原样保留。未批准外部EXE/ZIP分发渠道，不公开发布；仓库中的图片、说明与证据可直接复核。
+新c77便携包a5dc及guest e549已按实际来源封包，e549已在I盘专属目录逐文件部署核验，未启动。准确获取方式和哈希见下方“封包绑定”；旧e613（DA7）和8c（1a）ZIP原样保留。未批准外部EXE/ZIP分发渠道，不公开发布；仓库中的图片、说明与证据可直接复核。
 
 图形操作见[中文快速入门](../V1_QUICK_START.md)：只在获准guest中完整解压候选ZIP，无参启动panebind.exe；使用列表/表单和保存并关闭，不填写count、键码、掩码或颜色整数。顶部按钮立即暂停/恢复、帮助、退出；脏草稿退出默认返回设置。右上角×/取消只关闭设置。紧急暂停为Ctrl+Shift+F11。这些说明不预填T08/T09通过。
+
+
+### 封包绑定（实际生成并部署，现场NOT_RUN）
+
+| 项目 | 准确身份／位置 |
+| --- | --- |
+| 产品／驱动源码 | c77b2c85bcdced06afc5fcce4d7043b7fe83255a |
+| 说明文档打包提交 | 713bc83f432ba39dbaf30664ee9ccf9af035963b；后续仅补结果/包摘要，不重建EXE |
+| Release EXE | 6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F |
+| Release便携ZIP | [本机共享工作区候选](<D:/repository/panebind/uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/PaneBindV1-Release-a5dcf5ef3c8847649f5212f9e331e7be.zip>) |
+| 便携ZIP SHA-256 | DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF |
+| 便携manifest SHA-256 | AA87E05D148CD2BD2BC22FE9D75095D4F3D398554691163BCF41BFD70C46B439 |
+| guest Run | e549eb3ee30a414397d7b64dacd9429b |
+| guest ZIP SHA-256 | DF206DEFC2114A9122B7207A0AD3D0BBB6B505B1B14D964B566D35CD4BB387EA |
+| guest manifest SHA-256 | A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0 |
+| WSB SHA-256 | AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF |
+| 远端已核验位置 | I:\PaneBindMVP1Runs\e549eb3ee30a414397d7b64dacd9429b |
+| 远端同一便携ZIP副本 | 上述专属目录的input\PaneBindV1-portable-test.zip，哈希等于本机候选ZIP |
+| 部署回执 SHA-256 | 60E48A6CA9B9F974F89872C7889FD7EE3B51433EB2434E0B5F21414A7841B96A |
+
+e549仅做SCP/Deploy和逐文件核验，没有新的资源查询、guest、临时任务或输入。当前没有PaneBind live资源；所有已执行批次的产品退出及guest/task清理分别在原件记录，新e549清理为NOT_APPLICABLE_NOT_STARTED。输入只读，唯一可写映射为该Run的output；不映射其它项目或用户目录，不启用功能、不重启、不改宿主显示/账户/配置或CrossRec。已执行的原目录/原ZIP/manifest/WSB/收集与失败证据保留，新目录不覆盖旧批次。包内说明是打包提交的冻结快照，最新实际判定以本报告为准。
+
+原始完整包与回执继续只存本地/本任务I盘，不入Git；已入库的是必要原图、精简JSON摘录与校验索引。六页最近实测DA7图已直接嵌在本报告顶部；当前c77真实图为0/6，T10为0/15，明确是尚未交付项。
 
 ### 保留的缺陷与工具修复
 

@@ -4,18 +4,18 @@
   "settings_ui_revision_20261105_files": [
     {
       "path": "docs/V1_QUICK_START.md",
-      "bytes": 11519,
-      "sha256": "F30EF67E888A84F9A2746DEFDDC5EE235B752A780AF62BFE9784BAEDB218110C"
+      "bytes": 11473,
+      "sha256": "BF3CC086E6EF1791ACF6878F1BB05159B5FB882D1A20D2CF20EDF0CE27FDC580"
     },
     {
       "path": "docs/reports/V1_ACCEPTANCE.json",
-      "bytes": 2187733,
-      "sha256": "ACAA426E0301E2597B43A41AC468443782538C5E83AD1587E523ED2D6B98BA23"
+      "bytes": 2188337,
+      "sha256": "E1DC695C46D257C837F98060201B8438FDD58CC8B13502E69279AB61D9463ED3"
     },
     {
       "path": "docs/reports/V1_DELIVERY_REPORT.md",
-      "bytes": 435188,
-      "sha256": "9EE44263C1F41886FD4437468BF777F1D89102F5F98A5F417F31C53E373810AA"
+      "bytes": 437382,
+      "sha256": "C4E412D110DDCFCB2C55E171B4F4F7BED7BCF79DA5A34AA48FC18E199FBB4209"
     },
     {
       "path": "docs/reports/v1-ui-review/README.md",
@@ -404,8 +404,8 @@
     },
     {
       "path": "docs/reports/v1-ui-review/review.json",
-      "bytes": 49739,
-      "sha256": "EAC8D87BB9F25D9AD04DBBE4ADD113B169E13D14DD7D5FFC7EB0EF118AB876A4"
+      "bytes": 57525,
+      "sha256": "907F2488BB1F294189B21709AC40FBD4797808EFF91D348E739F9C80BE3ECD56"
     }
   ],
   "single_screen_200_feasibility_20261104_files": [

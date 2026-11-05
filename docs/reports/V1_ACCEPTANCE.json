@@ -121,12 +121,17 @@
       "historical_runtime_evidence_rebound": false,
       "new_feature_PASS_awarded": 0,
       "portable_package_id": "a5dcf5ef3c8847649f5212f9e331e7be",
-      "portable_zip_sha256": null,
+      "portable_zip_sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
       "guest_run_id": "e549eb3ee30a414397d7b64dacd9429b",
-      "guest_zip_sha256": null,
-      "deploy_status": "PLANNED_NOT_PACKAGED",
+      "guest_zip_sha256": "DF206DEFC2114A9122B7207A0AD3D0BBB6B505B1B14D964B566D35CD4BB387EA",
+      "deploy_status": "VERIFIED_NOT_STARTED",
       "last_field_product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
-      "last_field_evidence_path": "docs/reports/v1-ui-review/after/f282-validation.json"
+      "last_field_evidence_path": "docs/reports/v1-ui-review/after/f282-validation.json",
+      "guest_manifest_sha256": "A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0",
+      "guest_wsb_sha256": "AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF",
+      "packaging_head": "713bc83f432ba39dbaf30664ee9ccf9af035963b",
+      "remote_root": "I:\\PaneBindMVP1Runs\\e549eb3ee30a414397d7b64dacd9429b",
+      "deploy_receipt_path": "uat/v1-control/ui-editors-controller-20261105-e772105a/e549eb3ee30a414397d7b64dacd9429b/deploy-receipt.json"
     },
     "local_hc_safe_preflight_driver": {
       "driver_source_sha": "03e5ae7d7390ceeae1394b7ca682ca59a87476e0",

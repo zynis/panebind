@@ -524,6 +524,36 @@
       "path": "uat/v1-control/settings-ui-review-20261105/driver-d8a1-retained/retention-receipt.json",
       "bytes": 3869,
       "sha256": "1DA8E39DA7E5BC0FDE66C873E67DC8FD261E2C97515ED32B715ABD6F8BE1F66F"
+    },
+    {
+      "path": "uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/package-receipt.json",
+      "bytes": 3653,
+      "sha256": "21380E90D52B2C577B3BCC7E6ADC80EBCCAEDAB0FA93DBFC27CDB051BBE36AA6"
+    },
+    {
+      "path": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/package-receipt.json",
+      "bytes": 13538,
+      "sha256": "EE1FCFAEF1108A9CD06C1C4E2060156B686178FDE9AB323A46594A3AF9146348"
+    },
+    {
+      "path": "uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/PaneBindV1/manifest.json",
+      "bytes": 20613,
+      "sha256": "AA87E05D148CD2BD2BC22FE9D75095D4F3D398554691163BCF41BFD70C46B439"
+    },
+    {
+      "path": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/input/manifest.json",
+      "bytes": 44874,
+      "sha256": "A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0"
+    },
+    {
+      "path": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/PaneBindV1.wsb",
+      "bytes": 989,
+      "sha256": "AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/e549eb3ee30a414397d7b64dacd9429b/deploy-receipt.json",
+      "bytes": 2919,
+      "sha256": "60E48A6CA9B9F974F89872C7889FD7EE3B51433EB2434E0B5F21414A7841B96A"
     }
   ],
   "previous_candidates": [
@@ -841,37 +871,120 @@
     "portable": {
       "package_id": "a5dcf5ef3c8847649f5212f9e331e7be",
       "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "packaging_head": null,
-      "status": "PLANNED_NOT_GENERATED",
-      "zip": null,
-      "zip_sha256": null,
-      "manifest_sha256": null,
+      "packaging_head": "713bc83f432ba39dbaf30664ee9ccf9af035963b",
+      "status": "GENERATED_NOT_RUN",
+      "zip": "D:\\repository\\panebind\\uat\\v1-portable\\a5dcf5ef3c8847649f5212f9e331e7be\\PaneBindV1-Release-a5dcf5ef3c8847649f5212f9e331e7be.zip",
+      "zip_sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
+      "manifest_sha256": "AA87E05D148CD2BD2BC22FE9D75095D4F3D398554691163BCF41BFD70C46B439",
       "product_exe_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
       "standalone_entry_result": "NOT_RUN",
       "public_release": false,
-      "external_distribution_channel": "NOT_APPROVED"
+      "external_distribution_channel": "NOT_APPROVED",
+      "zip_bytes": 614076,
+      "manifest": "uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/PaneBindV1/manifest.json",
+      "package_root": "D:\\repository\\panebind\\uat\\v1-portable\\a5dcf5ef3c8847649f5212f9e331e7be",
+      "receipt": {
+        "path": "uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/package-receipt.json",
+        "bytes": 3653,
+        "sha256": "21380E90D52B2C577B3BCC7E6ADC80EBCCAEDAB0FA93DBFC27CDB051BBE36AA6"
+      }
     },
     "guest": {
       "run_id": "e549eb3ee30a414397d7b64dacd9429b",
       "suite": "SettingsEditorsOnly",
       "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
       "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-      "status": "PLANNED_NOT_GENERATED",
-      "zip": null,
-      "zip_sha256": null,
-      "manifest_sha256": null,
-      "wsb_sha256": null,
+      "status": "DEPLOYED_NOT_RUN",
+      "zip": "D:\\repository\\panebind\\uat\\v1-sandbox\\e549eb3ee30a414397d7b64dacd9429b\\e549eb3ee30a414397d7b64dacd9429b.zip",
+      "zip_sha256": "DF206DEFC2114A9122B7207A0AD3D0BBB6B505B1B14D964B566D35CD4BB387EA",
+      "manifest_sha256": "A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0",
+      "wsb_sha256": "AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF",
       "remote_root": "I:\\PaneBindMVP1Runs\\e549eb3ee30a414397d7b64dacd9429b",
-      "deployed": false,
+      "deployed": true,
       "guest_started": false,
       "field_status": "NOT_RUN",
       "normal_stop": "设置运行条：退出程序；有草稿默认返回设置。",
       "emergency_pause": "Ctrl+Shift+F11",
-      "product_cleanup": "NOT_APPLICABLE_NOT_STARTED"
+      "product_cleanup": "NOT_APPLICABLE_NOT_STARTED",
+      "packaging_head": "713bc83f432ba39dbaf30664ee9ccf9af035963b",
+      "zip_bytes": 7288887,
+      "manifest": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/input/manifest.json",
+      "wsb": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/PaneBindV1.wsb",
+      "receipt": {
+        "path": "uat/v1-sandbox/e549eb3ee30a414397d7b64dacd9429b/package-receipt.json",
+        "bytes": 13538,
+        "sha256": "EE1FCFAEF1108A9CD06C1C4E2060156B686178FDE9AB323A46594A3AF9146348"
+      },
+      "deployment_status": "DEPLOYED_HASH_VERIFIED_NOT_RUN",
+      "deploy_utc": "2026-11-05T13:09:45.7590152Z",
+      "deploy_receipt": {
+        "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/e549eb3ee30a414397d7b64dacd9429b/deploy-receipt.json",
+        "bytes": 2919,
+        "sha256": "60E48A6CA9B9F974F89872C7889FD7EE3B51433EB2434E0B5F21414A7841B96A"
+      },
+      "deployed_files": [
+        {
+          "path": "input\\manifest.json",
+          "size": 44874,
+          "sha256": "A8B70D1C374502DC906712378B16C6BA6929A081C1D1AAD3D353E96E11B583F0"
+        },
+        {
+          "path": "input\\panebind-v1-guest-fixture.exe",
+          "size": 5060608,
+          "sha256": "813C42FA98D962DD5FBDF62B78B4F104C5E9701624C5EB1FB7357F51BB330D53"
+        },
+        {
+          "path": "input\\panebind-v1-input.marker",
+          "size": 32,
+          "sha256": "C96FC2EA12FAF52DC2CC0080EA8B44CE6F719C688AC89008B6393A4348F1303D"
+        },
+        {
+          "path": "input\\panebind.exe",
+          "size": 1303040,
+          "sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F"
+        },
+        {
+          "path": "input\\PaneBindV1-portable-test.zip",
+          "size": 614076,
+          "sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF"
+        },
+        {
+          "path": "input\\v1-sandbox-guest.ps1",
+          "size": 112625,
+          "sha256": "0573E590F20B41D00F35F0084E4721AC5B885E00B2DC2651D330F42EB4D13803"
+        },
+        {
+          "path": "input\\Debug\\panebind-v1-guest-fixture.exe",
+          "size": 11938304,
+          "sha256": "5269F1A27757B08390580950FBFBC933295457063AB4500C4058B1F4AA4ECA18"
+        },
+        {
+          "path": "input\\Debug\\panebind.exe",
+          "size": 4477952,
+          "sha256": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46"
+        },
+        {
+          "path": "output\\panebind-v1-output.marker",
+          "size": 32,
+          "sha256": "C96FC2EA12FAF52DC2CC0080EA8B44CE6F719C688AC89008B6393A4348F1303D"
+        },
+        {
+          "path": "PaneBindV1.wsb",
+          "size": 989,
+          "sha256": "AE76E5DC2756099CDF9C4AF0A51E891CCA1D235125A9C615459566BDC2F755AF"
+        }
+      ],
+      "all_deployed_file_sizes_and_SHA256_match_local_originals": true,
+      "input_readonly_output_only_writable": true,
+      "own_task_created": false,
+      "synthetic_input_sent": false,
+      "package_receipt_is_earlier_deployed_false_snapshot": true,
+      "deployment_did_not_repeat_resource_probe": true,
+      "execution_statement_source": "Actual DeployONLY controller handoff plus deploy receipt; no Launch, task creation, or test input was requested."
     },
     "resume_order": [
-      "已部署a793为旧da7/d8，不用它验收新c77文字修复。",
-      "按正式生成回执核新c77便携包和e549，再在真实资源允许时执行本轮剩余定向验证。"
+      "Current c77/e549 has been deployed and hash verified only; no guest/task/input.",
+      "Await an explicit actual-resource availability notification; then use exact c77/e549 identities and existing bounded resource gate. Do not poll or substitute DA7 images."
     ],
     "superseded_runs_retained": [
       "e4f8612b2a624f92967d97272de58671 KNOWN_UI_WIRING_DEFECT_NOT_RUN",
@@ -935,6 +1048,44 @@
         "guest_started": false,
         "field_status": "NOT_RUN_RESOURCE_GATE_REJECTED_TWICE",
         "evidence": "after/a793-resource-gate.json"
+      }
+    ],
+    "packaging_stage_history": [
+      {
+        "stage": "PLANNED_NOT_GENERATED",
+        "document_git_snapshot": "713bc83f432ba39dbaf30664ee9ccf9af035963b:docs/reports/v1-ui-review/review.json",
+        "portable": {
+          "package_id": "a5dcf5ef3c8847649f5212f9e331e7be",
+          "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+          "packaging_head": null,
+          "status": "PLANNED_NOT_GENERATED",
+          "zip": null,
+          "zip_sha256": null,
+          "manifest_sha256": null,
+          "product_exe_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+          "standalone_entry_result": "NOT_RUN",
+          "public_release": false,
+          "external_distribution_channel": "NOT_APPROVED"
+        },
+        "guest": {
+          "run_id": "e549eb3ee30a414397d7b64dacd9429b",
+          "suite": "SettingsEditorsOnly",
+          "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+          "driver_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+          "status": "PLANNED_NOT_GENERATED",
+          "zip": null,
+          "zip_sha256": null,
+          "manifest_sha256": null,
+          "wsb_sha256": null,
+          "remote_root": "I:\\PaneBindMVP1Runs\\e549eb3ee30a414397d7b64dacd9429b",
+          "deployed": false,
+          "guest_started": false,
+          "field_status": "NOT_RUN",
+          "normal_stop": "设置运行条：退出程序；有草稿默认返回设置。",
+          "emergency_pause": "Ctrl+Shift+F11",
+          "product_cleanup": "NOT_APPLICABLE_NOT_STARTED"
+        },
+        "later_generated_receipts_do_not_rewrite_this_planned_snapshot": true
       }
     ]
   },
@@ -1071,10 +1222,21 @@
       },
       "current_file": {
         "path": "uat/v1-control/ui-review-controller-20261105-6d281c4a/deployment-checkpoint.json",
-        "bytes": 7913,
-        "sha256": "597B3DCA21E3AC618FC73BE5A62B26E6409E31C0A6AAF6225E28C812B9E81A71"
+        "bytes": 8990,
+        "sha256": "A24F709E5E74F9050F62D03E50FCBBF53615E89AB65650DFC0C758EAC3C84362"
       },
-      "reason": "This is a mutable continuation checkpoint now recording the later A793 resource gate. The old raw_pins entry remains its original historical identity; it is not represented as the current-file digest."
+      "reason": "This mutable continuation checkpoint now records C77/e549 DeployONLY. The original raw_pins digest and the earlier A793 observation digest are retained as historical identities; neither is presented as the digest of the current file.",
+      "previous_observations": [
+        {
+          "stage": "A793_USER_REQUESTED_ONE_RECHECK_STILL_RESOURCE_BLOCKED_NO_LAUNCH",
+          "file_pin_at_observation": {
+            "path": "uat/v1-control/ui-review-controller-20261105-6d281c4a/deployment-checkpoint.json",
+            "bytes": 7913,
+            "sha256": "597B3DCA21E3AC618FC73BE5A62B26E6409E31C0A6AAF6225E28C812B9E81A71"
+          },
+          "was_current_before_C77_deployment_checkpoint_update": true
+        }
+      ]
     }
   ]
 }
