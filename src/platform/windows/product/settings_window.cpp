@@ -123,6 +123,8 @@ struct SettingsWindow::Impl {
         SetWindowSubclass(hwnd,control_proc,1,reinterpret_cast<DWORD_PTR>(&page));
         return hwnd;
     }
+    // An integer control ID must never bind silently to the stretch flag.
+    HWND add(Page&,const wchar_t*,const wchar_t*,DWORD,int,int,int,int,int)=delete;
     void note(Page& page,const wchar_t* label,int height=52) {
         add(page,L"STATIC",label,SS_LEFT,12,page.next_y,0,height,true);
         page.controls.back().flow_text=true;
@@ -160,9 +162,9 @@ struct SettingsWindow::Impl {
         page.next_y+=height+8;return h;
     }
     void list_buttons(Page& page,int add_id,int edit_id,int delete_id,std::size_t offset) {
-        add(page,L"BUTTON",L"添加",WS_TABSTOP|BS_PUSHBUTTON,12,page.next_y,120,32,add_id);
-        row_actions[offset]=add(page,L"BUTTON",L"编辑",WS_TABSTOP|BS_PUSHBUTTON,144,page.next_y,120,32,edit_id);
-        row_actions[offset+1]=add(page,L"BUTTON",L"删除",WS_TABSTOP|BS_PUSHBUTTON,276,page.next_y,120,32,delete_id);
+        add(page,L"BUTTON",L"添加",WS_TABSTOP|BS_PUSHBUTTON,12,page.next_y,120,32,false,add_id);
+        row_actions[offset]=add(page,L"BUTTON",L"编辑",WS_TABSTOP|BS_PUSHBUTTON,144,page.next_y,120,32,false,edit_id);
+        row_actions[offset+1]=add(page,L"BUTTON",L"删除",WS_TABSTOP|BS_PUSHBUTTON,276,page.next_y,120,32,false,delete_id);
         page.next_y+=48;
     }
     static void row(HWND list,int n,std::initializer_list<std::wstring> cells) {
@@ -268,9 +270,9 @@ struct SettingsWindow::Impl {
         number(dock,L"预览不透明度（1–255）",&v::Settings::preview_alpha);
         note(dock,L"预览颜色：使用 #RRGGBB 或系统颜色选择器；保存后用于下一次预览。",32);
         color_swatch=add(dock,L"STATIC",L"",SS_OWNERDRAW,12,dock.next_y,48,30);
-        color_text=add(dock,L"EDIT",L"",WS_TABSTOP|ES_AUTOHSCROLL,72,dock.next_y,132,30,id_color);
+        color_text=add(dock,L"EDIT",L"",WS_TABSTOP|ES_AUTOHSCROLL,72,dock.next_y,132,30,false,id_color);
         SendMessageW(color_text,EM_SETLIMITTEXT,7,0);
-        add(dock,L"BUTTON",L"选择颜色…",WS_TABSTOP|BS_PUSHBUTTON,218,dock.next_y,150,30,id_choose_color);dock.next_y+=44;
+        add(dock,L"BUTTON",L"选择颜色…",WS_TABSTOP|BS_PUSHBUTTON,218,dock.next_y,150,30,false,id_choose_color);dock.next_y+=44;
         number(dock,L"显示器接缝停留（毫秒，100–3000）",&v::Settings::seam_dwell_ms);
         note(dock,L"按方向设置停靠动作；“最大化”与“上半屏”不同。移出预览区撤销，正常抬键才提交。",44);
         constexpr std::array<const wchar_t*,8> direction{L"左边",L"右边",L"顶部",L"底部",L"左上角",L"右上角",L"左下角",L"右下角"};
@@ -302,10 +304,10 @@ struct SettingsWindow::Impl {
         note(rule_page,L"按程序名或完整路径匹配，可选精确窗口类名。规则只改草稿，保存后生效；不匹配窗口标题。",52);
         rules=list(rule_page,L"应用规则",id_rules,{L"程序",L"窗口类（可选）",L"规则"},250);
         rules_empty=note_control(rule_page,L"尚无应用规则。可以添加程序，或添加打开设置前已核验的应用。",40);
-        add(rule_page,L"BUTTON",L"添加程序…",WS_TABSTOP|BS_PUSHBUTTON,12,rule_page.next_y,138,32,id_rule_add);
-        add(rule_page,L"BUTTON",L"添加当前应用",WS_TABSTOP|BS_PUSHBUTTON,160,rule_page.next_y,150,32,id_current_app_rule);
-        row_actions[4]=add(rule_page,L"BUTTON",L"编辑",WS_TABSTOP|BS_PUSHBUTTON,320,rule_page.next_y,90,32,id_rule_edit);
-        row_actions[5]=add(rule_page,L"BUTTON",L"删除",WS_TABSTOP|BS_PUSHBUTTON,420,rule_page.next_y,90,32,id_rule_delete);rule_page.next_y+=46;
+        add(rule_page,L"BUTTON",L"添加程序…",WS_TABSTOP|BS_PUSHBUTTON,12,rule_page.next_y,138,32,false,id_rule_add);
+        add(rule_page,L"BUTTON",L"添加当前应用",WS_TABSTOP|BS_PUSHBUTTON,160,rule_page.next_y,150,32,false,id_current_app_rule);
+        row_actions[4]=add(rule_page,L"BUTTON",L"编辑",WS_TABSTOP|BS_PUSHBUTTON,320,rule_page.next_y,90,32,false,id_rule_edit);
+        row_actions[5]=add(rule_page,L"BUTTON",L"删除",WS_TABSTOP|BS_PUSHBUTTON,420,rule_page.next_y,90,32,false,id_rule_delete);rule_page.next_y+=46;
         note(rule_page,L"“添加当前应用”仅使用打开设置前已核验的身份。新规则默认排除；自定义功能仍受全局开关及“窗口命令”许可控制。",64);
         auto& visual=pages[5];
         checkbox(visual,L"显示实际吸附／联动关系提示",&v::Settings::feedback);

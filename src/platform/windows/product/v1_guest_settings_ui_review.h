@@ -28,7 +28,7 @@ void review_png(const fs::path& target,HBITMAP bitmap,UINT width,UINT height){
     checked(frame->Commit());checked(encoder->Commit());
 }
 void review_capture_settings(State& s,const SettingsGui& gui,unsigned page,std::string_view part){
-    if(s.suite!="SettingsUiReviewOnly"||page>=6||part.empty()||part.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-")!=part.npos||
+    if((s.suite!="SettingsUiReviewOnly"&&s.suite!="SettingsEditorsOnly")||page>=6||part.empty()||part.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-")!=part.npos||
        !gui_identity(s,gui,gui.root)||GetForegroundWindow()!=gui.root||
        gui_read(s,gui,gui.tab,TCM_GETCURSEL)!=page||!gui_identity(s,gui,gui_focus(gui)))
         throw std::runtime_error("review_capture_exact_foreground_page_required");
