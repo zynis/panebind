@@ -31,7 +31,7 @@
       "T01-T10_and_actual_images"
     ],
     "field_status": "PARTIAL_PRIOR_DA7_CURRENT_C77_NOT_RUN",
-    "reason": "DA7 T02–T06限定实证保留；c77未重建。本轮352驱动按T01→T02→T08→T09→T10→T07构建并通过离线/宿主保护；现场尚未执行。历史20:49资源读数不代表当前。",
+    "reason": "DA7 T02–T06限定实证保留；c77未重建。352驱动已按固定顺序完成构建/离线/宿主保护，新e60f逐文件部署核验通过、未启动。等待本轮时段/资源通知后单次门检；旧20:49快照不当当前值。",
     "review_path": "docs/reports/v1-ui-review/README.md",
     "T01_T10": {
       "T01": "FAIL_VISUAL_NARROW_NOTES",
@@ -79,7 +79,11 @@
       "T10",
       "T07"
     ],
-    "followup_preparation_evidence_path": "docs/reports/v1-ui-review/after/visible-delivery-preparation-3528059.json"
+    "followup_preparation_evidence_path": "docs/reports/v1-ui-review/after/visible-delivery-preparation-3528059.json",
+    "followup_guest_run_id": "e60f564f222441d6b52ab8b6cfb0fb25",
+    "followup_package_evidence_path": "docs/reports/v1-ui-review/after/visible-delivery-package-e60f.json",
+    "followup_guest_deployed": true,
+    "followup_guest_started": false
   },
   "source_identity": {
     "previous_settings_ui_candidate_1f94_20261105": {

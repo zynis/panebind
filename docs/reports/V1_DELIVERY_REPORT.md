@@ -22,6 +22,24 @@ T10现要求 **16帧**：五段各操作前/中/后，另有停靠真实提交�
 
 **现场启动条件：** 等待本轮合法时段／资源可用通知后，只做一次启动核验：物理空闲6GiB、CIM `FreeVirtualMemory` 5GiB、Sandbox无人占用；guest固定4096MiB。不轮询、不关闭其它项目。旧20:49读数仅是历史，不声称本轮仍资源不足。原e549保持已部署未启动，不是352新驱动已部署的证明。新包绑定、实际部署和本轮现场结果在取得后追加。
 
+### 新驱动包已生成并部署（未启动，不是现场通过）
+
+| 身份／位置 | 本轮实际值 |
+| --- | --- |
+| 产品源／Release EXE | `c77b2c85bcdced06afc5fcce4d7043b7fe83255a`／`6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F` |
+| 驱动源／Release EXE | `3528059b33963afd1488f1c70445f770e9858dae`／`836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7` |
+| 打包提交 | `6c0fc092c17fbb8f8b89c929b122f04bf53e1f04`；仅文档后继，不重建产品或改绑驱动 |
+| 新 guest Run | `e60f564f222441d6b52ab8b6cfb0fb25` |
+| 新 guest ZIP SHA-256 | `D4DD9DD106B5500FC785DD0934E94D106755BDBDC9B9239F601BD9A5629FFF24` |
+| manifest／WSB | [完整哈希与逐文件部署回执](v1-ui-review/after/visible-delivery-package-e60f.json) |
+| 本地包目录 | `D:\repository\panebind\uat\v1-sandbox\e60f564f222441d6b52ab8b6cfb0fb25` |
+| 已核远端目录 | `I:\PaneBindMVP1Runs\e60f564f222441d6b52ab8b6cfb0fb25` |
+| 同一普通便携包 | [a5dc原ZIP](<D:/repository/panebind/uat/v1-portable/a5dcf5ef3c8847649f5212f9e331e7be/PaneBindV1-Release-a5dcf5ef3c8847649f5212f9e331e7be.zip>)；原`DD677463…`哈希不变，不重封 |
+
+部署于`2026-11-05T15:05:16.1756565Z`完成：10份文件、原ZIP条目及两映射一致，输入只读、只有本Run输出可写。该步骤不查内存或占用、不创建临时任务、不启动guest、不发送现场输入；原e549及旧失败不改。本轮尚缺新的合法时段／资源通知，**未取得当前资源读数**，不是复用历史数值宣布资源失败。通知到达后只核一次原6GiB／5GiB门，再依固定顺序执行；无需用户搬包或再建环境。
+
+因此当前c77六页图0/6、演示0/16，T01/T02/T08/T09/T10/T07现场均NOT_RUN；T03–T06未重跑、DA7历史保留。没有用构建、包生成或部署成功代替本轮可见交付。
+
 原46/60、22/40、5/12不因整改或截图增加；V1 PARTIAL、真人UAT PENDING、REA NOT_STARTED。100%/200%、多屏/混合DPI、真实应用/托盘、会话恢复、Shake、NF02、Full/900秒继续按产品经理顺序暂缓。本节之后为截至2f5f836的历史实测／准备记录，保留原失败、原身份与当时下一动作，不作为本轮当前资源状态。
 
 
