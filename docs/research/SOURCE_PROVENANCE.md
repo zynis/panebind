@@ -3909,3 +3909,28 @@ After sender exit, another external foreground or Pause must not be accepted
 as the required independent retirement; the original FocusLost/recovery
 observations remain valid only within their original scope. No exact
 30-second duration or new-actor recovery is added to the guide's I08 contract.
+
+### 2026-11-05 — native structured settings editor and color selection
+
+Reviewed Microsoft official Win32 documentation (documentation reference,
+not an external source-code reuse):
+
+- [Color Dialog Box](https://learn.microsoft.com/en-us/windows/win32/dlgbox/color-dialog-box):
+  `CHOOSECOLOR` / `ChooseColor` confirmation and cancellation, persistent
+  caller-owned custom palette, and the native `0x00bbggrr` color representation.
+  PaneBind keeps the existing schema COLORREF value and converts explicitly
+  to/from the UI's `#RRGGBB`; cancelling does not publish `rgbResult` to the draft.
+- [About List-View Controls](https://learn.microsoft.com/en-us/windows/win32/controls/list-view-controls-overview):
+  report/detail columns, item/subitem text, selection state and native
+  notification routing. PaneBind's small keyboard, mouse and application-rule
+  lists use ordinary native controls, not an owner-data framework; selection
+  enables row commands and double-click enters the same modal editor.
+
+These references apply only to the U1–U3 settings UI adapter. No Microsoft
+sample, external implementation, GPL implementation, or other source code
+was copied, translated or adapted. Existing runtime actions, rule matching,
+validation, serialization and authority remain the product's own paths.
+The new editor's offline tests do not establish real native UI interaction,
+preview color appearance, 150% layout, or successful hotkey registration;
+those require the matching candidate's targeted guest evidence. No additional
+external-code attribution is required by this documentation-only review.

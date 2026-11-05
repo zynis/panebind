@@ -91,9 +91,10 @@ function Assert-V1PortableDependencies([string[]]$Dependencies) {
     }
 }
 function Assert-V1FixtureDependencies([string[]]$Dependencies) {
-    # The guest fixture additionally uses the system crypto/property APIs.
+    # The guest fixture additionally uses system crypto/property APIs and WIC
+    # for original-size actual-screen PNG evidence; the product allowlist is unchanged.
     # This does not widen the portable product's dependency contract.
-    $base=@($Dependencies|Where-Object{$_ -cnotin @('bcrypt.dll','propsys.dll')})
+    $base=@($Dependencies|Where-Object{$_ -cnotin @('bcrypt.dll','propsys.dll','windowscodecs.dll')})
     Assert-V1PortableDependencies $base
 }
 function Get-V1SandboxBinaryDependencies([string]$BuildDirectory,[string]$Executable,
