@@ -57,8 +57,9 @@ void owned_settings_ui_narrow_case(State& s){
     const int width=MulDiv(570,static_cast<int>(dpi),96),height=MulDiv(560,static_cast<int>(dpi),96);
     if(!gui_identity(s,gui,gui.root)||GetForegroundWindow()!=gui.root||!SetWindowPos(gui.root,nullptr,0,0,width,height,SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE))
         throw std::runtime_error("settings_review_narrow_exact_test_UI_resize_failed");
-    RECT actual{};s.log.check("T01_actual_narrow_settings_native_rectangle",wait([&]{return gui_identity(s,gui,gui.root)&&GetWindowRect(gui.root,&actual)&&
-        actual.right-actual.left==width&&actual.bottom-actual.top==height;}),
+    RECT actual{};const bool narrow=wait([&]{return gui_identity(s,gui,gui.root)&&GetWindowRect(gui.root,&actual)&&
+        actual.right-actual.left==width&&actual.bottom-actual.top==height;});
+    s.log.check("T01_actual_narrow_settings_native_rectangle",narrow,
         "\"actual_rect\":"+rect({actual.left,actual.top,actual.right,actual.bottom})+",\"dpi\":"+std::to_string(dpi)+
         ",\"test_setup_SetWindowPos_only_exact_product_settings\":true,\"WM_SIZE_not_faked\":true,\"user_resize_gesture_PASS_inferred\":false");
     for(unsigned page=0;page<6;++page){
@@ -272,8 +273,11 @@ void owned_settings_ui_hotkey_case(State& s){
         monitor.rcWork.top+(monitor.rcWork.bottom-monitor.rcWork.top-initial->height())/2,0,0};
     const Rect expected{centered.l,centered.t,centered.l+initial->width(),centered.t+initial->height()};
     const auto mark=read_product(s).size();review_chord(s,'J');
-    s.log.check("T02_actual_CtrlAltJ_centers_exact_fixture",wait([&]{return visible(s.frames[0].hwnd)==expected;})&&!record(s,mark,"placement").empty(),
-        "\"expected\":"+rect(expected)+",\"actual\":"+(visible(s.frames[0].hwnd)?rect(*visible(s.frames[0].hwnd)):"null"));
+    std::string receipt;const bool centered_now=wait([&]{receipt=chain_any_placement(s,mark,expected);
+        return own(s,s.frames[0].hwnd)&&visible(s.frames[0].hwnd)==expected&&!receipt.empty();});
+    const auto after=visible(s.frames[0].hwnd);
+    s.log.check("T02_actual_CtrlAltJ_centers_exact_fixture",centered_now&&own(s,s.frames[0].hwnd)&&after==expected,
+        "\"expected\":"+rect(expected)+",\"actual\":"+(after?rect(*after):"null")+",\"actual_sampled_after_wait\":true,\"exact_native_postverify_receipt\":"+quote(receipt));
     const Rect offset=translated(expected,-75,-45);if(!own(s,s.frames[0].hwnd)||!fixture_rect(s.frames[0].hwnd,offset))throw std::runtime_error("settings_review_T02_exact_fixture_setup_failed");
     const auto old_mark=read_product(s).size();review_chord(s,'C');
     const auto status=settings_guest_single_instance(s,s.product_pid,process_birth(s.process),"T02_old_key_after_actual_input");
@@ -329,7 +333,10 @@ void owned_settings_ui_conflicts_case(State& s){
     bool released{};try{
         editor=review_open_editor(s,gui,1201);review_new_key(s,gui,editor,candidate,3,v1::Action::MoveRight);review_editor_finish(s,gui,editor,true);
         settings_guest_activate(s,gui,GetDlgItem(gui.root,IDOK));
-        settings_guest_acknowledge(s,gui,L"保存或应用失败",L"PaneBind：设置未更改");
+        const v1::Hotkey occupied{3,candidate,v1::Action::MoveRight};
+        const auto expected_conflict=L"快捷键注册冲突："+v1::settings_editor::hotkey_label(occupied)+L"（"+
+            std::wstring(v1::settings_editor::action_label(occupied.action))+L"）。原有效映射保留，配置未提交。";
+        settings_guest_acknowledge(s,gui,expected_conflict,L"PaneBind：设置未更改");
         s.log.check("T03_real_RegisterHotKey_conflict_preserves_previous_file",chain_settings(s)==before&&read(s.product.parent_path()/L"settings.ini")==bytes&&IsWindow(gui.root),
             "\"fixture_registered_actual_chord\":\"Ctrl+Alt+F"+std::to_string(candidate-VK_F1+1)+"\",\"real_OS_registration_conflict\":true");
         gui_press(s,gui,VK_ESCAPE);

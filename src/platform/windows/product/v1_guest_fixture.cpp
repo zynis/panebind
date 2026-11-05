@@ -31,6 +31,7 @@
 #include "platform/windows/product/v1_guest_deadline.h"
 #include "platform/windows/product/v1_guest_foreground_observer.h"
 #include "core/v1/caption_hit_guard.h"
+#include "core/v1/settings_editor.h"
 #include "platform/windows/explorer/explorer_shell_inventory.h"
 #include <algorithm>
 #include <array>

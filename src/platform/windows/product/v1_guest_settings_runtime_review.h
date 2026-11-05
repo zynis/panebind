@@ -17,9 +17,10 @@ std::string review_runtime_current_status(State& s){
     const auto mark=read_product(s).size();
     if(!launch(s,L"--status",true))throw std::runtime_error("settings_review_public_status_command_failed");
     std::string status;
-    s.log.check("settings_review_runtime_fresh_status",wait([&]{status=record(s,mark,"status");
+    const bool received=wait([&]{status=record(s,mark,"status");
         return number(status,"\"process_id\":")==s.product_pid&&
-            status.find("\"source_sha\":"+quote(s.product_source))!=status.npos;}),
+            status.find("\"source_sha\":"+quote(s.product_source))!=status.npos;});
+    s.log.check("settings_review_runtime_fresh_status",received,
         "\"actual_product_status\":"+quote(status));
     return status;
 }
@@ -45,6 +46,45 @@ void review_runtime_button(State& s,const SettingsGui& gui){
     const auto button=GetDlgItem(gui.root,1240);review_tab_to(s,gui,button);
     gui_press(s,gui,VK_SPACE);
 }
+void review_runtime_help_button(State& s,const SettingsGui& gui,const v1::Settings& active){
+    const auto button=GetDlgItem(gui.root,1241);review_tab_to(s,gui,button);
+    settings_guest_activate(s,gui,button);
+    const auto modal=settings_guest_modal(s,gui,L"PaneBind 帮助 — 当前有效映射");
+    HWND edit{};unsigned edits{};
+    for(HWND child=GetWindow(modal.root,GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT)){
+        DWORD pid{};const auto style=GetWindowLongPtrW(child,GWL_STYLE);
+        if(gui_class(child)==L"Edit"&&GetWindowThreadProcessId(child,&pid)==gui.tid&&pid==s.product_pid&&
+           IsChild(modal.root,child)&&IsWindowVisible(child)&&IsWindowEnabled(child)&&
+           (style&ES_MULTILINE)&&(style&ES_READONLY)){edit=child;++edits;}
+    }
+    if(edits!=1||!settings_guest_modal_identity(s,gui,modal))throw std::runtime_error("settings_review_exact_help_readonly_EDIT_missing");
+    DWORD_PTR length{},copied{};
+    if(!SendMessageTimeoutW(edit,WM_GETTEXTLENGTH,0,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&length)||length>65536)
+        throw std::runtime_error("settings_review_help_text_length_unknown_or_over_bound");
+    std::wstring content(static_cast<std::size_t>(length)+1,L'\0');
+    if(!settings_guest_modal_identity(s,gui,modal)||GetForegroundWindow()!=modal.root||
+       !SendMessageTimeoutW(edit,WM_GETTEXT,content.size(),reinterpret_cast<LPARAM>(content.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&copied)||copied>length)
+        throw std::runtime_error("settings_review_help_actual_text_read_failed");
+    content.resize(copied);
+    constexpr std::array<std::wstring_view,8> usage_tokens{L"Ctrl 起手联动",L"Shift 起手临时绕过增强",L"双击拉伸",L"停靠预览",
+        L"正常松键提交",L"Ctrl+Shift+F11 紧急暂停",L"退出程序",L"不会退出 PaneBind"};
+    const bool usage=std::all_of(usage_tokens.begin(),usage_tokens.end(),[&](const auto token){return content.find(token)!=content.npos;});
+    const auto current_J=std::find_if(active.hotkeys.begin(),active.hotkeys.end(),[](const auto& h){return h.modifiers==3&&h.key=='J'&&h.action==v1::Action::Center;});
+    const bool mappings=std::all_of(active.hotkeys.begin(),active.hotkeys.end(),[&](const auto& h){
+        return content.find(v1::settings_editor::hotkey_label(h)+L" → "+std::wstring(v1::settings_editor::action_label(h.action))+L"\r\n")!=content.npos;});
+    s.log.check("T08_actual_runtime_Help_button_readonly_usage_and_effective_J",usage&&mappings&&current_J!=active.hotkeys.end(),
+        "\"entry_control_id\":1241,\"exact_standard_help\":"+std::to_string(reinterpret_cast<std::uintptr_t>(modal.root))+
+        ",\"readonly_EDIT\":"+std::to_string(reinterpret_cast<std::uintptr_t>(edit))+",\"PID\":"+std::to_string(s.product_pid)+
+        ",\"TID\":"+std::to_string(gui.tid)+",\"actual_content\":"+quote(utf8(content))+",\"effective_hotkeys_checked\":"+std::to_string(active.hotkeys.size()));
+    settings_guest_modal_press(s,gui,modal,VK_RETURN);
+    const bool returned=wait([&]{const auto focus=gui_focus(gui);return !IsWindow(modal.root)&&GetForegroundWindow()==gui.root&&
+        gui_identity(s,gui,gui.tab)&&gui_identity(s,gui,focus)&&IsWindowVisible(focus)&&IsWindowEnabled(focus);});
+    const auto focus=gui_focus(gui);
+    s.log.check("T08_actual_Help_close_returns_usable_parent_focus",returned,
+        "\"actual_Enter_pair\":true,\"focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(focus))+
+        ",\"focus_id\":"+std::to_string(GetDlgCtrlID(focus))+",\"focus_exact\":"+(gui_identity(s,gui,focus)?"true":"false")+
+        ",\"focus_visible\":"+(IsWindowVisible(focus)?"true":"false")+",\"focus_enabled\":"+(IsWindowEnabled(focus)?"true":"false"));
+}
 void owned_settings_runtime_bar_review(State& s){
     settings_guest_scope(s);
     const auto original=settings_guest_configuration(s);
@@ -54,6 +94,7 @@ void owned_settings_runtime_bar_review(State& s){
     if(changed>=original.release_dip)throw std::runtime_error("settings_review_runtime_independent_draft_parameter_invalid");
     auto gui=gui_open(s);gui_page_select(s,gui,1);
     gui_edit_number(s,gui,gui_number(s,gui,L"吸引距离"),static_cast<unsigned>(changed));
+    review_runtime_help_button(s,gui,original);
     for(const bool enabled:{false,true}){
         review_runtime_button(s,gui);
         s.log.check("settings_review_runtime_immediate_state_persisted_without_other_draft",wait([&]{
