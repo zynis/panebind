@@ -33,7 +33,7 @@
 | T09 | 新ZIP普通入口/单实例/正常退出 | NOT_RUN：等待合法Sandbox时段 |
 | T10 | 五段真实动作及原尺寸帧 | NOT_RUN：等待合法Sandbox时段 |
 
-两个窄suite均保留exact guest、只读输入、独立输出、身份及前台守卫。`SettingsUiReviewOnly`用于实际页面捕获；`SettingsEditorsOnly`为Release专用，T09普通ZIP检查后再起同一二进制做T10。返回/退出码不替代每项断言与人工图片复核；出现产品/驱动缺陷仍按影响修复，不增无关Full或900秒。
+两个窄suite均保留exact guest、只读输入、独立输出、身份及前台守卫。`SettingsUiReviewOnly`用于实际页面捕获；`SettingsEditorsOnly`为Release专用，先采六页正常尺寸图，再做窄窗与T02–T09，T09普通ZIP检查后再起同一二进制做T10。产品固定1a，驱动a65单独构建，不为工具变化重建产品。返回/退出码不替代每项断言与人工图片复核；出现产品/驱动缺陷仍按影响修复，不增无关Full或900秒。
 
 ## 五段动作帧
 

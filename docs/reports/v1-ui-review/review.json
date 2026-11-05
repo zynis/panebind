@@ -107,10 +107,10 @@
       "product_path": "out/v1-settings-ui-20261105/src/platform/windows/Debug/panebind.exe",
       "product_bytes": 4470784,
       "product_sha256": "C748C6C4F985FB354FB5DA53892469FAAB9F1CEFB5CF2C8548ECABC739E29F85",
-      "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+      "driver_source_sha": "a65b3bfce57146cb75d4eba6e2bc90567a348f27",
       "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
       "driver_bytes": 11820032,
-      "driver_sha256": "97CC1A728247D451818B74768A611A19940AFD0167B4900D9A015F5FF4D70D9E",
+      "driver_sha256": "B00FF0EAD4D7C3F5B0831FE0EA25C1EE07705B9452C53D9C58E4032EB27BFB81",
       "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
       "product_build": "PASS",
       "driver_build": "PASS",
@@ -124,7 +124,7 @@
       },
       "driver_identity": {
         "product": "PaneBind V1 guest fixture",
-        "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+        "source_commit": "a65b3bfce57146cb75d4eba6e2bc90567a348f27",
         "host_synthetic_input": "forbidden",
         "requires_medium_guest": true,
         "guest_contract": "panebind-v1-guest-contract/2",
@@ -136,10 +136,10 @@
       "product_path": "out/v1-settings-ui-20261105/src/platform/windows/Release/panebind.exe",
       "product_bytes": 1300480,
       "product_sha256": "11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82",
-      "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+      "driver_source_sha": "a65b3bfce57146cb75d4eba6e2bc90567a348f27",
       "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
       "driver_bytes": 5004800,
-      "driver_sha256": "63210527ADE72CC480BA1582B378A37A78C7A95C820683DAE09C23FD8425A740",
+      "driver_sha256": "5AF289732022AB159E5887FE71EEED37BDFA566CA3547F0E0868184FDD7A442F",
       "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
       "product_build": "PASS",
       "driver_build": "PASS",
@@ -153,7 +153,7 @@
       },
       "driver_identity": {
         "product": "PaneBind V1 guest fixture",
-        "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+        "source_commit": "a65b3bfce57146cb75d4eba6e2bc90567a348f27",
         "host_synthetic_input": "forbidden",
         "requires_medium_guest": true,
         "guest_contract": "panebind-v1-guest-contract/2",
@@ -352,5 +352,42 @@
     "reason": "Immediate pause/resume must synchronize enabled even if actual state stays unchanged after a rejected command; ordinary UI events only sync on actual state changes",
     "changes_other_draft_fields": false,
     "field_status": "NOT_RUN"
-  }
+  },
+  "previous_driver_builds": {
+    "Debug": {
+      "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+      "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
+      "driver_bytes": 11820032,
+      "driver_sha256": "97CC1A728247D451818B74768A611A19940AFD0167B4900D9A015F5FF4D70D9E",
+      "driver_build": "PASS",
+      "driver_identity": {
+        "product": "PaneBind V1 guest fixture",
+        "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+        "host_synthetic_input": "forbidden",
+        "requires_medium_guest": true,
+        "guest_contract": "panebind-v1-guest-contract/2",
+        "product_interface": "panebind-v1-product-guest-interface/1"
+      }
+    },
+    "Release": {
+      "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+      "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+      "driver_bytes": 5004800,
+      "driver_sha256": "63210527ADE72CC480BA1582B378A37A78C7A95C820683DAE09C23FD8425A740",
+      "driver_build": "PASS",
+      "driver_identity": {
+        "product": "PaneBind V1 guest fixture",
+        "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+        "host_synthetic_input": "forbidden",
+        "requires_medium_guest": true,
+        "guest_contract": "panebind-v1-guest-contract/2",
+        "product_interface": "panebind-v1-product-guest-interface/1"
+      }
+    }
+  },
+  "previous_driver_builds_retained_at": "uat/v1-control/settings-ui-review-20261105/driver-1a-identity-retained",
+  "test_tool_commits": [
+    "a65b3bfce57146cb75d4eba6e2bc90567a348f27"
+  ],
+  "six_new_pages_and_T01_T10_same_run": true
 }

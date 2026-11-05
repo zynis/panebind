@@ -4,13 +4,13 @@
   "settings_ui_revision_20261105_files": [
     {
       "path": "docs/reports/v1-ui-review/review.json",
-      "bytes": 14674,
-      "sha256": "9ADD20E5761EC78BFB9A3940A4B080CE59B3C7EEC9D5591AB165B6A495B79CB6"
+      "bytes": 16380,
+      "sha256": "8A213BCC938EBFF57545803DB07DC3CB1A2B2D82E0E1163F03379300ABF335D7"
     },
     {
       "path": "docs/reports/v1-ui-review/README.md",
-      "bytes": 3139,
-      "sha256": "E24478BE6DF93204C2B19CB15167EB70C0B860D4D2D39194ABE375FE7F8B56FD"
+      "bytes": 3270,
+      "sha256": "E237671A3382EC2EC2C6AB4BB0316F23907C5D17B386C85BFDF57F79FC941AB7"
     },
     {
       "path": "docs/reports/v1-ui-review/after/README.md",
