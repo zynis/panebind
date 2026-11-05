@@ -1,5 +1,40 @@
 # PaneBind V1 集中交付进展
 
+## 新通知后的真实界面与定向运行（2026-11-06，e60f）
+
+**现在能看到：** 以下六页为本批实际运行的c77，144 DPI／150%，不是DA7改绑；长页、窄窗和逐图哈希见[20张原图身份](v1-ui-review/after/after-captures-e60f.json)。**现在实际操作实证：** T02真实取消、保存J、生效及旧C不再触发已完成。**剩余：** 窄常规三段说明仍裁尾，T08在工具编辑前置失败；T09/T10/T07未执行。正在修本轮具体缺陷，未把失败运行或清理写成全项通过。
+
+[![常规：c77／e60f／144 DPI](v1-ui-review/after/e60f-page-0-top.png)](v1-ui-review/after/e60f-page-0-top.png)
+
+[![磁吸／联动：c77／e60f／144 DPI](v1-ui-review/after/e60f-page-1-top.png)](v1-ui-review/after/e60f-page-1-top.png)
+
+[![停靠／拉伸：c77／e60f／144 DPI](v1-ui-review/after/e60f-page-2-top.png)](v1-ui-review/after/e60f-page-2-top.png)
+
+[![快捷键／鼠标：c77／e60f／144 DPI](v1-ui-review/after/e60f-page-3-top.png)](v1-ui-review/after/e60f-page-3-top.png)
+
+[![应用规则：c77／e60f／144 DPI](v1-ui-review/after/e60f-page-4-top.png)](v1-ui-review/after/e60f-page-4-top.png)
+
+[![诊断／外观：c77／e60f／144 DPI](v1-ui-review/after/e60f-page-5-top.png)](v1-ui-review/after/e60f-page-5-top.png)
+
+[停靠下半页](v1-ui-review/after/e60f-page-2-bottom.png) · [快捷键下半页](v1-ui-review/after/e60f-page-3-bottom.png) · [窄常规实际缺陷图](v1-ui-review/after/e60f-page-0-narrow-bottom.png) · [独立目视结论](v1-ui-review/after/e60f-visual-review.json)
+
+单次通知后核验于`2026-11-05T15:48:58Z`：ZS-WORKSTATION/zs，Sandbox无占用，CIM FreePhysicalMemory=19,919,056 KiB、FreeVirtualMemory=9,314,044 KiB，高于6,291,456/5,242,880 KiB原门；guest4096MiB。该CIM字段不称作独立commit-limit实测，不轮询。旧a793拒绝继续保留原身份。
+
+| 项目 | e60f当前事实 |
+| --- | --- |
+| T01 | 六页、长页与窄图已取得；43项可达检查通过，但窄常规三段说明实际裁尾，视觉FAIL。 |
+| T02 | 限定PASS：取消不改配置/草稿，C→J实际保存，J居中exact、旧C无新增调用。 |
+| T08 | 工具FAIL：HOME一次后实际仍J，焦点与目标combo不一致，原因UNKNOWN；不是已证明的映射引擎缺陷。 |
+| T09/T10/T07 | 因前置失败NOT_EXECUTED；本批没有运行条退出通过或演示帧。 |
+| T03–T06 | 本批未选择／未重跑，DA7历史限定实证保留，未改绑。 |
+
+[原件与关键回执](v1-ui-review/after/e60f-validation.json)：fixture395行连续、产品PID6764共23行连续、真实Medium/session1；原例外和FAIL保留。产品实际exit0、八项资源事实及后置真实客户区DOWN/UP均核验；这是失败运行的CLI正常收尾，**不授T09运行条退出通过**。本批guest及临时任务精确清理，36项输出/collection/cleanup前后hash一致；没有以销毁guest代替产品清理。
+
+产品`c77b2c85…`／EXE `6CDB9462…`，驱动`3528059b…`／EXE `836F42D3…`，打包`6c0fc092…`，原a5dc ZIP不变。本轮后续真实修复将另建候选/Run，不改写e60f。原46/60、22/40、5/12及全部硬门保持；V1 PARTIAL，真人UAT PENDING，REA NOT_STARTED。
+
+以下为截至97d49d5的准备记录及更早历史；其中“未启动／未取得新图／等待通知”为各自历史时点，不是当前状态。
+
+
 ## 设置可见交付接续：主要交付先行，选色最后（2026-11-05）
 
 **现在能看到／操作什么：** 仓库已有下方 DA7 历史六页实图及 T02–T06 限定实证；本轮 c77 新图和五段动作帧尚未取得，不能用历史图代替。U1–U4 产品实现保留，普通宿主试用未开放。

@@ -154,21 +154,122 @@ void review_editor_tab(State& s,const SettingsGui& gui,const ReviewEditor& edito
     s.log.check("settings_review_actual_editor_Tab",review_editor_focus(editor)==h,
         "\"id\":"+std::to_string(GetDlgCtrlID(h))+",\"actual_key_pairs\":"+std::to_string(count));
 }
+std::string review_editor_focus_json(const ReviewEditor& editor){
+    GUITHREADINFO info{sizeof(info)};const bool known=GetGUIThreadInfo(editor.tid,&info)!=FALSE;
+    DWORD pid{};const auto tid=known&&info.hwndFocus?GetWindowThreadProcessId(info.hwndFocus,&pid):0;
+    const auto cls=tid?gui_class(info.hwndFocus):L"";
+    return "{\"GUI_known\":"+std::string(known?"true":"false")+",\"HWND\":"+
+        (known?std::to_string(reinterpret_cast<std::uintptr_t>(info.hwndFocus)):"null")+
+        ",\"PID\":"+(tid?std::to_string(pid):"null")+",\"TID\":"+(tid?std::to_string(tid):"null")+
+        ",\"class\":"+(cls.empty()?"null":quote(utf8(cls)))+
+        ",\"id\":"+(tid?std::to_string(GetDlgCtrlID(info.hwndFocus)):"null")+"}";
+}
+void review_editor_activate_combo(State& s,const SettingsGui& gui,const ReviewEditor& editor,HWND h){
+    // A transient Tab focus observation is not proof that the editor's initial
+    // focus assignment and that Tab have both completed. One real click which
+    // actually opens this exact combo, followed by one Escape which closes it,
+    // supplies observable native-control consumption without setting focus.
+    RECT client{};const auto dpi=GetDpiForWindow(h);std::string keys;
+    if(!review_editor_identity(s,gui,editor,h)||gui_class(h)!=L"ComboBox"||!IsWindowVisible(h)||!IsWindowEnabled(h)||
+       !dpi||!GetClientRect(h,&client)||client.right<=client.left||client.bottom<=client.top||
+       !settings_review_input_clear(s,keys)||review_editor_read(s,gui,editor,h,CB_GETDROPPEDSTATE))
+        throw std::runtime_error("settings_review_combo_actual_activation_precondition_changed");
+    POINT point{client.left+(client.right-client.left)/2,
+        client.top+std::min<LONG>(client.bottom-client.top,MulDiv(12,static_cast<int>(dpi),96))/2};
+    if(!ClientToScreen(h,&point))throw std::runtime_error("settings_review_combo_client_point_unknown");
+    const auto before=review_editor_focus_json(editor);cursor(s,point);
+    const auto exact_hit=[&]{
+        GUITHREADINFO native{sizeof(native)};POINT cursor_at{};RECT actual_client{};std::string fresh_keys;
+        if(!desktop()||s.left||s.control||!review_editor_identity(s,gui,editor,h)||gui_class(h)!=L"ComboBox"||
+           !IsWindowVisible(h)||!IsWindowEnabled(h)||GetForegroundWindow()!=editor.root||
+           !settings_review_input_clear(s,fresh_keys)||
+           !GetGUIThreadInfo(editor.tid,&native)||native.hwndCapture||native.hwndMoveSize||native.hwndMenuOwner||
+           (native.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE))||
+           !GetClientRect(h,&actual_client)||!EqualRect(&client,&actual_client)||!GetCursorPos(&cursor_at)||
+           cursor_at.x!=point.x||cursor_at.y!=point.y||WindowFromPoint(point)!=h)return false;
+        return review_editor_read(s,gui,editor,h,CB_GETDROPPEDSTATE)==0;
+    };
+    const bool ready=exact_hit();
+    s.log.check("settings_review_combo_actual_mouse_hit_ready",ready,
+        "\"control\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"id\":"+std::to_string(GetDlgCtrlID(h))+
+        ",\"editor\":"+std::to_string(reinterpret_cast<std::uintptr_t>(editor.root))+
+        ",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"before_focus\":"+before+
+        ",\"native_combo_initially_closed\":true,\"single_real_click_not_yet_sent\":true");
+    if(!exact_hit())throw std::runtime_error("settings_review_combo_actual_activation_fresh_hit_changed");
+    bool release_considered{},up_attempted{},release_GUI_known{},release_combo_known{},release_list_exact{};
+    GUITHREADINFO release_GUI{sizeof(release_GUI)};COMBOBOXINFO release_combo{sizeof(release_combo)};HWND release_hit{};
+    const auto release_ready=[&]{
+        POINT actual_cursor{};release_GUI_known=false;release_combo_known=false;release_list_exact=false;release_hit=nullptr;
+        if(!desktop()||!s.left||s.control||!review_editor_identity(s,gui,editor,h)||!IsWindowVisible(h)||!IsWindowEnabled(h)||
+           GetForegroundWindow()!=editor.root)return false;
+        release_GUI.cbSize=sizeof(release_GUI);release_combo.cbSize=sizeof(release_combo);
+        release_GUI_known=GetGUIThreadInfo(editor.tid,&release_GUI)!=FALSE;
+        release_combo_known=GetComboBoxInfo(h,&release_combo)!=FALSE&&release_combo.hwndCombo==h;
+        if(!release_GUI_known||!release_combo_known||release_GUI.hwndMoveSize||(release_GUI.flags&GUI_INMOVESIZE))return false;
+        DWORD list_pid{};release_list_exact=release_combo.hwndList&&
+            GetWindowThreadProcessId(release_combo.hwndList,&list_pid)==editor.tid&&list_pid==s.product_pid;
+        if(release_GUI.hwndCapture)return release_GUI.hwndCapture==h||
+            (release_list_exact&&release_GUI.hwndCapture==release_combo.hwndList);
+        if(!GetCursorPos(&actual_cursor)||actual_cursor.x!=point.x||actual_cursor.y!=point.y)return false;
+        release_hit=WindowFromPoint(actual_cursor);
+        return release_hit==h||(release_list_exact&&release_hit==release_combo.hwndList);
+    };
+    const auto release_once=[&]{
+        release_considered=true;const bool allowed=release_ready();
+        if(!allowed&&s.suite=="SettingsEditorsOnly")s.settings_input_route_unknown=true;
+        s.log.check("settings_review_combo_single_UP_actual_route_confirmed",allowed,
+            "\"editor_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
+            ",\"GUI_known\":"+(release_GUI_known?"true":"false")+",\"combo_info_known\":"+(release_combo_known?"true":"false")+
+            ",\"capture\":"+(release_GUI_known?std::to_string(reinterpret_cast<std::uintptr_t>(release_GUI.hwndCapture)):"null")+
+            ",\"native_list\":"+(release_combo_known?std::to_string(reinterpret_cast<std::uintptr_t>(release_combo.hwndList)):"null")+
+            ",\"native_list_PID_TID_exact\":"+(release_list_exact?"true":"false")+
+            ",\"uncaptured_actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(release_hit))+
+            ",\"UP_not_yet_attempted\":true,\"unknown_context_release_allowed\":false");
+        if(!release_ready()){
+            if(s.suite=="SettingsEditorsOnly")s.settings_input_route_unknown=true;
+            throw std::runtime_error("settings_review_combo_UP_route_changed_no_input_sent");
+        }
+        up_attempted=true;button(s,false);
+    };
+    try{button(s,true);release_once();}
+    catch(...){if(s.left&&!release_considered&&!up_attempted)release_once();throw;}
+    const bool opened=wait([&]{return review_editor_identity(s,gui,editor,h)&&GetForegroundWindow()==editor.root&&
+        review_editor_focus(editor)==h&&review_editor_read(s,gui,editor,h,CB_GETDROPPEDSTATE)!=0&&settings_review_input_clear(s,keys);},1000);
+    s.log.check("settings_review_combo_actual_mouse_opened_exact_native_list",opened,
+        "\"id\":"+std::to_string(GetDlgCtrlID(h))+",\"after_click_focus\":"+review_editor_focus_json(editor)+
+        ",\"single_real_DOWN_UP\":true,\"SetFocus_used\":false,\"CB_SETCURSEL_used\":false");
+    if(review_editor_focus(editor)!=h||GetForegroundWindow()!=editor.root||!review_editor_identity(s,gui,editor,h))
+        throw std::runtime_error("settings_review_combo_before_actual_Escape_context_changed");
+    review_editor_key(s,gui,editor,VK_ESCAPE);
+    const bool closed=wait([&]{GUITHREADINFO native{sizeof(native)};
+        return review_editor_identity(s,gui,editor,h)&&GetForegroundWindow()==editor.root&&review_editor_focus(editor)==h&&
+            review_editor_read(s,gui,editor,h,CB_GETDROPPEDSTATE)==0&&GetGUIThreadInfo(editor.tid,&native)&&
+            !native.hwndCapture&&!native.hwndMoveSize&&!native.hwndMenuOwner&&settings_review_input_clear(s,keys);},1000);
+    s.log.check("settings_review_combo_actual_Escape_closed_list_and_retained_focus",closed,
+        "\"id\":"+std::to_string(GetDlgCtrlID(h))+",\"after_Escape_focus\":"+review_editor_focus_json(editor)+
+        ",\"single_Escape_pair\":true,\"extra_click_or_focus_repair\":false");
+}
 void review_editor_combo(State& s,const SettingsGui& gui,const ReviewEditor& editor,int id,LRESULT data){
-    const auto h=GetDlgItem(editor.root,id);review_editor_tab(s,gui,editor,h);
+    const auto h=GetDlgItem(editor.root,id);review_editor_activate_combo(s,gui,editor,h);
     const auto count=review_editor_read(s,gui,editor,h,CB_GETCOUNT);LRESULT wanted=-1;
     if(count>512)throw std::runtime_error("settings_review_combo_count_over_bound");
     for(DWORD_PTR i=0;i<count;++i)if(static_cast<LRESULT>(review_editor_read(s,gui,editor,h,CB_GETITEMDATA,i))==data){wanted=static_cast<LRESULT>(i);break;}
     if(wanted<0)throw std::runtime_error("settings_review_required_combo_item_not_present");
     unsigned home_pairs{},down_pairs{},pair_attempts{};bool progressed{};
     std::string stage="HOME",failure;
+    const auto before_keys_focus=review_editor_focus_json(editor);
+    const auto focused_key=[&](WORD code){
+        if(!review_editor_identity(s,gui,editor,h)||review_editor_focus(editor)!=h||GetForegroundWindow()!=editor.root)
+            throw std::runtime_error("settings_review_combo_key_target_focus_changed");
+        review_editor_key(s,gui,editor,code);
+    };
     try{
-        ++pair_attempts;review_editor_key(s,gui,editor,VK_HOME);++home_pairs;
+        ++pair_attempts;focused_key(VK_HOME);++home_pairs;
         progressed=wait([&]{return review_editor_focus(editor)==h&&GetForegroundWindow()==editor.root&&
             review_editor_read(s,gui,editor,h,CB_GETCURSEL)==0;},1000);
         for(LRESULT i=1;progressed&&i<=wanted;++i){
             stage="DOWN_to_"+std::to_string(i);
-            ++pair_attempts;review_editor_key(s,gui,editor,VK_DOWN);++down_pairs;
+            ++pair_attempts;focused_key(VK_DOWN);++down_pairs;
             progressed=wait([&]{return review_editor_focus(editor)==h&&GetForegroundWindow()==editor.root&&
                 review_editor_read(s,gui,editor,h,CB_GETCURSEL)==static_cast<DWORD_PTR>(i);},1000);
         }
@@ -192,6 +293,7 @@ void review_editor_combo(State& s,const SettingsGui& gui,const ReviewEditor& edi
         ",\"exact_control_identity\":"+(exact?"true":"false")+",\"completed_HOME_key_pairs\":"+std::to_string(home_pairs)+
         ",\"completed_DOWN_key_pairs\":"+std::to_string(down_pairs)+",\"key_pair_attempts\":"+std::to_string(pair_attempts)+
         ",\"last_step\":"+quote(stage)+",\"failure\":"+(failure.empty()?"null":quote(failure))+
+        ",\"before_keys_focus\":"+before_keys_focus+",\"after_keys_focus\":"+review_editor_focus_json(editor)+
         ",\"extra_or_repeated_key_pairs\":false,\"CB_SETCURSEL_used\":false");
 }
 void review_editor_check(State& s,const SettingsGui& gui,const ReviewEditor& editor,int id,bool desired){

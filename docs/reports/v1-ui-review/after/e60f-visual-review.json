@@ -1,0 +1,53 @@
+{
+    "schema":  "panebind-v1-ui-visual-review/1",
+    "reviewed_at_utc":  "2026-11-05T16:02:42.3886617Z",
+    "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+    "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+    "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+    "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+    "actual_dpi":  144,
+    "scaling_percent":  150,
+    "reviewed_original_PNG_count":  20,
+    "normal_six_pages":  6,
+    "long_page_bottoms":  2,
+    "narrow_frames":  12,
+    "T01_status":  "FAIL_SCOPED_NARROW_GENERAL_TEXT",
+    "actual_source_identity_verified":  true,
+    "collection_inventory_files_verified":  36,
+    "images_retouch_or_resize":  false,
+    "findings":  [
+                     {
+                         "id":  "UI-GENERAL-NARROW-C77",
+                         "severity":  "VISIBLE_TEXT_TRUNCATION",
+                         "status":  "REPRODUCED_AFTER_C77_TEXT_PAINT_CHANGE",
+                         "images":  [
+                                        "e60f-page-0-narrow-top.png",
+                                        "e60f-page-0-narrow-bottom.png"
+                                    ],
+                         "expected":  [
+                                          "设置仅在点击“保存并关闭”且保存成功后生效。取消或关闭只放弃草稿，不退出程序；即时暂停／恢复会保留。",
+                                          "动画只作用于 PaneBind 设置窗口。关闭、系统减少动画或高对比度模式时直接显示；增强手势不会等待此动画。",
+                                          "普通产品只操作同用户、同会话、普通权限的合格窗口。被排除应用、高权限窗口和系统桌面不会进入增强手势。"
+                                      ],
+                         "observed_missing_tails":  [
+                                                        "即时暂停／恢复会保留。",
+                                                        "增强手势不会等待此动画。",
+                                                        "系统桌面不会进入增强手势。"
+                                                    ],
+                         "raw_visual_fact":  "右侧截尾，未出现对应续行；常规全宽图可见完整文字。",
+                         "native_rendering_root_cause":  "UNKNOWN",
+                         "automatic_reachability_is_not_text_PASS":  true
+                     }
+                 ],
+    "unassessed":  [
+                       "窄页1/2/4/5顶部与末焦点切片之间或之后的离屏说明",
+                       "窄键鼠/规则列表横向滚动后的未显示列",
+                       "真人感受、100/200%、真实应用、托盘、多屏"
+                   ],
+    "T08_failure":  "TOOL_DRAFT_L_COMBO",
+    "T09":  "NOT_EXECUTED",
+    "T10":  "NOT_EXECUTED_0_FRAMES",
+    "T07":  "NOT_EXECUTED",
+    "whole_contract_PASS":  false,
+    "human_UAT":  "NOT_RUN"
+}

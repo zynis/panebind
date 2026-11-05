@@ -4,6 +4,8 @@
 
 #include <commctrl.h>
 #include <commdlg.h>
+#include <initguid.h>
+#include <oleacc.h>
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -28,6 +30,26 @@ constexpr int id_hotkeys=1200,id_hotkey_add=1201,id_hotkey_edit=1202,id_hotkey_d
 constexpr int id_mouse=1210,id_mouse_add=1211,id_mouse_edit=1212,id_mouse_delete=1213;
 constexpr int id_rules=1220,id_rule_add=1221,id_rule_edit=1222,id_rule_delete=1223;
 constexpr int id_color=1230,id_choose_color=1231,id_pause=1240,id_help=1241,id_exit=1242;
+HRESULT flow_note_role(HWND hwnd,bool clear) {
+    // The application owns the STA/COM lifetime. SS_OWNERDRAW's default MSAA
+    // role is GRAPHIC, so annotate only our note's role; its native caption
+    // remains the accessible name and the sole source of displayed text.
+    IAccPropServices* properties{};
+    HRESULT result=CoCreateInstance(CLSID_AccPropServices,nullptr,CLSCTX_INPROC_SERVER,
+                                    IID_PPV_ARGS(&properties));
+    if(SUCCEEDED(result)) {
+        if(clear)result=properties->ClearHwndProps(hwnd,OBJID_CLIENT,CHILDID_SELF,&PROPID_ACC_ROLE,1);
+        else {VARIANT role{};role.vt=VT_I4;role.lVal=ROLE_SYSTEM_STATICTEXT;
+            result=properties->SetHwndProp(hwnd,OBJID_CLIENT,CHILDID_SELF,PROPID_ACC_ROLE,role);}
+        properties->Release();
+    }
+    return result;
+}
+void flow_note_error(const wchar_t* operation,HRESULT result) {
+    const auto message=std::wstring(L"PaneBind settings note ")+operation+L" HRESULT="+
+        std::to_wstring(result)+L"; no accessibility or paint success inferred.\n";
+    OutputDebugStringW(message.c_str());
+}
 std::wstring widen(std::string_view value) {
     if (value.empty()) return {};
     const int length=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,value.data(),static_cast<int>(value.size()),nullptr,0);
@@ -77,7 +99,7 @@ std::optional<std::wstring> select_file(HWND owner,bool save) {
 struct SettingsWindow::Impl {
     static constexpr UINT flow_text_format=DT_LEFT|DT_TOP|DT_WORDBREAK|DT_NOPREFIX;
     struct Field { HWND control{}; int page{}; bool v::Settings::* boolean{}; int v::Settings::* number{}; };
-    struct Control { HWND hwnd{}; int x{},y{},width{},height{}; bool right_stretch{},pair_label{},pair_edit{},flow_text{}; };
+    struct Control { HWND hwnd{}; int x{},y{},width{},height{}; bool right_stretch{},pair_label{},pair_edit{},flow_text{},flow_role_annotated{}; };
     struct Page {
         Impl* owner{}; HWND hwnd{}; int index{},next_y{12},scroll{},extent{};
         std::vector<Control> controls;
@@ -126,9 +148,33 @@ struct SettingsWindow::Impl {
     }
     // An integer control ID must never bind silently to the stretch flag.
     HWND add(Page&,const wchar_t*,const wchar_t*,DWORD,int,int,int,int,int)=delete;
+    void flow_note(Page& page) {
+        auto& control=page.controls.back();control.flow_text=true;
+        const HRESULT result=flow_note_role(control.hwnd,false);
+        if(FAILED(result)){flow_note_error(L"annotate",result);return;}
+        control.flow_role_annotated=true;
+        // Keep the standard STATIC class/caption and change only its paint
+        // route after its original STATICTEXT accessibility role is secured.
+        SetLastError(ERROR_SUCCESS);
+        const auto style=GetWindowLongPtrW(control.hwnd,GWL_STYLE);
+        const auto previous=SetWindowLongPtrW(control.hwnd,GWL_STYLE,style|SS_OWNERDRAW);
+        const auto error=GetLastError();
+        if(!previous&&error!=ERROR_SUCCESS)flow_note_error(L"owner-draw style",HRESULT_FROM_WIN32(error));
+        else if(GetWindowLongPtrW(control.hwnd,GWL_STYLE)!=(style|SS_OWNERDRAW))
+            flow_note_error(L"owner-draw style readback",HRESULT_FROM_WIN32(ERROR_INVALID_DATA));
+    }
+    void clear_flow_note(Control& control) {
+        if(!control.flow_role_annotated)return;
+        const HRESULT result=flow_note_role(control.hwnd,true);
+        if(SUCCEEDED(result))control.flow_role_annotated=false;
+        else flow_note_error(L"clear annotation",result);
+    }
+    void clear_flow_notes() {
+        for(auto& page:pages)for(auto& control:page.controls)clear_flow_note(control);
+    }
     void note(Page& page,const wchar_t* label,int height=52) {
         add(page,L"STATIC",label,SS_LEFT,12,page.next_y,0,height,true);
-        page.controls.back().flow_text=true;
+        flow_note(page);
         page.next_y+=height+8;
     }
     void checkbox(Page& page,const wchar_t* label,bool v::Settings::* member) {
@@ -152,7 +198,7 @@ struct SettingsWindow::Impl {
     }
     HWND note_control(Page& page,const wchar_t* label,int height) {
         const auto h=add(page,L"STATIC",label,SS_LEFT,12,page.next_y,0,height,true);
-        page.controls.back().flow_text=true;page.next_y+=height+6;return h;
+        flow_note(page);page.next_y+=height+6;return h;
     }
     HWND list(Page& page,const wchar_t* label,int id,std::initializer_list<const wchar_t*> columns,int height) {
         note(page,label,26);
@@ -471,20 +517,14 @@ struct SettingsWindow::Impl {
     }
     static LRESULT CALLBACK control_proc(HWND child,UINT message,WPARAM w,LPARAM l,UINT_PTR id,DWORD_PTR data) {
         auto* page=reinterpret_cast<Page*>(data);
-        if(page&&page->owner&&(message==WM_PAINT||message==WM_PRINTCLIENT)){
-            const auto known=std::find_if(page->controls.begin(),page->controls.end(),[&](const Control& c){return c.hwnd==child;});
-            if(known!=page->controls.end()&&known->flow_text){
-                if(message==WM_PRINTCLIENT){
-                    if(!(l&PRF_CHECKVISIBLE)||IsWindowVisible(child))page->owner->paint_flow_text(child,reinterpret_cast<HDC>(w));
-                }else{
-                    PAINTSTRUCT paint{};const HDC dc=BeginPaint(child,&paint);
-                    page->owner->paint_flow_text(child,dc);EndPaint(child,&paint);
-                }
-                return 0;
-            }
-        }
         if(message==WM_SETFOCUS&&page&&page->owner)page->owner->reveal(*page,child);
-        if(message==WM_NCDESTROY)RemoveWindowSubclass(child,control_proc,id);
+        if(message==WM_NCDESTROY){
+            if(page&&page->owner){
+                const auto known=std::find_if(page->controls.begin(),page->controls.end(),[&](const Control& c){return c.hwnd==child;});
+                if(known!=page->controls.end())page->owner->clear_flow_note(*known);
+            }
+            RemoveWindowSubclass(child,control_proc,id);
+        }
         return DefSubclassProc(child,message,w,l);
     }
     void arrange_page(Page& page) {
@@ -555,7 +595,7 @@ struct SettingsWindow::Impl {
         for(auto h:{run_status,pause_button,help_button,exit_button})SendMessageW(h,WM_SETFONT,reinterpret_cast<WPARAM>(font),TRUE);
         layout();
     }
-    void close(){if(window)DestroyWindow(window);}
+    void close(){if(window){clear_flow_notes();DestroyWindow(window);}}
     static LRESULT CALLBACK page_proc(HWND hwnd,UINT message,WPARAM w,LPARAM l) {
         auto* page=reinterpret_cast<Page*>(GetWindowLongPtrW(hwnd,GWLP_USERDATA));
         if(message==WM_NCCREATE){page=static_cast<Page*>(reinterpret_cast<CREATESTRUCTW*>(l)->lpCreateParams);SetWindowLongPtrW(hwnd,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(page));page->hwnd=hwnd;}
@@ -632,12 +672,21 @@ struct SettingsWindow::Impl {
             case id_exit:self->request_exit();return 0;
             default:break;
             }break;
-        case WM_DRAWITEM:{const auto* item=reinterpret_cast<DRAWITEMSTRUCT*>(l);if(item->hwndItem==self->color_swatch){const auto raw=narrow(text(self->color_text));const auto color=raw?ed::parse_color_hex(*raw):std::nullopt;const auto brush=CreateSolidBrush(color?static_cast<COLORREF>(*color):GetSysColor(COLOR_BTNFACE));FillRect(item->hDC,&item->rcItem,brush);DeleteObject(brush);FrameRect(item->hDC,&item->rcItem,GetSysColorBrush(COLOR_WINDOWTEXT));return TRUE;}break;}
+        case WM_DRAWITEM:{
+            const auto* item=reinterpret_cast<DRAWITEMSTRUCT*>(l);
+            if(item->hwndItem==self->color_swatch){const auto raw=narrow(text(self->color_text));const auto color=raw?ed::parse_color_hex(*raw):std::nullopt;const auto brush=CreateSolidBrush(color?static_cast<COLORREF>(*color):GetSysColor(COLOR_BTNFACE));FillRect(item->hDC,&item->rcItem,brush);DeleteObject(brush);FrameRect(item->hDC,&item->rcItem,GetSysColorBrush(COLOR_WINDOWTEXT));return TRUE;}
+            if(item->CtlType==ODT_STATIC)for(const auto& page:self->pages){
+                const auto note=std::find_if(page.controls.begin(),page.controls.end(),[&](const Control& c){return c.hwnd==item->hwndItem&&c.flow_text&&c.flow_role_annotated;});
+                if(note!=page.controls.end()){self->paint_flow_text(item->hwndItem,item->hDC);return TRUE;}
+            }
+            break;
+        }
         case WM_MOUSEWHEEL:return SendMessageW(self->pages[static_cast<std::size_t>(self->selected)].hwnd,message,w,l);
         case WM_SETTINGCHANGE:case WM_SYSCOLORCHANGE:case WM_THEMECHANGED:
             InvalidateRect(hwnd,nullptr,TRUE);for(auto& page:self->pages){InvalidateRect(page.hwnd,nullptr,TRUE);
                 for(const auto& c:page.controls)if(c.flow_text)InvalidateRect(c.hwnd,nullptr,TRUE);}return 0;
         case WM_CLOSE:self->close();return 0;
+        case WM_DESTROY:self->clear_flow_notes();return 0;
         case WM_NCDESTROY:self->window=nullptr;self->tab=nullptr;self->fields.clear();for(auto& page:self->pages){page.hwnd=nullptr;page.controls.clear();page.next_y=12;page.scroll=0;}if(self->font){DeleteObject(self->font);self->font=nullptr;}SetWindowLongPtrW(hwnd,GWLP_USERDATA,0);break;
         default:break;
         }

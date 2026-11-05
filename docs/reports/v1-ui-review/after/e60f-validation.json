@@ -1,0 +1,498 @@
+{
+  "schema": "panebind-v1-settings-ui-targeted-validation/1",
+  "reviewed_at_utc": "2026-11-05T16:07:56.946363+00:00",
+  "run_id": "e60f564f222441d6b52ab8b6cfb0fb25",
+  "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+  "product_exe_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+  "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+  "driver_exe_sha256": "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+  "packaging_head": "6c0fc092c17fbb8f8b89c929b122f04bf53e1f04",
+  "configuration": "Release",
+  "suite": "SettingsEditorsOnly",
+  "actual_dpi": 144,
+  "scaling_percent": 150,
+  "actual_integrity_rid": 8192,
+  "actual_elevated": false,
+  "actual_interactive_session": 1,
+  "overall_result": "FAIL_T08_TEST_INPUT_AND_T01_VISUAL",
+  "raw_integrity": {
+    "fixture_rows": 395,
+    "strict_JSON_no_duplicate_keys": true,
+    "continuous_sequences_per_producer": true,
+    "all_fixture_source": "3528059b33963afd1488f1c70445f770e9858dae",
+    "product_rows": 23,
+    "all_product_source": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+    "collection_before_after_local_files": 36,
+    "collection_and_host_cleanup_inventories_identical": true,
+    "cross_producer_native_order_not_inferred": true
+  },
+  "product_lifecycles": [
+    {
+      "PID": 6764,
+      "source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "rows": 23,
+      "sequence_continuous": true,
+      "startup": {
+        "schema": "panebind-v1/1",
+        "source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+        "sequence": 3,
+        "process_id": 6764,
+        "tick": 33781,
+        "type": "startup",
+        "entry": "production_gui",
+        "integrity": "medium",
+        "elevated": false,
+        "initiator": "not_collected"
+      },
+      "shutdown_sequence": 23
+    }
+  ],
+  "T01": {
+    "automatic_scope": "43_REACHABILITY_CHECKS_PASS_AND_TWO_PHASES_RETURNED",
+    "visual_scope": "FAIL_NARROW_GENERAL_THREE_TEXT_TAILS",
+    "six_pages_and_two_bottoms": 8,
+    "narrow_PNGs": 12,
+    "visual_evidence": "docs/reports/v1-ui-review/after/e60f-visual-review.json",
+    "overall_T01_PASS": false
+  },
+  "T02": {
+    "status": "PASS_SCOPED_REAL_GUI_CANCEL_SAVE_J_AND_OLD_C_NO_NEW_PLACEMENT",
+    "public_first_save_sequence": 280,
+    "cancel_saved_file_sequence": 306,
+    "actual_reopened_C_sequence": 314,
+    "saved_J_same_schema_sequence": 336,
+    "actual_J_sequence": 343,
+    "exact_native_placement": {
+      "schema": "panebind-v1/1",
+      "source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "sequence": 12,
+      "process_id": 6764,
+      "tick": 52218,
+      "type": "placement",
+      "generation": 0,
+      "operation": 1,
+      "intent_reason": "command",
+      "key": 3,
+      "native_callsite_claimed": true,
+      "native_attempted": true,
+      "call_id": 1,
+      "native_succeeded": true,
+      "error": 0,
+      "native_completion_known": true,
+      "target": [
+        1395,
+        618,
+        1655,
+        978
+      ],
+      "actual": [
+        1395,
+        618,
+        1655,
+        978
+      ],
+      "identity_valid": true,
+      "exact": true,
+      "declared_track_limits_observed": true,
+      "application_grid_known": false,
+      "reason": "exact_native_completion",
+      "native_before_qpc": 522493954,
+      "native_after_qpc": 522497687,
+      "authority_after": false,
+      "native_position_flags": 533,
+      "preflight_started_qpc": 522487732,
+      "geometry_observed_qpc": 522502325,
+      "post_observed_qpc": 522502328,
+      "post_context_checked": false,
+      "post_context_valid": false,
+      "post_context_reason": "",
+      "post_track_limits_query_requested": false,
+      "post_track_limits_carried_from_preflight": true,
+      "explicit_destination_display_bound": false,
+      "destination_monitor": 0,
+      "destination_window_dpi": 0,
+      "hook_observed_qpc": 0,
+      "legacy_dispatch_timing_applicable": false,
+      "legacy_up_dispatch_qpc": null,
+      "legacy_dispatch_origin": null,
+      "normal_up_completion": false
+    },
+    "old_C_sequence": 350,
+    "old_C_fresh_status_sequence": 349,
+    "no_product_placement_between_J_and_fresh_C_status": true,
+    "old_C_status_operations": 1,
+    "whole_M09_or_version_PASS": false
+  },
+  "T08": {
+    "status": "FAIL_TEST_DRAFT_L_SELECTION",
+    "failure_sequence": 376,
+    "requested_key": 76,
+    "actual_key": 74,
+    "actual_selection": 73,
+    "HOME_pairs_completed": 1,
+    "DOWN_pairs_completed": 0,
+    "focus_matches_requested_control": false,
+    "foreground_still_exact_editor": true,
+    "cause": "UNKNOWN",
+    "production_RuntimeBar_or_Help_result": "NOT_EXECUTED"
+  },
+  "T09": "NOT_EXECUTED",
+  "T10": "NOT_EXECUTED_0_OF_16_FRAMES",
+  "T07": "NOT_EXECUTED",
+  "T03_T06": {
+    "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
+    "original_DA7_facts_retained_not_rebound": true
+  },
+  "cleanup": {
+    "launch_fixture_exit_code": 1,
+    "forced_test_cleanup": false,
+    "bootstrap_aggregate_product_cleanup_pass": false,
+    "precise_product_stop_exit_code": 0,
+    "actual_product_process_exit_observed": true,
+    "product_shutdown_eight_resource_flags": {
+      "own_hooks_stopped": true,
+      "own_overlay_destroyed": true,
+      "native_worker_exited": true,
+      "visual_recovery_stopped": true,
+      "visual_restore_confirmed": true,
+      "own_input_resources_stopped": true,
+      "own_capture_released": true,
+      "own_input_association_detached": true
+    },
+    "issued_native_completion_unknown": false,
+    "post_stop_exact_client_DOWN_UP_counts": {
+      "before": [
+        0,
+        0
+      ],
+      "after": [
+        1,
+        1
+      ],
+      "actual_delivered": true
+    },
+    "cleanup_entry": "CLI --quit after failed test; not runtime bar",
+    "T09_runtime_bar_exit_PASS_inferred": false,
+    "guest_destruction_used_as_product_cleanup_PASS": false,
+    "host_task": "PaneBindV1-e60f564f222441d6b52ab8b6cfb0fb25-Launch",
+    "host_task_removed": true,
+    "owned_guest_PID": 56944,
+    "owned_guest_start_ticks": 639294905724240446,
+    "owned_guest_exact_Run_WSB": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false
+  },
+  "single_notified_resource_gate": {
+    "utc": "2026-11-05T15:49:03.0204768Z",
+    "FreePhysicalMemory_KiB": 19919056,
+    "CIM_FreeVirtualMemory_KiB": 9314044,
+    "physical_min_KiB": 6291456,
+    "CIM_FreeVirtualMemory_min_KiB": 5242880,
+    "guest_MiB": 4096,
+    "allowed": true,
+    "retries": 0,
+    "historical_snapshot_not_current_poll": true,
+    "CIM_field_not_independently_measured_commit_limit": true
+  },
+  "key_original_excerpts": {
+    "343": {
+      "schema": "panebind-v1-owned-driver/1",
+      "source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+      "sequence": 343,
+      "tick": 52234,
+      "automated_guest_driver": true,
+      "type": "case",
+      "case": "T02_actual_CtrlAltJ_centers_exact_fixture",
+      "result": "PASS",
+      "expected": [
+        1395,
+        618,
+        1655,
+        978
+      ],
+      "actual": [
+        1395,
+        618,
+        1655,
+        978
+      ],
+      "actual_sampled_after_wait": true,
+      "exact_native_postverify_receipt": "{\"schema\":\"panebind-v1/1\",\"source_sha\":\"c77b2c85bcdced06afc5fcce4d7043b7fe83255a\",\"sequence\":12,\"process_id\":6764,\"tick\":52218,\"type\":\"placement\",\"generation\":0,\"operation\":1,\"intent_reason\":\"command\",\"key\":3,\"native_callsite_claimed\":true,\"native_attempted\":true,\"call_id\":1,\"native_succeeded\":true,\"error\":0,\"native_completion_known\":true,\"target\":[1395,618,1655,978],\"actual\":[1395,618,1655,978],\"identity_valid\":true,\"exact\":true,\"declared_track_limits_observed\":true,\"application_grid_known\":false,\"reason\":\"exact_native_completion\",\"native_before_qpc\":522493954,\"native_after_qpc\":522497687,\"authority_after\":false,\"native_position_flags\":533,\"preflight_started_qpc\":522487732,\"geometry_observed_qpc\":522502325,\"post_observed_qpc\":522502328,\"post_context_checked\":false,\"post_context_valid\":false,\"post_context_reason\":\"\",\"post_track_limits_query_requested\":false,\"post_track_limits_carried_from_preflight\":true,\"explicit_destination_display_bound\":false,\"destination_monitor\":0,\"destination_window_dpi\":0,\"hook_observed_qpc\":0,\"legacy_dispatch_timing_applicable\":false,\"legacy_up_dispatch_qpc\":null,\"legacy_dispatch_origin\":null,\"normal_up_completion\":false}"
+    },
+    "350": {
+      "schema": "panebind-v1-owned-driver/1",
+      "source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+      "sequence": 350,
+      "tick": 52343,
+      "automated_guest_driver": true,
+      "type": "case",
+      "case": "T02_actual_CtrlAltC_no_longer_centers",
+      "result": "PASS"
+    },
+    "376": {
+      "schema": "panebind-v1-owned-driver/1",
+      "source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+      "sequence": 376,
+      "tick": 54343,
+      "automated_guest_driver": true,
+      "type": "case",
+      "case": "settings_review_combo_actual_keys",
+      "result": "FAIL",
+      "id": 1300,
+      "item_data": 76,
+      "expected_selection": 75,
+      "final_selection": 73,
+      "final_item_data": 74,
+      "focus": 263112,
+      "expected_focus": 328654,
+      "foreground": 458818,
+      "expected_foreground": 458818,
+      "exact_control_identity": true,
+      "completed_HOME_key_pairs": 1,
+      "completed_DOWN_key_pairs": 0,
+      "key_pair_attempts": 1,
+      "last_step": "HOME",
+      "failure": "actual_selection_did_not_reach_exact_next_index",
+      "extra_or_repeated_key_pairs": false,
+      "CB_SETCURSEL_used": false
+    },
+    "383": {
+      "schema": "panebind-v1-owned-driver/1",
+      "source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+      "sequence": 383,
+      "tick": 54453,
+      "automated_guest_driver": true,
+      "type": "product_stop",
+      "quit_command_completed": true,
+      "process_exit_observed": true,
+      "product_exit_code": 0,
+      "shutdown_report": "{\"schema\":\"panebind-v1/1\",\"source_sha\":\"c77b2c85bcdced06afc5fcce4d7043b7fe83255a\",\"sequence\":23,\"process_id\":6764,\"tick\":54453,\"type\":\"shutdown\",\"own_hooks_stopped\":true,\"own_overlay_destroyed\":true,\"native_worker_exited\":true,\"issued_native_completion_unknown\":false,\"visual_recovery_stopped\":true,\"visual_restore_confirmed\":true,\"guest_capture_route_used\":true,\"capture_resource_route_used\":true,\"capture_resource_route\":\"exact_guest\",\"own_input_resources_stopped\":true,\"own_capture_released\":true,\"own_input_association_detached\":true,\"mouse_up_callbacks\":{\"snapshot_known\":true,\"callback_count\":0,\"last\":null}}",
+      "log_evidence_available": true,
+      "log_evidence_error": ""
+    },
+    "390": {
+      "schema": "panebind-v1-owned-driver/1",
+      "source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+      "sequence": 390,
+      "tick": 54468,
+      "automated_guest_driver": true,
+      "type": "post_stop_actual_client_click",
+      "check_requested": true,
+      "executed": true,
+      "actual_down_up_delivered": true,
+      "candidates": [
+        {
+          "member": 0,
+          "hwnd": 131602,
+          "exact_owned": true,
+          "visible": true
+        },
+        {
+          "member": 1,
+          "hwnd": 196662,
+          "exact_owned": true,
+          "visible": true
+        },
+        {
+          "member": 2,
+          "hwnd": 196670,
+          "exact_owned": true,
+          "visible": true
+        }
+      ],
+      "selected_target": 131602,
+      "test_setup_ShowWindow_requested": false,
+      "ShowWindow_previous_visible": null,
+      "visible_after_test_setup": true,
+      "SetForegroundWindow_called": true,
+      "SetForegroundWindow_return": true,
+      "actual_foreground_matches": true,
+      "actual_foreground": 131602,
+      "GetClientRect_succeeded": true,
+      "client_rect": [
+        0,
+        0,
+        256,
+        313
+      ],
+      "ClientToScreen_succeeded": true,
+      "client_screen_point": [
+        1450,
+        774
+      ],
+      "actual_hit": 131602,
+      "DOWN_SendInput_called": true,
+      "UP_SendInput_called": true,
+      "counts_before": [
+        0,
+        0
+      ],
+      "counts_after": [
+        1,
+        1
+      ],
+      "reason": "actual_client_DOWN_UP_delivered",
+      "show_is_test_setup_not_product_cleanup_PASS": true,
+      "only_test_owned_window": true,
+      "not_guest_destruction": true
+    },
+    "391": {
+      "schema": "panebind-v1-owned-driver/1",
+      "source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+      "sequence": 391,
+      "tick": 54484,
+      "automated_guest_driver": true,
+      "type": "settings_editors_summary",
+      "suite": "SettingsEditorsOnly",
+      "result": "FAIL",
+      "selected_ids": [
+        "T01",
+        "T02",
+        "T08",
+        "T09",
+        "T10",
+        "T07"
+      ],
+      "not_rerun_historical_ids": [
+        "T03",
+        "T04",
+        "T05",
+        "T06"
+      ],
+      "phase_outcomes": [
+        {
+          "phase_id": "T01",
+          "name": "T01_six_original_size_pages",
+          "order": 1,
+          "started": true,
+          "returned": true,
+          "failed": false
+        },
+        {
+          "phase_id": "T01",
+          "name": "T01_narrow_real_controls",
+          "order": 2,
+          "started": true,
+          "returned": true,
+          "failed": false
+        },
+        {
+          "phase_id": "T02",
+          "name": "T02_structured_hotkey",
+          "order": 3,
+          "started": true,
+          "returned": true,
+          "failed": false
+        },
+        {
+          "phase_id": "T08",
+          "name": "T08_immediate_runtime_controls",
+          "order": 4,
+          "started": true,
+          "returned": false,
+          "failed": true
+        },
+        {
+          "phase_id": "T09",
+          "name": "T09_ordinary_ZIP_and_UI_exit",
+          "order": 5,
+          "started": false,
+          "returned": false,
+          "failed": false
+        },
+        {
+          "phase_id": "T10",
+          "name": "T10_five_finite_actual_demonstrations",
+          "order": 6,
+          "started": false,
+          "returned": false,
+          "failed": false
+        },
+        {
+          "phase_id": "T07",
+          "name": "T07_RGB_picker_and_preview",
+          "order": 7,
+          "started": false,
+          "returned": false,
+          "failed": false
+        }
+      ],
+      "five_T10_segments_returned_not_visual_PASS": false,
+      "visual_review": "NOT_RUN",
+      "whole_contract_PASS": false,
+      "human_UAT": "NOT_RUN"
+    },
+    "395": {
+      "schema": "panebind-v1-owned-driver/1",
+      "source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+      "sequence": 395,
+      "tick": 54515,
+      "automated_guest_driver": true,
+      "type": "driver_shutdown",
+      "result": "FAIL",
+      "suite": "SettingsEditorsOnly",
+      "owned_windows_destroyed": true,
+      "product_process_closed": true,
+      "scope": "exact_guest_targets_not_full_acceptance",
+      "human_uat": "NOT_RUN"
+    }
+  },
+  "pins": [
+    {
+      "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-release-fixture.jsonl",
+      "bytes": 253124,
+      "sha256": "94254DC7AAA454CFFA7A7529E12BCADD47040ED84CB4E6A1E3EA58B3795A25C8"
+    },
+    {
+      "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-product-Release/panebind.log.jsonl",
+      "bytes": 12515,
+      "sha256": "D6BEB7771EDB160C61FC31CCC89660F833C2049C7D530CD14B89064C4EDC2EF9"
+    },
+    {
+      "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-launch.json",
+      "bytes": 60665,
+      "sha256": "5F98583CB2605946AB8152DCFB353E0A401D49B9DC63F36365CA01C71AAC5F5D"
+    },
+    {
+      "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/collection-receipt.json",
+      "bytes": 36504,
+      "sha256": "B4F6FA6793A2F1D4451DA59A67091D5DCA3ECE83699663E42B2DA6AB6831C56D"
+    },
+    {
+      "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/cleanup-receipt.json",
+      "bytes": 34874,
+      "sha256": "4DC5289E0D293E9DF4E903D8B90B150313C5B384A2FD97F988F5DC0206B23939"
+    },
+    {
+      "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/launch-receipt.json",
+      "bytes": 13891,
+      "sha256": "FC62DC7D2E059A193DC04BAA595874C597E239E57428BA5719094D74C20EDA65"
+    },
+    {
+      "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/prelaunch-notified-20261105T154858195Z-5650d2ed5628423eb70739e935f2f395.json",
+      "bytes": 1983,
+      "sha256": "E20A91AC34C497820B34F61D79090BC8B849DFA842D3D08213F54D2DB7781A47"
+    },
+    {
+      "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-product-Release/settings.ini",
+      "bytes": 1216,
+      "sha256": "570D7126A8124EBB057DEA04614B9AA7EEF034E220D6E1371255B85BB4A68111"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/after/after-captures-e60f.json",
+      "bytes": 71207,
+      "sha256": "B72D4725E35B941E394AF2770C20ACB98F01B735B721D5B8BBC03EBB9BD60711"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/after/e60f-visual-review.json",
+      "bytes": 3085,
+      "sha256": "5C98DCA1AF4A24F119FD3DC164698012E1C44F2FCA8BBAFA11BCA336BB5E764A"
+    }
+  ],
+  "whole_version_PASS": false,
+  "V1": "PARTIAL",
+  "human_UAT": "PENDING",
+  "REA": "NOT_STARTED"
+}

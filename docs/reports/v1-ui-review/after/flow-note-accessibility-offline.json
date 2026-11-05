@@ -1,0 +1,46 @@
+{
+  "schema": "panebind-settings-flow-note-accessibility-offline/1",
+  "scope": "Actual flow_note_role helper on hidden self-owned STATIC controls; no product GUI or synthetic input; not a field text or full UI PASS.",
+  "result": {
+    "result": "PASS",
+    "actual_production_helper": true,
+    "hidden_self_owned_controls_only": true,
+    "product_or_input_started": false,
+    "role_SS_LEFT": 41,
+    "role_unannotated_SS_OWNERDRAW": 40,
+    "set_role_HRESULT": 0,
+    "style_error": 6,
+    "role_annotated_SS_OWNERDRAW": 41,
+    "native_caption_and_all_names_preserved": true,
+    "clear_role_HRESULT": 0,
+    "role_after_clear": 40,
+    "own_windows_destroyed": true
+  },
+  "production_helper_matches_probe_verbatim": true,
+  "production_helper_sha256": "E6ED01D42427977EE0AE3CECE1A9D14B2AA89FBB5254C673F422C849F63168A1",
+  "raw_files": [
+    {
+      "path": "uat/v1-control/settings-ui-followup-20261105/flow-role-offline-fixed-664bbfbace724bafb13399de96c2d0fb/result.json",
+      "bytes": 366,
+      "sha256": "FE9A6A7BB04E2C727049A280D9CEA0A257C82FF3592295517D5B732F800BC379"
+    },
+    {
+      "path": "uat/v1-control/settings-ui-followup-20261105/flow-role-offline-fixed-664bbfbace724bafb13399de96c2d0fb/actual-flow-role.cpp",
+      "bytes": 3889,
+      "sha256": "7F87AEDE52045C46C1FF22ACED6E6BD9B636EC02CF8845DE0E13CD8A23C96825"
+    },
+    {
+      "path": "uat/v1-control/settings-ui-followup-20261105/flow-role-offline-fixed-664bbfbace724bafb13399de96c2d0fb/build.log",
+      "bytes": 22,
+      "sha256": "076722541432CC523E5B122C7E0678BE1B43A4D2AB6745A22E261AF069C445B4"
+    }
+  ],
+  "official_documents": [
+    "https://learn.microsoft.com/en-us/windows/win32/controls/static-control-styles",
+    "https://learn.microsoft.com/en-us/windows/win32/controls/wm-drawitem",
+    "https://learn.microsoft.com/en-us/windows/win32/winauto/static-text",
+    "https://learn.microsoft.com/en-us/windows/win32/api/oleacc/nn-oleacc-iaccpropservices"
+  ],
+  "field_text_result": "NOT_RUN_NEW_IMPLEMENTATION",
+  "previous_c77_narrow_FAIL_preserved": true
+}

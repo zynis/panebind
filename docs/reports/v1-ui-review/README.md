@@ -1,5 +1,8 @@
 # PaneBind V1 设置界面与演示复核（2026-11-05）
 
+当前实测为c77／e60f／144 DPI：六页、两张长页下半部、十二张窄图已取得。[六页原图](after/after-captures-e60f.json)、[实际范围](after/e60f-validation.json)、[窄说明视觉FAIL](after/e60f-visual-review.json)。T02限定通过，T08工具前置失败，T09/T10/T07未执行、0/16帧。原失败与DA7历史保留；正在范围内修复，不以阶段返回或CLI收尾授UI退出通过。以下e60f之前的0图/等待通知描述保留历史时点。
+
+
 [e60f新guest包及部署核验](after/visible-delivery-package-e60f.json)已完成，产品c77／驱动352／打包6c0独立绑定，尚未启动。本轮没有资源或占用查询，等待当前通知后才单次核验。
 
 本轮当前接续：冻结c77产品，352驱动已通过D/R构建、定向离线及宿主拒绝检查；现场顺序固定T01→T02→T08→T09→T10→T07。T03–T06未重跑，历史DA7结果不改绑。c77六页当前0/6，五段演示0/16，均NOT_RUN；停靠增加提交后/撤销前独立帧。当前资源尚未查，旧20:49只是历史。[当前准备证据](after/visible-delivery-preparation-3528059.json)、[集中报告最新段](../V1_DELIVERY_REPORT.md)。以下截图和原表为历史实测，继续保留其身份。

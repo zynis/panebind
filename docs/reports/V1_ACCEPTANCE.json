@@ -30,8 +30,8 @@
       "U4",
       "T01-T10_and_actual_images"
     ],
-    "field_status": "PARTIAL_PRIOR_DA7_CURRENT_C77_NOT_RUN",
-    "reason": "DA7 T02–T06限定实证保留；c77未重建。352驱动已按固定顺序完成构建/离线/宿主保护，新e60f逐文件部署核验通过、未启动。等待本轮时段/资源通知后单次门检；旧20:49快照不当当前值。",
+    "field_status": "PARTIAL_CURRENT_C77_FIELD_WITH_FAIL",
+    "reason": "收到新通知后单次门通过；e60f实际取得c77六页+窄图，T01可达通过但三说明视觉仍FAIL，T02真实J与旧C实证；T08工具HOME后焦点未达失败，后续T09/T10/T07未执行。原失败保留，正在范围内修复，未授整项PASS。",
     "review_path": "docs/reports/v1-ui-review/README.md",
     "T01_T10": {
       "T01": "FAIL_VISUAL_NARROW_NOTES",
@@ -48,27 +48,27 @@
     "current_candidate_does_not_inherit_historical_PASS": true,
     "deferred_order": "200%/100%、双屏/混合DPI、真实虚拟桌面/会话、原生Shake、真实应用初始化、托盘相同UIA前置、NF02与无关Full/900秒均为开发顺序暂缓，最后由产品经理统一安排攻坚；原BLOCKED/FAIL/NOT_RUN和最终门槛不变。",
     "current_candidate_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
-    "current_candidate_field_status": "NOT_RUN",
+    "current_candidate_field_status": "T01_VISUAL_FAIL_T02_SCOPED_PASS_T08_TOOL_FAIL",
     "current_candidate_T01_T10": {
-      "T01": "NOT_RUN",
-      "T02": "NOT_RUN",
+      "T01": "FAIL_VISUAL_NARROW_NOTES_C77",
+      "T02": "PASS_SCOPED_C77_E60F",
       "T03": "NOT_RERUN_HISTORICAL_DA7_EVIDENCE_RETAINED",
       "T04": "NOT_RERUN_HISTORICAL_DA7_EVIDENCE_RETAINED",
       "T05": "NOT_RERUN_HISTORICAL_DA7_EVIDENCE_RETAINED",
       "T06": "NOT_RERUN_HISTORICAL_DA7_EVIDENCE_RETAINED",
-      "T07": "NOT_RUN",
-      "T08": "NOT_RUN",
-      "T09": "NOT_RUN",
-      "T10": "NOT_RUN"
+      "T07": "NOT_EXECUTED_AFTER_T08_TOOL_FAILURE",
+      "T08": "FAIL_TOOL_COMBO_PRECONDITION_C77_E60F",
+      "T09": "NOT_EXECUTED_AFTER_T08_TOOL_FAILURE",
+      "T10": "NOT_EXECUTED_AFTER_T08_TOOL_FAILURE"
     },
     "last_field_product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
     "last_field_product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
     "last_field_run_id": "f28241d9836c46a08d7209f78c12267a",
     "last_field_evidence_path": "docs/reports/v1-ui-review/after/f282-validation.json",
     "visual_failure_evidence_path": "docs/reports/v1-ui-review/after/b453-visual-review.json",
-    "current_images": "NOT_RUN_0_OF_6_C77",
+    "current_images": "C77_SIX_PAGES_PLUS_TWO_BOTTOMS_AND_TWELVE_NARROW_144_DPI",
     "last_field_images": "DA7_SIX_PAGES_PLUS_TWO_BOTTOMS_ORIGINAL_144_DPI",
-    "demo_frames": "NOT_RUN_0_OF_16",
+    "demo_frames": "NOT_EXECUTED_0_OF_16",
     "resource_gate_evidence_path": "docs/reports/v1-ui-review/after/a793-resource-gate.json",
     "followup_driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
     "followup_selected_order": [
@@ -83,7 +83,8 @@
     "followup_guest_run_id": "e60f564f222441d6b52ab8b6cfb0fb25",
     "followup_package_evidence_path": "docs/reports/v1-ui-review/after/visible-delivery-package-e60f.json",
     "followup_guest_deployed": true,
-    "followup_guest_started": false
+    "followup_guest_started": true,
+    "followup_field_evidence_path": "docs/reports/v1-ui-review/after/e60f-validation.json"
   },
   "source_identity": {
     "previous_settings_ui_candidate_1f94_20261105": {

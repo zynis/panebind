@@ -1,0 +1,979 @@
+{
+    "schema":  "panebind-v1-ui-current-captures/1",
+    "review_date":  "2026-11-05",
+    "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+    "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+    "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+    "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+    "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+    "configuration":  "Release",
+    "suite":  "SettingsEditorsOnly",
+    "actual_dpi":  144,
+    "scaling_percent":  150,
+    "collection_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106",
+    "collection_receipt_sha256":  "B4F6FA6793A2F1D4451DA59A67091D5DCA3ECE83699663E42B2DA6AB6831C56D",
+    "all_inventory_verified":  true,
+    "inventory_files":  36,
+    "driver_JSONL_rows":  395,
+    "strict_JSON_and_continuous_producer_sequences":  true,
+    "cross_producer_native_order_not_inferred":  true,
+    "product_bytes_verified":  true,
+    "normal_six_plus_bottoms":  8,
+    "narrow_frames":  12,
+    "demo_frames":  0,
+    "demo_status":  "NOT_EXECUTED_AFTER_T08_FAILURE",
+    "overall_run":  "FAIL_T08_DRAFT_L_COMBO_INPUT",
+    "T01_visual":  "FAIL_NARROW_GENERAL_DESCRIPTION_REMAINS_TRUNCATED",
+    "captures":  [
+                     {
+                         "page":  0,
+                         "page_name":  "常规",
+                         "part":  "top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-0-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-0-top.png",
+                         "source_sha256":  "CEE5EDDC501B39501CBC043B2F593BAC83821D4677E10229AA7DE554C3F049FB",
+                         "published_sha256":  "CEE5EDDC501B39501CBC043B2F593BAC83821D4677E10229AA7DE554C3F049FB",
+                         "bytes":  123270,
+                         "width":  1185,
+                         "height":  1080,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  52,
+                         "capture_tick":  34765,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    2117,
+                                                    1338
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131656,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_MAIN_CONTENT_READABLE_SCOPED",
+                         "visual_notes":  [
+                                              "已逐图目视原尺寸窗口；主要可见中文与按钮可读。长页与列表内部滚动不由单张图授全页功能PASS。"
+                                          ]
+                     },
+                     {
+                         "page":  1,
+                         "page_name":  "磁吸／联动",
+                         "part":  "top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-1-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-1-top.png",
+                         "source_sha256":  "C37585008BB36C59B43A2AFBAB350D0AC3639A5E119EBBD8C519D7718C281BBD",
+                         "published_sha256":  "C37585008BB36C59B43A2AFBAB350D0AC3639A5E119EBBD8C519D7718C281BBD",
+                         "bytes":  116318,
+                         "width":  1185,
+                         "height":  1080,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  60,
+                         "capture_tick":  35390,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    2117,
+                                                    1338
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131656,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_MAIN_CONTENT_READABLE_SCOPED",
+                         "visual_notes":  [
+                                              "已逐图目视原尺寸窗口；主要可见中文与按钮可读。长页与列表内部滚动不由单张图授全页功能PASS。"
+                                          ]
+                     },
+                     {
+                         "page":  2,
+                         "page_name":  "停靠／拉伸",
+                         "part":  "top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-2-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-2-top.png",
+                         "source_sha256":  "EFC2C1BCA0B6C7BDB3712A31C14DFFCE02F71ACDD28162024BF523D404E85A37",
+                         "published_sha256":  "EFC2C1BCA0B6C7BDB3712A31C14DFFCE02F71ACDD28162024BF523D404E85A37",
+                         "bytes":  120672,
+                         "width":  1185,
+                         "height":  1080,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  68,
+                         "capture_tick":  35984,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    2117,
+                                                    1338
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131656,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_MAIN_CONTENT_READABLE_SCOPED",
+                         "visual_notes":  [
+                                              "已逐图目视原尺寸窗口；主要可见中文与按钮可读。长页与列表内部滚动不由单张图授全页功能PASS。"
+                                          ]
+                     },
+                     {
+                         "page":  2,
+                         "page_name":  "停靠／拉伸",
+                         "part":  "bottom",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-2-bottom.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-2-bottom.png",
+                         "source_sha256":  "62C9FE3CDFD63548F5042F6E903F5C840D9967985B8D675A117B9BFB018674CA",
+                         "published_sha256":  "62C9FE3CDFD63548F5042F6E903F5C840D9967985B8D675A117B9BFB018674CA",
+                         "bytes":  122707,
+                         "width":  1185,
+                         "height":  1080,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  72,
+                         "capture_tick":  36625,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    2117,
+                                                    1338
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131656,
+                         "scroll_position":  335,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_MAIN_CONTENT_READABLE_SCOPED",
+                         "visual_notes":  [
+                                              "已逐图目视原尺寸窗口；主要可见中文与按钮可读。长页与列表内部滚动不由单张图授全页功能PASS。"
+                                          ]
+                     },
+                     {
+                         "page":  3,
+                         "page_name":  "快捷键／鼠标",
+                         "part":  "top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-3-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-3-top.png",
+                         "source_sha256":  "BEB81071F2AF8ED4FA5C217E17CF7415D67C1EAB051C423D633CC3BF89CA6935",
+                         "published_sha256":  "BEB81071F2AF8ED4FA5C217E17CF7415D67C1EAB051C423D633CC3BF89CA6935",
+                         "bytes":  124597,
+                         "width":  1185,
+                         "height":  1080,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  78,
+                         "capture_tick":  36984,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    2117,
+                                                    1338
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131656,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_MAIN_CONTENT_READABLE_SCOPED",
+                         "visual_notes":  [
+                                              "已逐图目视原尺寸窗口；主要可见中文与按钮可读。长页与列表内部滚动不由单张图授全页功能PASS。"
+                                          ]
+                     },
+                     {
+                         "page":  3,
+                         "page_name":  "快捷键／鼠标",
+                         "part":  "bottom",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-3-bottom.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-3-bottom.png",
+                         "source_sha256":  "5DC818C89F58485758D9E6006ABA278AA82214DF5F5EC973743C06848020A021",
+                         "published_sha256":  "5DC818C89F58485758D9E6006ABA278AA82214DF5F5EC973743C06848020A021",
+                         "bytes":  127214,
+                         "width":  1185,
+                         "height":  1080,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  82,
+                         "capture_tick":  37234,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    2117,
+                                                    1338
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131656,
+                         "scroll_position":  315,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_MAIN_CONTENT_READABLE_SCOPED",
+                         "visual_notes":  [
+                                              "已逐图目视原尺寸窗口；主要可见中文与按钮可读。长页与列表内部滚动不由单张图授全页功能PASS。"
+                                          ]
+                     },
+                     {
+                         "page":  4,
+                         "page_name":  "应用规则",
+                         "part":  "top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-4-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-4-top.png",
+                         "source_sha256":  "8018EDF496BEE7E3F366886D9E26888D2B8E7108248312CA50A74EC9EA89DA75",
+                         "published_sha256":  "8018EDF496BEE7E3F366886D9E26888D2B8E7108248312CA50A74EC9EA89DA75",
+                         "bytes":  113410,
+                         "width":  1185,
+                         "height":  1080,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  88,
+                         "capture_tick":  37562,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    2117,
+                                                    1338
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131656,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_MAIN_CONTENT_READABLE_SCOPED",
+                         "visual_notes":  [
+                                              "已逐图目视原尺寸窗口；主要可见中文与按钮可读。长页与列表内部滚动不由单张图授全页功能PASS。"
+                                          ]
+                     },
+                     {
+                         "page":  5,
+                         "page_name":  "诊断／外观",
+                         "part":  "top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-5-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-5-top.png",
+                         "source_sha256":  "CE83C9F554C0D4BCAC1B468FD5BA43D1080FF25164062254FC731C3A2D9AC614",
+                         "published_sha256":  "CE83C9F554C0D4BCAC1B468FD5BA43D1080FF25164062254FC731C3A2D9AC614",
+                         "bytes":  128604,
+                         "width":  1185,
+                         "height":  1080,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  96,
+                         "capture_tick":  38062,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    2117,
+                                                    1338
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131656,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_MAIN_CONTENT_READABLE_SCOPED",
+                         "visual_notes":  [
+                                              "已逐图目视原尺寸窗口；主要可见中文与按钮可读。长页与列表内部滚动不由单张图授全页功能PASS。"
+                                          ]
+                     },
+                     {
+                         "page":  0,
+                         "page_name":  "常规",
+                         "part":  "narrow-top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-0-narrow-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-0-narrow-top.png",
+                         "source_sha256":  "7A894F4573A734760FB48F9E184D2975386BB306FDF484AEE151D9D445D41093",
+                         "published_sha256":  "7A894F4573A734760FB48F9E184D2975386BB306FDF484AEE151D9D445D41093",
+                         "bytes":  102561,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  114,
+                         "capture_tick":  39125,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "FAIL_THREE_GENERAL_DESCRIPTIONS_RIGHT_CLIPPED",
+                         "visual_notes":  [
+                                              "保存/取消说明在“不退出程序”之后右裁，未显示“即时暂停／恢复会保留。”",
+                                              "动画说明尾部“增强手势不会等待此动画。”不可见，没有相应续行。",
+                                              "权限说明在“高权限窗口和”之后右裁，未显示“系统桌面不会进入增强手势。”"
+                                          ]
+                     },
+                     {
+                         "page":  0,
+                         "page_name":  "常规",
+                         "part":  "narrow-bottom",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-0-narrow-bottom.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-0-narrow-bottom.png",
+                         "source_sha256":  "B473714B05D59AACD6C3CF517EE91522E8B315D7AFDA6DF0D53EEBCE984E8FA6",
+                         "published_sha256":  "B473714B05D59AACD6C3CF517EE91522E8B315D7AFDA6DF0D53EEBCE984E8FA6",
+                         "bytes":  102610,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  123,
+                         "capture_tick":  39312,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "FAIL_THREE_GENERAL_DESCRIPTIONS_RIGHT_CLIPPED",
+                         "visual_notes":  [
+                                              "保存/取消说明在“不退出程序”之后右裁，未显示“即时暂停／恢复会保留。”",
+                                              "动画说明尾部“增强手势不会等待此动画。”不可见，没有相应续行。",
+                                              "权限说明在“高权限窗口和”之后右裁，未显示“系统桌面不会进入增强手势。”"
+                                          ]
+                     },
+                     {
+                         "page":  1,
+                         "page_name":  "磁吸／联动",
+                         "part":  "narrow-top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-1-narrow-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-1-narrow-top.png",
+                         "source_sha256":  "FDA77F7165B0D2D636FE335BEA4D4D6FCC430FBADA5445D4D762B90EB7A05892",
+                         "published_sha256":  "FDA77F7165B0D2D636FE335BEA4D4D6FCC430FBADA5445D4D762B90EB7A05892",
+                         "bytes":  86375,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  129,
+                         "capture_tick":  39656,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     },
+                     {
+                         "page":  1,
+                         "page_name":  "磁吸／联动",
+                         "part":  "narrow-bottom",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-1-narrow-bottom.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-1-narrow-bottom.png",
+                         "source_sha256":  "8ECEB4B20547CF3EEDBB9864D327C74DCF5E0AE385EF7ADC636CF2DBFB92032A",
+                         "published_sha256":  "8ECEB4B20547CF3EEDBB9864D327C74DCF5E0AE385EF7ADC636CF2DBFB92032A",
+                         "bytes":  82294,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  146,
+                         "capture_tick":  40078,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  210,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     },
+                     {
+                         "page":  2,
+                         "page_name":  "停靠／拉伸",
+                         "part":  "narrow-top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-2-narrow-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-2-narrow-top.png",
+                         "source_sha256":  "8FF7046C5BED1B3A4F3C3862A1A6A9E778E7A0B2700955402423EE2EBEBD25CF",
+                         "published_sha256":  "8FF7046C5BED1B3A4F3C3862A1A6A9E778E7A0B2700955402423EE2EBEBD25CF",
+                         "bytes":  85999,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  154,
+                         "capture_tick":  40437,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     },
+                     {
+                         "page":  2,
+                         "page_name":  "停靠／拉伸",
+                         "part":  "narrow-bottom",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-2-narrow-bottom.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-2-narrow-bottom.png",
+                         "source_sha256":  "557015DAF8B149DDE225ECCCDA53BB5E9A1BBAD5AA6099CA35190C1792B73995",
+                         "published_sha256":  "557015DAF8B149DDE225ECCCDA53BB5E9A1BBAD5AA6099CA35190C1792B73995",
+                         "bytes":  79178,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  191,
+                         "capture_tick":  41125,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  1253,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     },
+                     {
+                         "page":  3,
+                         "page_name":  "快捷键／鼠标",
+                         "part":  "narrow-top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-3-narrow-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-3-narrow-top.png",
+                         "source_sha256":  "BA273C770829AE164A77F6BFB50C43B073CFAED571AAB5C2CF625145D6E44898",
+                         "published_sha256":  "BA273C770829AE164A77F6BFB50C43B073CFAED571AAB5C2CF625145D6E44898",
+                         "bytes":  93140,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  205,
+                         "capture_tick":  41500,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     },
+                     {
+                         "page":  3,
+                         "page_name":  "快捷键／鼠标",
+                         "part":  "narrow-bottom",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-3-narrow-bottom.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-3-narrow-bottom.png",
+                         "source_sha256":  "9FA3603D128C30BD6F54B021BCF74DB5640F4CA521E192D1BA74211C82092154",
+                         "published_sha256":  "9FA3603D128C30BD6F54B021BCF74DB5640F4CA521E192D1BA74211C82092154",
+                         "bytes":  92961,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  218,
+                         "capture_tick":  41750,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  672,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_HORIZONTAL_COLUMNS_NOT_FULLY_SHOWN",
+                         "visual_notes":  [
+                                              "鼠标列表与添加按钮可见；执行动作列在当前横向滚动位置右侧，不据此认定缺失或已验证滚动。"
+                                          ]
+                     },
+                     {
+                         "page":  4,
+                         "page_name":  "应用规则",
+                         "part":  "narrow-top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-4-narrow-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-4-narrow-top.png",
+                         "source_sha256":  "9DF06180D8C1BBC1DDD1571E6BE6BCFCDC97923A8BC9D90B79E02423C6EA9334",
+                         "published_sha256":  "9DF06180D8C1BBC1DDD1571E6BE6BCFCDC97923A8BC9D90B79E02423C6EA9334",
+                         "bytes":  82024,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  229,
+                         "capture_tick":  42109,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     },
+                     {
+                         "page":  4,
+                         "page_name":  "应用规则",
+                         "part":  "narrow-bottom",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-4-narrow-bottom.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-4-narrow-bottom.png",
+                         "source_sha256":  "362463A9E3FE69DAB5A0EB82B54BC6CB60F4E666A8B44C003D861B4F629964D2",
+                         "published_sha256":  "362463A9E3FE69DAB5A0EB82B54BC6CB60F4E666A8B44C003D861B4F629964D2",
+                         "bytes":  80404,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  238,
+                         "capture_tick":  42375,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  189,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     },
+                     {
+                         "page":  5,
+                         "page_name":  "诊断／外观",
+                         "part":  "narrow-top",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-5-narrow-top.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-5-narrow-top.png",
+                         "source_sha256":  "E4F933F3742EA7789883D8D614DD42792FF3E6DC97A698DBB400BB67AA5F5876",
+                         "published_sha256":  "E4F933F3742EA7789883D8D614DD42792FF3E6DC97A698DBB400BB67AA5F5876",
+                         "bytes":  87410,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  244,
+                         "capture_tick":  42687,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  0,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     },
+                     {
+                         "page":  5,
+                         "page_name":  "诊断／外观",
+                         "part":  "narrow-bottom",
+                         "published_path":  "docs/reports/v1-ui-review/after/e60f-page-5-narrow-bottom.png",
+                         "source_path":  "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/e60f564f222441d6b52ab8b6cfb0fb25/collection-20261105T155049703Z-96df12c814cd4382847630d7fa2e8106/e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-5-narrow-bottom.png",
+                         "source_sha256":  "33FBBA7C8949F8BCD010427AF8A3202017FBB752F6FEF82B8276AAB177132E55",
+                         "published_sha256":  "33FBBA7C8949F8BCD010427AF8A3202017FBB752F6FEF82B8276AAB177132E55",
+                         "bytes":  83411,
+                         "width":  855,
+                         "height":  840,
+                         "actual_dpi":  144,
+                         "product_source_sha":  "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+                         "product_exe_sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                         "driver_source_sha":  "3528059b33963afd1488f1c70445f770e9858dae",
+                         "driver_exe_sha256":  "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+                         "run_id":  "e60f564f222441d6b52ab8b6cfb0fb25",
+                         "capture_sequence":  263,
+                         "capture_tick":  43031,
+                         "actual_window_rect":  [
+                                                    932,
+                                                    258,
+                                                    1787,
+                                                    1098
+                                                ],
+                         "product_PID":  6764,
+                         "product_TID":  6756,
+                         "root_HWND":  131910,
+                         "scroll_position":  327,
+                         "original_pixels":  true,
+                         "byte_identical_copy":  true,
+                         "visual_review":  "OBSERVED_VISIBLE_CONTROLS_READABLE_SCROLLABLE_REMAINDER_UNASSESSED",
+                         "visual_notes":  [
+                                              "当前可见中文、输入或按钮可读，焦点框可见；顶部/末焦点切片未展示全部页内说明，不把离屏部分算已目视。"
+                                          ]
+                     }
+                 ],
+    "verified_collection_inventory":  [
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-2-top.png",
+                                              "size":  120672,
+                                              "sha256":  "EFC2C1BCA0B6C7BDB3712A31C14DFFCE02F71ACDD28162024BF523D404E85A37",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-2-narrow-top.png",
+                                              "size":  85999,
+                                              "sha256":  "8FF7046C5BED1B3A4F3C3862A1A6A9E778E7A0B2700955402423EE2EBEBD25CF",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-3-narrow-bottom.png",
+                                              "size":  92961,
+                                              "sha256":  "9FA3603D128C30BD6F54B021BCF74DB5640F4CA521E192D1BA74211C82092154",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-3-bottom.png",
+                                              "size":  127214,
+                                              "sha256":  "5DC818C89F58485758D9E6006ABA278AA82214DF5F5EC973743C06848020A021",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-2-narrow-bottom.png",
+                                              "size":  79178,
+                                              "sha256":  "557015DAF8B149DDE225ECCCDA53BB5E9A1BBAD5AA6099CA35190C1792B73995",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-1-narrow-top.png",
+                                              "size":  86375,
+                                              "sha256":  "FDA77F7165B0D2D636FE335BEA4D4D6FCC430FBADA5445D4D762B90EB7A05892",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-1-narrow-bottom.png",
+                                              "size":  82294,
+                                              "sha256":  "8ECEB4B20547CF3EEDBB9864D327C74DCF5E0AE385EF7ADC636CF2DBFB92032A",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-2-bottom.png",
+                                              "size":  122707,
+                                              "sha256":  "62C9FE3CDFD63548F5042F6E903F5C840D9967985B8D675A117B9BFB018674CA",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-1-top.png",
+                                              "size":  116318,
+                                              "sha256":  "C37585008BB36C59B43A2AFBAB350D0AC3639A5E119EBBD8C519D7718C281BBD",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-5-narrow-top.png",
+                                              "size":  87410,
+                                              "sha256":  "E4F933F3742EA7789883D8D614DD42792FF3E6DC97A698DBB400BB67AA5F5876",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-5-narrow-bottom.png",
+                                              "size":  83411,
+                                              "sha256":  "33FBBA7C8949F8BCD010427AF8A3202017FBB752F6FEF82B8276AAB177132E55",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "panebind-v1-output.marker",
+                                              "size":  32,
+                                              "sha256":  "9711765E61765A230815427BC4801D21D23661F30662BD032E521BF11F185D3D",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-5-top.png",
+                                              "size":  128604,
+                                              "sha256":  "CE83C9F554C0D4BCAC1B468FD5BA43D1080FF25164062254FC731C3A2D9AC614",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-4-top.png",
+                                              "size":  113410,
+                                              "sha256":  "8018EDF496BEE7E3F366886D9E26888D2B8E7108248312CA50A74EC9EA89DA75",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-3-top.png",
+                                              "size":  124597,
+                                              "sha256":  "BEB81071F2AF8ED4FA5C217E17CF7415D67C1EAB051C423D633CC3BF89CA6935",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-3-narrow-top.png",
+                                              "size":  93140,
+                                              "sha256":  "BA273C770829AE164A77F6BFB50C43B073CFAED571AAB5C2CF625145D6E44898",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-4-narrow-top.png",
+                                              "size":  82024,
+                                              "sha256":  "9DF06180D8C1BBC1DDD1571E6BE6BCFCDC97923A8BC9D90B79E02423C6EA9334",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-4-narrow-bottom.png",
+                                              "size":  80404,
+                                              "sha256":  "362463A9E3FE69DAB5A0EB82B54BC6CB60F4E666A8B44C003D861B4F629964D2",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-便携 中文 空格\\PaneBindV1\\panebind.exe",
+                                              "size":  1303040,
+                                              "sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-便携 中文 空格\\PaneBindV1\\manifest.json",
+                                              "size":  20613,
+                                              "sha256":  "AA87E05D148CD2BD2BC22FE9D75095D4F3D398554691163BCF41BFD70C46B439",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-便携 中文 空格\\PaneBindV1\\中文快速入门.md",
+                                              "size":  12077,
+                                              "sha256":  "0544E3AD3B17C1415D0ACB68EDF9FE90485600CA04E63056A4DEBE86D01CBF00",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-便携 中文 空格\\PaneBindV1\\portable.flag",
+                                              "size":  31,
+                                              "sha256":  "E34DC6330A1F436DCAA38AD7E33E33C6993CEB4BCB9DB3BC43AE83B1BC8D6E97",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-便携 中文 空格\\PaneBindV1\\LICENSE",
+                                              "size":  1099,
+                                              "sha256":  "F024AABB093CF44DC8A93EC30E22A7A43BB208E5CEDC06448E5262CD657C899C",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-product-Release\\panebind.log.jsonl",
+                                              "size":  12515,
+                                              "sha256":  "D6BEB7771EDB160C61FC31CCC89660F833C2049C7D530CD14B89064C4EDC2EF9",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-product-Release\\panebind.exe",
+                                              "size":  1303040,
+                                              "sha256":  "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-product-Release\\settings.ini",
+                                              "size":  1216,
+                                              "sha256":  "570D7126A8124EBB057DEA04614B9AA7EEF034E220D6E1371255B85BB4A68111",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-product-Release\\portable.flag",
+                                              "size":  36,
+                                              "sha256":  "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-0-narrow-bottom.png",
+                                              "size":  102610,
+                                              "sha256":  "B473714B05D59AACD6C3CF517EE91522E8B315D7AFDA6DF0D53EEBCE984E8FA6",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-launch.json",
+                                              "size":  60665,
+                                              "sha256":  "5F98583CB2605946AB8152DCFB353E0A401D49B9DC63F36365CA01C71AAC5F5D",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-0-top.png",
+                                              "size":  123270,
+                                              "sha256":  "CEE5EDDC501B39501CBC043B2F593BAC83821D4677E10229AA7DE554C3F049FB",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-Release-ui-page-0-narrow-top.png",
+                                              "size":  102561,
+                                              "sha256":  "7A894F4573A734760FB48F9E184D2975386BB306FDF484AEE151D9D445D41093",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-release-fixture.jsonl",
+                                              "size":  253124,
+                                              "sha256":  "94254DC7AAA454CFFA7A7529E12BCADD47040ED84CB4E6A1E3EA58B3795A25C8",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-便携 中文 空格\\PaneBindV1\\配置说明.md",
+                                              "size":  3446,
+                                              "sha256":  "98E64F3C12122FDE22E9FBB960349BE8C46FC02712752B6C5354A4A5615F9052",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-便携 中文 空格\\PaneBindV1\\已知问题.md",
+                                              "size":  7981,
+                                              "sha256":  "A3749782B4958631AC40CDC405401CF2D27094AFFAA37F35E097A53D01C42FD7",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-portable-ready.marker",
+                                              "size":  302,
+                                              "sha256":  "214047110ECB235919579A96286B78836099FFC59317BA6219E2EFE523BB11FC",
+                                              "before_after_local_match":  true
+                                          },
+                                          {
+                                              "relative_path":  "e60f564f222441d6b52ab8b6cfb0fb25-guest-summary.json",
+                                              "size":  82806,
+                                              "sha256":  "AF9388D15F009BA924D92E7ED674F91F519A22648520DEB2BD9650BEAFD5F71E",
+                                              "before_after_local_match":  true
+                                          }
+                                      ],
+    "visual_reviewed_at_utc":  "2026-11-05T16:02:42.3829640Z",
+    "visual_review_scope":  "20 original-size PNGs viewed; screenshots are observations, not new real-app/tray/whole-version acceptance",
+    "T01_visual_notes":  [
+                             "六页与两张长页下半部已取得c77原图。",
+                             "窄常规页三段长说明仍裁尾，c77修复不能凭构建或控件可达判通过。",
+                             "其它窄页只对当前可见区域评价；离屏说明与横向未显示列保持未核。",
+                             "本Run T08工具失败后T09/T10/T07未执行，实际demo帧为0，不制造16帧。"
+                         ]
+}

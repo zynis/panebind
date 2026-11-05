@@ -1294,10 +1294,10 @@
     "expected_demo_frames": 16,
     "dock_commit_has_own_frame": true,
     "native_picker_and_HEX_verdicts_separate": true,
-    "current_field_status": "NOT_RUN",
+    "current_field_status": "FAIL_T01_VISUAL_AND_T08_TOOL_WITH_T02_SCOPED_PASS",
     "driver_build_status": "DEBUG_RELEASE_BUILD_OFFLINE_AND_HOST_GUARD_PASS",
-    "current_availability": "AWAITING_CURRENT_NOTIFICATION",
-    "current_resources": "NOT_CHECKED_THIS_ROUND",
+    "current_availability": "USER_NOTIFIED_AVAILABLE_SINGLE_GATE_PASSED",
+    "current_resources": "ONE_CURRENT_CIM_SAMPLE_PASSED_NOT_POLLED",
     "historical_2049_snapshot_is_current": false,
     "planned_guest_run_id": "e60f564f222441d6b52ab8b6cfb0fb25",
     "new_guest_generated": true,
@@ -1314,7 +1314,7 @@
       "sha256": "1B720E70F8D11604082711254F1A8317E9AB3332680A47D13791BA4D1BD94620"
     },
     "driver_release_sha256": "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
-    "new_guest_started": false,
+    "new_guest_started": true,
     "packaging_head": "6c0fc092c17fbb8f8b89c929b122f04bf53e1f04",
     "guest_package_evidence": {
       "path": "docs/reports/v1-ui-review/after/visible-delivery-package-e60f.json",
@@ -1326,6 +1326,31 @@
       "bytes": 2919,
       "sha256": "9E4519E0D38FA61AE5269CA97C11A86B0F64F9BBC948A3C28F063C452B1BB80E"
     },
-    "deferred_field_reason": "Awaiting a current PaneBind Sandbox slot/resource-availability notification before the single authorized launch precheck. No current resource insufficiency is asserted from historical values."
+    "deferred_field_reason": null,
+    "field_run_e60f": {
+      "run_id": "e60f564f222441d6b52ab8b6cfb0fb25",
+      "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+      "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+      "actual_dpi": 144,
+      "validation": {
+        "path": "docs/reports/v1-ui-review/after/e60f-validation.json",
+        "bytes": 18222,
+        "sha256": "E3C4628E486A2F835D85AF554D5BD74F6294674FFE0B9D2D980682360A07377F"
+      },
+      "images": {
+        "path": "docs/reports/v1-ui-review/after/after-captures-e60f.json",
+        "bytes": 71207,
+        "sha256": "B72D4725E35B941E394AF2770C20ACB98F01B735B721D5B8BBC03EBB9BD60711"
+      },
+      "visual_review": {
+        "path": "docs/reports/v1-ui-review/after/e60f-visual-review.json",
+        "bytes": 3085,
+        "sha256": "5C98DCA1AF4A24F119FD3DC164698012E1C44F2FCA8BBAFA11BCA336BB5E764A"
+      },
+      "original_T08_failure_retained": true,
+      "T09_T10_T07": "NOT_EXECUTED_AFTER_EARLIER_FAILURE",
+      "same_window_in_scope_repairs": "IN_PROGRESS_NO_NEW_RESULT_CLAIMED",
+      "guest_and_own_task_cleaned_evidence_retained": true
+    }
   }
 }
