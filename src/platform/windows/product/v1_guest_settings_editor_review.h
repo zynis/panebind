@@ -211,8 +211,39 @@ void review_chord(State& s,WORD code){
     if(!desktop()||!own(s,h)||GetForegroundWindow()!=h)throw std::runtime_error("settings_review_hotkey_source_changed");
     key(s,VK_CONTROL,true);key(s,VK_MENU,true);key(s,code,true);key(s,code,false);key(s,VK_MENU,false);key(s,VK_CONTROL,false);
 }
+void review_require_saved_baseline(State& s){
+    settings_guest_scope(s);
+    if(s.suite!="SettingsEditorsOnly")throw std::runtime_error("settings_review_saved_baseline_wrong_suite");
+    const auto path=s.product.parent_path()/L"settings.ini";
+    if(!plain_directory(path.parent_path()))throw std::runtime_error("settings_review_baseline_parent_not_plain");
+    SetLastError(0);const DWORD before_attributes=GetFileAttributesW(path.c_str());
+    const DWORD before_error=before_attributes==INVALID_FILE_ATTRIBUTES?GetLastError():0;
+    if(before_attributes!=INVALID_FILE_ATTRIBUTES){
+        if(before_attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))throw std::runtime_error("settings_review_existing_baseline_not_regular");
+        (void)chain_settings(s); // Existing malformed/inaccessible data never falls back.
+        return;
+    }
+    if(before_error!=ERROR_FILE_NOT_FOUND)throw std::runtime_error("settings_review_baseline_absence_not_confirmed");
+    const auto driver_mark=s.log.mark();const auto gui=gui_open(s);
+    // A fresh product deliberately uses in-memory defaults before its first
+    // save. Establish the test's persisted baseline through the public GUI,
+    // without editing a control or writing a configuration file in the driver.
+    gui_save_enter(s,gui);
+    const DWORD after_attributes=GetFileAttributesW(path.c_str());
+    if(after_attributes==INVALID_FILE_ATTRIBUTES||(after_attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))
+        throw std::runtime_error("settings_review_baseline_actual_GUI_Save_did_not_create_regular_file");
+    const auto saved=chain_settings(s);auto expected=v1::default_settings();expected.generation=saved.generation;
+    std::string save_receipt,line;std::istringstream rows(s.log.since(driver_mark));
+    while(std::getline(rows,line))if(line.find("\"case\":\"GUI_actual_Enter_saved_and_closed\",\"result\":\"PASS\"")!=line.npos)save_receipt=line;
+    s.log.check("settings_review_missing_baseline_created_by_actual_unedited_GUI_Save",saved==expected&&saved.generation>1&&!save_receipt.empty(),
+        "\"product_source_sha\":"+quote(s.product_source)+",\"product_EXE_sha256\":"+quote(hash(s.product))+
+        ",\"product_PID\":"+std::to_string(s.product_pid)+",\"before_GetFileAttributes_error\":"+std::to_string(before_error)+
+        ",\"actual_saved_file_sha256\":"+quote(hash(path))+",\"actual_saved_generation\":"+std::to_string(saved.generation)+
+        ",\"actual_driver_GUI_input_receipt\":"+quote(save_receipt)+",\"product_save_callback_return_separately_instrumented\":false"+
+        ",\"direct_test_configuration_write\":false,\"parse_failure_fallback\":false");
+}
 void owned_settings_ui_hotkey_case(State& s){
-    settings_guest_scope(s);const auto original=chain_settings(s);const auto bytes=read(s.product.parent_path()/L"settings.ini");
+    review_require_saved_baseline(s);const auto original=chain_settings(s);const auto bytes=read(s.product.parent_path()/L"settings.ini");
     const auto center=std::find_if(original.hotkeys.begin(),original.hotkeys.end(),[](const auto& h){return h.modifiers==3&&h.key=='C'&&h.action==v1::Action::Center;});
     if(center==original.hotkeys.end())throw std::runtime_error("settings_review_T02_requires_actual_default_Center_mapping");
     const auto row=static_cast<std::size_t>(center-original.hotkeys.begin());
