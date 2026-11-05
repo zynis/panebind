@@ -3,10 +3,11 @@
   "task_date": "2026-11-05",
   "starting_sha": "42bbdb4e80528db4fc2b9e7bd051e4b59765524b",
   "branch": "codex/r1c4b-live-magnet",
-  "product_source_sha": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
+  "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
   "implementation_commits": [
     "583b9892c99f37307ad612492bdee800a5eb51a3",
-    "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354"
+    "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
+    "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1"
   ],
   "engineering_status": "PARTIAL",
   "human_uat": "PENDING",
@@ -102,32 +103,62 @@
   },
   "builds": {
     "Debug": {
-      "product_source_sha": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
+      "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
       "product_path": "out/v1-settings-ui-20261105/src/platform/windows/Debug/panebind.exe",
-      "product_bytes": 4470272,
-      "product_sha256": "2081736C0E4D4BC20417ACA506F306BA30400FB1E9D64C0720E064BF9A9024CE",
-      "driver_source_sha": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
+      "product_bytes": 4470784,
+      "product_sha256": "C748C6C4F985FB354FB5DA53892469FAAB9F1CEFB5CF2C8548ECABC739E29F85",
+      "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
       "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
       "driver_bytes": 11820032,
-      "driver_sha256": "7A3262B81DC3439AD4E361F9C8BBA3DD7B80A6BC6F52AF8C586EB4E57CC032EF",
+      "driver_sha256": "97CC1A728247D451818B74768A611A19940AFD0167B4900D9A015F5FF4D70D9E",
       "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
       "product_build": "PASS",
       "driver_build": "PASS",
-      "UI_launched_on_host": false
+      "UI_launched_on_host": false,
+      "product_identity": {
+        "product": "PaneBind",
+        "version": "1.0.0-dev",
+        "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+        "subsystem": "windows",
+        "requires_elevation": false
+      },
+      "driver_identity": {
+        "product": "PaneBind V1 guest fixture",
+        "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+        "host_synthetic_input": "forbidden",
+        "requires_medium_guest": true,
+        "guest_contract": "panebind-v1-guest-contract/2",
+        "product_interface": "panebind-v1-product-guest-interface/1"
+      }
     },
     "Release": {
-      "product_source_sha": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
+      "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
       "product_path": "out/v1-settings-ui-20261105/src/platform/windows/Release/panebind.exe",
-      "product_bytes": 1299968,
-      "product_sha256": "AC6304A78C7653BDD84EF948C348CD5D1EFFB9C0E9C09DFA7A548FA53E387169",
-      "driver_source_sha": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
+      "product_bytes": 1300480,
+      "product_sha256": "11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82",
+      "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
       "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
       "driver_bytes": 5004800,
-      "driver_sha256": "011B875BFBB6894B10EFD0F0727D11372734AF75412815F00D1C88C016284157",
+      "driver_sha256": "63210527ADE72CC480BA1582B378A37A78C7A95C820683DAE09C23FD8425A740",
       "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
       "product_build": "PASS",
       "driver_build": "PASS",
-      "UI_launched_on_host": false
+      "UI_launched_on_host": false,
+      "product_identity": {
+        "product": "PaneBind",
+        "version": "1.0.0-dev",
+        "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+        "subsystem": "windows",
+        "requires_elevation": false
+      },
+      "driver_identity": {
+        "product": "PaneBind V1 guest fixture",
+        "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+        "host_synthetic_input": "forbidden",
+        "requires_medium_guest": true,
+        "guest_contract": "panebind-v1-guest-contract/2",
+        "product_interface": "panebind-v1-product-guest-interface/1"
+      }
     }
   },
   "offline": {
@@ -244,5 +275,82 @@
       "bytes": 1162,
       "sha256": "8CA242A26BF37BB5EFD0B1E0DD520FFB8EB612E753C41697D64D1BF376CA1CBE"
     }
-  ]
+  ],
+  "previous_candidates": [
+    {
+      "product_source_sha": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
+      "builds": {
+        "Debug": {
+          "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+          "product_path": "out/v1-settings-ui-20261105/src/platform/windows/Debug/panebind.exe",
+          "product_bytes": 4470784,
+          "product_sha256": "C748C6C4F985FB354FB5DA53892469FAAB9F1CEFB5CF2C8548ECABC739E29F85",
+          "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+          "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Debug/panebind-v1-guest-fixture.exe",
+          "driver_bytes": 11820032,
+          "driver_sha256": "97CC1A728247D451818B74768A611A19940AFD0167B4900D9A015F5FF4D70D9E",
+          "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+          "product_build": "PASS",
+          "driver_build": "PASS",
+          "UI_launched_on_host": false,
+          "product_identity": {
+            "product": "PaneBind",
+            "version": "1.0.0-dev",
+            "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+            "subsystem": "windows",
+            "requires_elevation": false
+          },
+          "driver_identity": {
+            "product": "PaneBind V1 guest fixture",
+            "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+            "host_synthetic_input": "forbidden",
+            "requires_medium_guest": true,
+            "guest_contract": "panebind-v1-guest-contract/2",
+            "product_interface": "panebind-v1-product-guest-interface/1"
+          }
+        },
+        "Release": {
+          "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+          "product_path": "out/v1-settings-ui-20261105/src/platform/windows/Release/panebind.exe",
+          "product_bytes": 1300480,
+          "product_sha256": "11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82",
+          "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+          "driver_path": "out/v1-settings-ui-driver/src/platform/windows/Release/panebind-v1-guest-fixture.exe",
+          "driver_bytes": 5004800,
+          "driver_sha256": "63210527ADE72CC480BA1582B378A37A78C7A95C820683DAE09C23FD8425A740",
+          "runtime": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+          "product_build": "PASS",
+          "driver_build": "PASS",
+          "UI_launched_on_host": false,
+          "product_identity": {
+            "product": "PaneBind",
+            "version": "1.0.0-dev",
+            "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+            "subsystem": "windows",
+            "requires_elevation": false
+          },
+          "driver_identity": {
+            "product": "PaneBind V1 guest fixture",
+            "source_commit": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+            "host_synthetic_input": "forbidden",
+            "requires_medium_guest": true,
+            "guest_contract": "panebind-v1-guest-contract/2",
+            "product_interface": "panebind-v1-product-guest-interface/1"
+          }
+        }
+      },
+      "field_status": "NOT_RUN",
+      "packaging_head": "67b315207cc5711d090b192ebcc8946a6d9ee801",
+      "portable_id": "bdece529b1cc4f75be5d75730ee2da46",
+      "ui_capture_run": "04e8281565b44627b8860b658e1f6c64",
+      "editors_run": "f3736cb15af34932b0a84692ffccbf78",
+      "disposition": "SUPERSEDED_BY_POST_COMMAND_ACTUAL_STATE_ACK; original binaries/packages/deploy receipts retained"
+    }
+  ],
+  "immediate_runtime_ack": {
+    "source": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+    "reason": "Immediate pause/resume must synchronize enabled even if actual state stays unchanged after a rejected command; ordinary UI events only sync on actual state changes",
+    "changes_other_draft_fields": false,
+    "field_status": "NOT_RUN"
+  }
 }

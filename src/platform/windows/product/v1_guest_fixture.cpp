@@ -4077,6 +4077,7 @@ void drive(State& s){
                 s.log.emit("settings_ui_targeted_phase","\"name\":"+quote(name)+",\"status\":\"RETURNED\",\"return_not_ui_PASS\":true");
             };
             try{
+                phase("T01_six_original_size_pages",owned_settings_ui_review_capture);
                 phase("T01_narrow_real_controls",owned_settings_ui_narrow_case);
                 phase("T02_structured_hotkey",owned_settings_ui_hotkey_case);
                 phase("T03_actual_conflicts",owned_settings_ui_conflicts_case);

@@ -49,13 +49,27 @@
     "deferred_order": "200%/100%、双屏/混合DPI、真实虚拟桌面/会话、原生Shake、真实应用初始化、托盘相同UIA前置、NF02与无关Full/900秒均为开发顺序暂缓，最后由产品经理统一安排攻坚；原BLOCKED/FAIL/NOT_RUN和最终门槛不变。"
   },
   "source_identity": {
-    "settings_ui_candidate_20261105": {
+    "previous_settings_ui_candidate_1f94_20261105": {
       "product_source_sha": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
       "release_product_sha256": "AC6304A78C7653BDD84EF948C348CD5D1EFFB9C0E9C09DFA7A548FA53E387169",
       "debug_product_sha256": "2081736C0E4D4BC20417ACA506F306BA30400FB1E9D64C0720E064BF9A9024CE",
       "driver_source_sha": "1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354",
       "release_driver_sha256": "011B875BFBB6894B10EFD0F0727D11372734AF75412815F00D1C88C016284157",
       "debug_driver_sha256": "7A3262B81DC3439AD4E361F9C8BBA3DD7B80A6BC6F52AF8C586EB4E57CC032EF",
+      "implementation_status": "U1_U2_U3_U4_IMPLEMENTED",
+      "offline_status": "DEBUG_RELEASE_BUILD_PASS_4_OF_4_TARGETED_TESTS_EACH",
+      "field_status": "NOT_RUN_SANDBOX_OTHER_PROJECT_OCCUPIED",
+      "evidence_path": "docs/reports/v1-ui-review/review.json",
+      "historical_runtime_evidence_rebound": false,
+      "new_feature_PASS_awarded": 0
+    },
+    "settings_ui_candidate_20261105": {
+      "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+      "release_product_sha256": "11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82",
+      "debug_product_sha256": "C748C6C4F985FB354FB5DA53892469FAAB9F1CEFB5CF2C8548ECABC739E29F85",
+      "driver_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+      "release_driver_sha256": "63210527ADE72CC480BA1582B378A37A78C7A95C820683DAE09C23FD8425A740",
+      "debug_driver_sha256": "97CC1A728247D451818B74768A611A19940AFD0167B4900D9A015F5FF4D70D9E",
       "implementation_status": "U1_U2_U3_U4_IMPLEMENTED",
       "offline_status": "DEBUG_RELEASE_BUILD_PASS_4_OF_4_TARGETED_TESTS_EACH",
       "field_status": "NOT_RUN_SANDBOX_OTHER_PROJECT_OCCUPIED",

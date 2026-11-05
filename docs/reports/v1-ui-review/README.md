@@ -2,7 +2,7 @@
 
 **新候选已实现并构建；新界面截图、动作帧和T01–T10现场验证尚未取得。** 不把旧图片当成新界面，也不提供效果图替代。当前Sandbox属于象流，不能接管、抢占或启动第二实例；已发出释放时段询问，期间不轮询。
 
-产品源码 `1f94a975fd4eb1dcd73bea605cebc4aa9c9d8354`，Release EXE SHA-256 `AC6304A78C7653BDD84EF948C348CD5D1EFFB9C0E9C09DFA7A548FA53E387169`。产品、驱动、包和运行各自绑定，详见[复核元数据](review.json)及[集中报告](../V1_DELIVERY_REPORT.md)。普通宿主试用未开放，真人UAT PENDING、REA NOT_STARTED。
+产品源码 `1aabd344ad88bfcf36d7d611ee809a6da1e10ea1`，Release EXE SHA-256 `11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82`。产品、驱动、包和运行各自绑定，详见[复核元数据](review.json)及[集中报告](../V1_DELIVERY_REPORT.md)。普通宿主试用未开放，真人UAT PENDING、REA NOT_STARTED。
 
 ## 新界面（after）
 
