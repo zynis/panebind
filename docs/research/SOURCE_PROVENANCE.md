@@ -3934,3 +3934,11 @@ The new editor's offline tests do not establish real native UI interaction,
 preview color appearance, 150% layout, or successful hotkey registration;
 those require the matching candidate's targeted guest evidence. No additional
 external-code attribution is required by this documentation-only review.
+
+
+### 2026-11-05：T01真实ComboBox焦点/布局读数
+
+- 来源：Microsoft Win32官方文档 COMBOBOXINFO、GetComboBoxInfo、CB_GETDROPPEDSTATE；URL分别为 https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-comboboxinfo 、https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getcomboboxinfo 、https://learn.microsoft.com/en-us/windows/win32/controls/cb-getdroppedstate 。系统API/SDK定义参考，无外部实现复制或改编。
+- 适用范围：TEST-only T01在真实键盘焦点到达后，等待原有屏幕矩形可达谓词稳定；不改变产品布局、控件状态、动作或窗口权限，不延伸输入机制。
+- 实际依据：36f8 seq179最后ComboBox回读高420px，而此前同列为35px；仅有focus和单次矩形不足以确认布局已完成。保留原FAIL，不预设系统原因。
+- 官方边界：CB_GETDROPPEDSTATE表示列表是否可见；COMBOBOXINFO说明edit/button矩形，却没有在该页明确坐标系。rcItem/rcButton只记原始诊断，不作未经确认的坐标偏移或放行依据。GetWindowRect屏幕矩形及原可达断言不变；500ms有界只读等待未满足仍FAIL。未检视/复制新的第三方实现，未修改产品EXE。

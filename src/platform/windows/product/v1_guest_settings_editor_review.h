@@ -4,6 +4,52 @@
 // UI actions below are real paired input. Native messages only read actual
 // controls; no BM_CLICK/WM_COMMAND/WM_SETTEXT or private mutation API is used.
 struct ReviewEditor {HWND root{};DWORD tid{};};
+struct ReviewReachSample {
+    RECT target{},page{};HWND focus{};
+};
+ReviewReachSample review_reach_sample(State& s,const SettingsGui& gui,HWND panel,HWND control){
+    ReviewReachSample sample;
+    if(!desktop()||!gui_identity(s,gui,control)||!gui_identity(s,gui,panel)||GetForegroundWindow()!=gui.root||
+       GetParent(control)!=panel||!GetWindowRect(control,&sample.target)||!GetWindowRect(panel,&sample.page))
+        throw std::runtime_error("settings_review_narrow_focus_bounds_or_identity_unknown");
+    sample.focus=gui_focus(gui);return sample;
+}
+struct ReviewComboFacts {
+    bool queried{},info_known{},dropped_known{};DWORD info_error{},dropped_error{};DWORD_PTR dropped{};
+    COMBOBOXINFO info{sizeof(info)};std::uint64_t elapsed_ms{};
+};
+ReviewComboFacts review_combo_facts(State& s,const SettingsGui& gui,HWND control){
+    ReviewComboFacts facts;
+    if(gui_class(control)!=L"ComboBox")return facts;
+    if(!gui_identity(s,gui,control))throw std::runtime_error("settings_review_combo_identity_changed_before_read");
+    const auto begin=GetTickCount64();facts.queried=true;
+    SetLastError(0);facts.info_known=GetComboBoxInfo(control,&facts.info)!=FALSE;facts.info_error=facts.info_known?0:GetLastError();
+    SetLastError(0);facts.dropped_known=SendMessageTimeoutW(control,CB_GETDROPPEDSTATE,0,0,
+        SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&facts.dropped)!=FALSE;facts.dropped_error=facts.dropped_known?0:GetLastError();
+    facts.elapsed_ms=GetTickCount64()-begin;
+    if(!gui_identity(s,gui,control))throw std::runtime_error("settings_review_combo_identity_changed_during_read");
+    return facts;
+}
+std::string review_reach_json(const ReviewReachSample& sample){
+    return "{\"rect\":"+rect({sample.target.left,sample.target.top,sample.target.right,sample.target.bottom})+
+        ",\"page_rect\":"+rect({sample.page.left,sample.page.top,sample.page.right,sample.page.bottom})+
+        ",\"focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(sample.focus))+"}";
+}
+std::string review_combo_json(const ReviewComboFacts& facts){
+    if(!facts.queried)return "null";
+    return "{\"GetComboBoxInfo_called\":true,\"info_known\":"+std::string(facts.info_known?"true":"false")+
+        ",\"info_error\":"+std::to_string(facts.info_error)+",\"hwndCombo\":"+
+        (facts.info_known?std::to_string(reinterpret_cast<std::uintptr_t>(facts.info.hwndCombo)):"null")+
+        ",\"hwndItem\":"+(facts.info_known?std::to_string(reinterpret_cast<std::uintptr_t>(facts.info.hwndItem)):"null")+
+        ",\"hwndList\":"+(facts.info_known?std::to_string(reinterpret_cast<std::uintptr_t>(facts.info.hwndList)):"null")+
+        ",\"rcItem_raw\":"+(facts.info_known?rect({facts.info.rcItem.left,facts.info.rcItem.top,facts.info.rcItem.right,facts.info.rcItem.bottom}):"null")+
+        ",\"rcButton_raw\":"+(facts.info_known?rect({facts.info.rcButton.left,facts.info.rcButton.top,facts.info.rcButton.right,facts.info.rcButton.bottom}):"null")+
+        ",\"button_state\":"+(facts.info_known?std::to_string(facts.info.stateButton):"null")+
+        ",\"rc_coordinate_space\":\"not_explicit_in_official_COMBOBOXINFO_page_raw_diagnostic_only\",\"rc_used_for_reachability\":false"+
+        ",\"CB_GETDROPPEDSTATE_known\":"+(facts.dropped_known?"true":"false")+",\"dropped_error\":"+std::to_string(facts.dropped_error)+
+        ",\"drop_list_visible\":"+(facts.dropped_known?(facts.dropped?"true":"false"):"null")+
+        ",\"query_elapsed_ms\":"+std::to_string(facts.elapsed_ms)+"}";
+}
 void owned_settings_ui_narrow_case(State& s){
     settings_guest_scope(s);const auto bytes=read(s.product.parent_path()/L"settings.ini");const auto gui=gui_open(s);
     RECT original{};if(!GetWindowRect(gui.root,&original))throw std::runtime_error("settings_review_narrow_original_rect_unknown");
@@ -27,14 +73,34 @@ void owned_settings_ui_narrow_case(State& s){
             if(IsWindowVisible(child)&&IsWindowEnabled(child)&&(GetWindowLongPtrW(child,GWL_STYLE)&WS_TABSTOP))stops.push_back(child);
         if(stops.empty())throw std::runtime_error("settings_review_narrow_no_page_tabstops");
         review_tab_to(s,gui,stops.front());review_capture_settings(s,gui,page,"narrow-top");
-        for(const auto h:stops){review_tab_to(s,gui,h);RECT target{},container{};
-            if(!GetWindowRect(h,&target)||!GetWindowRect(panel,&container))throw std::runtime_error("settings_review_narrow_focus_bounds_unknown");
-            const bool reached=target.left>=container.left&&target.right<=container.right&&target.top>=container.top&&
-                target.top+std::min<LONG>(target.bottom-target.top,MulDiv(48,static_cast<int>(dpi),96))<=container.bottom;
-            s.log.check("T01_narrow_actual_focused_control_reachable",reached&&gui_focus(gui)==h,
+        for(const auto h:stops){review_tab_to(s,gui,h);
+            const auto initial=review_reach_sample(s,gui,panel,h);const auto initial_combo=review_combo_facts(s,gui,h);
+            auto final=initial,previous=initial;unsigned observations=1,stable=1;
+            const auto wait_begin=GetTickCount64();
+            const auto reached=[&](const ReviewReachSample& sample){
+                const auto& target=sample.target;const auto& container=sample.page;
+                return target.left>=container.left&&target.right<=container.right&&target.top>=container.top&&
+                    target.top+std::min<LONG>(target.bottom-target.top,MulDiv(48,static_cast<int>(dpi),96))<=container.bottom&&sample.focus==h;
+            };
+            // GetGUIThreadInfo can publish focus before WM_SETFOCUS/reveal
+            // and native ComboBox layout have returned. Observe completion
+            // using the unchanged reachability predicate, without new input.
+            const bool settled=wait([&]{
+                final=review_reach_sample(s,gui,panel,h);++observations;
+                const bool same=EqualRect(&previous.target,&final.target)&&EqualRect(&previous.page,&final.page)&&previous.focus==final.focus;
+                stable=same?stable+1:1;previous=final;return stable>=2&&reached(final);
+            },500);
+            const auto wait_elapsed=GetTickCount64()-wait_begin;const auto final_combo=review_combo_facts(s,gui,h);
+            const auto& target=final.target;const auto& container=final.page;
+            s.log.check("T01_narrow_actual_focused_control_reachable",settled&&reached(final),
                 "\"page\":"+std::to_string(page)+",\"id\":"+std::to_string(GetDlgCtrlID(h))+
                 ",\"class\":"+quote(utf8(gui_class(h)))+",\"rect\":"+rect({target.left,target.top,target.right,target.bottom})+
-                ",\"page_rect\":"+rect({container.left,container.top,container.right,container.bottom})+",\"visual_text_readability_separate\":true");
+                ",\"page_rect\":"+rect({container.left,container.top,container.right,container.bottom})+
+                ",\"initial_sample\":"+review_reach_json(initial)+",\"final_sample\":"+review_reach_json(final)+
+                ",\"initial_combo\":"+review_combo_json(initial_combo)+",\"final_combo\":"+review_combo_json(final_combo)+
+                ",\"readiness_wait_budget_ms\":500,\"readiness_wait_elapsed_ms\":"+std::to_string(wait_elapsed)+
+                ",\"native_bounds_observations\":"+std::to_string(observations)+",\"same_bounds_focus_streak\":"+std::to_string(stable)+
+                ",\"unchanged_reachability_predicate\":true,\"extra_input_or_layout_mutation\":false,\"visual_text_readability_separate\":true");
         }
         const auto before=gui_focus(gui);key(s,VK_SHIFT,true);gui_press(s,gui,VK_TAB);key(s,VK_SHIFT,false);
         s.log.check("T01_narrow_actual_ShiftTab_visible_focus",wait([&]{return gui_focus(gui)&&gui_focus(gui)!=before&&gui_identity(s,gui,gui_focus(gui));},500));
