@@ -268,7 +268,8 @@ void owned_settings_portable_runtime_review(State& s){
         review_runtime_exit_button(s,gui);auto modal=settings_guest_modal(s,gui,L"PaneBind");
         const auto return_button=review_runtime_task_button(s,gui,modal,IDCANCEL,L"返回设置");
         GUITHREADINFO info{sizeof(info)};
-        s.log.check("settings_review_unsaved_exit_default_returns_to_settings",GetGUIThreadInfo(modal.tid,&info)&&info.hwndFocus==return_button,
+        const bool default_focus_known=GetGUIThreadInfo(modal.tid,&info)!=FALSE;
+        s.log.check("settings_review_unsaved_exit_default_returns_to_settings",default_focus_known&&info.hwndFocus==return_button,
             "\"default_return_button_actual_focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(info.hwndFocus)));
         settings_guest_modal_press(s,gui,modal,VK_RETURN);
         s.log.check("settings_review_actual_default_return_retains_draft_and_running_instance",wait([&]{return !IsWindow(modal.root)&&
@@ -276,10 +277,30 @@ void owned_settings_portable_runtime_review(State& s){
             gui_text(s,gui,gui_number(s,gui,L"吸引距离"))==L"8"&&settings_guest_configuration(s)==saved);
         review_runtime_exit_button(s,gui);modal=settings_guest_modal(s,gui,L"PaneBind");
         const auto discard=review_runtime_task_button(s,gui,modal,IDYES,L"放弃修改并退出");
-        for(unsigned n=0;n<16;++n){GUITHREADINFO current{sizeof(current)};if(!GetGUIThreadInfo(modal.tid,&current))throw std::runtime_error("settings_review_TaskDialog_focus_unknown");
-            if(current.hwndFocus==discard)break;settings_guest_modal_press(s,gui,modal,VK_TAB);}
-        GUITHREADINFO selected{sizeof(selected)};
-        if(!GetGUIThreadInfo(modal.tid,&selected)||selected.hwndFocus!=discard)throw std::runtime_error("settings_review_TaskDialog_discard_not_reached_by_Tab");
+        GUITHREADINFO initial{sizeof(initial)};const bool initial_known=GetGUIThreadInfo(modal.tid,&initial)!=FALSE;
+        HWND before=initial.hwndFocus;unsigned tabs{},attempts{};bool reached{};std::string failure;
+        try{for(;tabs<16;){GUITHREADINFO current{sizeof(current)};
+            if(!settings_guest_modal_identity(s,gui,modal)||GetForegroundWindow()!=modal.root||
+               !GetGUIThreadInfo(modal.tid,&current)){failure="exact_TaskDialog_focus_context_unknown";break;}
+            if(current.hwndFocus==discard){reached=true;break;}
+            before=current.hwndFocus;++attempts;settings_guest_modal_press(s,gui,modal,VK_TAB);++tabs;
+            const bool changed=wait([&]{GUITHREADINFO after{sizeof(after)};return settings_guest_modal_identity(s,gui,modal)&&
+                GetForegroundWindow()==modal.root&&GetGUIThreadInfo(modal.tid,&after)&&after.hwndFocus&&
+                after.hwndFocus!=before&&IsChild(modal.root,after.hwndFocus);},500);
+            if(!changed){failure="actual_TaskDialog_Tab_focus_change_not_observed";break;}
+        }}catch(const std::exception& error){failure=error.what();}
+        GUITHREADINFO selected{sizeof(selected)};const bool final_known=GetGUIThreadInfo(modal.tid,&selected)!=FALSE;
+        reached=reached||(tabs==16&&final_known&&selected.hwndFocus==discard);
+        const auto foreground=GetForegroundWindow();
+        s.log.check("T09_actual_TaskDialog_Tab_reaches_discard",failure.empty()&&reached&&final_known&&selected.hwndFocus==discard&&
+            settings_guest_modal_identity(s,gui,modal)&&foreground==modal.root&&GetDlgItem(modal.root,IDYES)==discard,
+            "\"target_id\":"+std::to_string(IDYES)+",\"target\":"+std::to_string(reinterpret_cast<std::uintptr_t>(discard))+
+            ",\"initial_focus_known\":"+(initial_known?"true":"false")+",\"initial_focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(initial.hwndFocus))+
+            ",\"before_last_Tab_focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(before))+",\"final_focus_known\":"+(final_known?"true":"false")+
+            ",\"final_focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(selected.hwndFocus))+",\"final_focus_id\":"+std::to_string(GetDlgCtrlID(selected.hwndFocus))+
+            ",\"actual_Tab_key_pairs\":"+std::to_string(tabs)+",\"Tab_pair_attempts\":"+std::to_string(attempts)+
+            ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+",\"expected_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(modal.root))+
+            ",\"failure\":"+(failure.empty()?"null":quote(failure))+",\"extra_Tab_or_SetFocus_used\":false");
         const auto discard_mark=read_product(s).size();settings_guest_modal_press(s,gui,modal,VK_RETURN);
         review_runtime_ui_exit_finished(s,discard_mark,"actual_discard_draft_runtime_bar_exit");
         s.log.check("settings_review_portable_exit_does_not_save_uncommitted_draft",settings_guest_configuration(s)==saved&&
