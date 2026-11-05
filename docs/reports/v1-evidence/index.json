@@ -1,6 +1,48 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-27",
+  "settings_ui_revision_20261105_files": [
+    {
+      "path": "docs/reports/v1-ui-review/review.json",
+      "bytes": 9566,
+      "sha256": "63306B54B45557AE0E41EB84886F775CD035A17A340BA5A44F4B736EF300E199"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/README.md",
+      "bytes": 3139,
+      "sha256": "2FBEF75C75E500B2B34064CCB1E2D3A2C551DD4CFE33B0019958EEECCD3B650D"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/after/README.md",
+      "bytes": 318,
+      "sha256": "81D5EE01E0347E9127736BB49758792DB9B0EB4C11D099F90692012B0935E93D"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/demo/README.md",
+      "bytes": 741,
+      "sha256": "2CD1E5F8D6B846F02D7F7B0A34427E2B54A96D5914B8977FC52D549B6C86B241"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/before/historical-captures.json",
+      "bytes": 4360,
+      "sha256": "A8D0DE16A3EA560592894B590E91752BCD6C8FFD9E85937B23B21BB815D56EA8"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/before/historical-8d8a-page-0.png",
+      "bytes": 99811,
+      "sha256": "0301808E903553802112B168FC11DEA513B3BC2E13D964C35F0CAF9FCAA799D7"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/before/historical-8d8a-page-3.png",
+      "bytes": 80697,
+      "sha256": "34459415EC7BB5785A52B6713AADB4DD25E05707CF9082A76A03A729A44F2AD2"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/before/historical-a1cc-page-1.png",
+      "bytes": 104557,
+      "sha256": "77F67749281518DD86B1D8294B6F8067DBBF7FD572A46AFAC00CB54A4F00CF82"
+    }
+  ],
   "single_screen_200_feasibility_20261104_files": [
     {
       "path": "docs/reports/v1-evidence/20261104-sandbox-200-feasibility-review.json",

@@ -1,0 +1,83 @@
+{
+  "schema": "panebind-v1-ui-historical-captures/1",
+  "date": "2026-11-05",
+  "historical_only": true,
+  "new_execution": false,
+  "artifacts": [
+    {
+      "file": "docs/reports/v1-ui-review/before/historical-8d8a-page-0.png",
+      "sha256": "0301808E903553802112B168FC11DEA513B3BC2E13D964C35F0CAF9FCAA799D7",
+      "bytes": 99811,
+      "page": 0,
+      "page_name": "常规",
+      "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "product_exe_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+      "run_id": "8d8a505f787f41f782e1b0fb2777dbaa",
+      "configuration": "Release",
+      "actual_dpi": 144,
+      "actual_scale_percent": 150,
+      "dimensions": [
+        1185,
+        1080
+      ],
+      "identity_scope": "Historical/pre-change version only; not product465 and not the new candidate.",
+      "original_file": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-Release-settings-page-0.bmp",
+      "original_sha256": "616EECC0D1855D1B7546EEDD2A4040C92C06DC3DBD3A24E82CE68A0962D4FDA3",
+      "original_bytes": 5119254,
+      "transformation": "Lossless BMP-to-PNG container conversion only; dimensions and RGB pixels verified byte-equal. No resize, crop or retouch.",
+      "theme_scope": "Historical HighContrastOnly run, high-contrast ON at capture; preserve its original failed scheme-restoration verdict."
+    },
+    {
+      "file": "docs/reports/v1-ui-review/before/historical-8d8a-page-3.png",
+      "sha256": "34459415EC7BB5785A52B6713AADB4DD25E05707CF9082A76A03A729A44F2AD2",
+      "bytes": 80697,
+      "page": 3,
+      "page_name": "快捷键／鼠标",
+      "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "product_exe_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+      "run_id": "8d8a505f787f41f782e1b0fb2777dbaa",
+      "configuration": "Release",
+      "actual_dpi": 144,
+      "actual_scale_percent": 150,
+      "dimensions": [
+        1185,
+        1080
+      ],
+      "identity_scope": "Historical/pre-change version only; not product465 and not the new candidate.",
+      "original_file": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-Release-settings-page-3.bmp",
+      "original_sha256": "857DCCEC66A4FAF932D53EAA2DC8A00E99D510A2F4D26857E1F98D39344890CE",
+      "original_bytes": 5119254,
+      "transformation": "Lossless BMP-to-PNG container conversion only; dimensions and RGB pixels verified byte-equal. No resize, crop or retouch.",
+      "theme_scope": "Historical HighContrastOnly run, high-contrast ON at capture; preserve its original failed scheme-restoration verdict."
+    },
+    {
+      "file": "docs/reports/v1-ui-review/before/historical-a1cc-page-1.png",
+      "sha256": "77F67749281518DD86B1D8294B6F8067DBBF7FD572A46AFAC00CB54A4F00CF82",
+      "bytes": 104557,
+      "page": 1,
+      "page_name": "磁吸／联动",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_exe_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "run_id": "a1cc89d6be284368ace910d2195cb567",
+      "configuration": "Release",
+      "actual_dpi": 144,
+      "actual_scale_percent": 150,
+      "dimensions": [
+        1185,
+        1080
+      ],
+      "identity_scope": "Historical/pre-change version only; not product465 and not the new candidate.",
+      "original_file": "uat/v1-control/a1cc89d6be284368ace910d2195cb567/collection-20261021T183412765Z-0d59b2f7ab634bf3b55d71f38e297075/a1cc89d6be284368ace910d2195cb567-Release-settings-page-1.bmp",
+      "original_sha256": "F16EE652956E84A709D993628B0F8E7C882296D2E6ECEEC4F3AA975AA2BF14C5",
+      "original_bytes": 5119254,
+      "transformation": "Lossless BMP-to-PNG container conversion only; dimensions and RGB pixels verified byte-equal. No resize, crop or retouch.",
+      "theme_scope": "Historical FeedbackRemainderOnly run; no theme mutation by this conversion."
+    }
+  ],
+  "missing_pages": [
+    2,
+    4,
+    5
+  ],
+  "missing_scope": "Current product465 full six-page capture is pending the authorized Sandbox slot; these three historic images do not substitute for new candidate captures."
+}

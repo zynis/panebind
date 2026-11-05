@@ -119,14 +119,14 @@ $banner=@"
 > 状态：开发候选，尚无本便携包从干净 guest 启动的验收结论；不授权宿主试用。下方复用源内使用说明，其历史包身份／历史测试状态不指代本包。是否满足整版验收须以独立证据判断；本打包动作不授予 PASS。
 
 "@
-$quick=$quick.Replace('(reports/V1_ACCEPTANCE.json)','(已知问题.md)').Replace('(reports/V1_DELIVERY_REPORT.md)','(已知问题.md)')
+$quick=$quick.Replace('(reports/V1_ACCEPTANCE.json)','(已知问题.md)').Replace('(reports/V1_DELIVERY_REPORT.md)','(已知问题.md)').Replace('(reports/v1-ui-review/README.md)',('(https://github.com/zynis/panebind/blob/'+$packagingHead+'/docs/reports/v1-ui-review/README.md)'))
 Write-NewText (Join-Path $payload '中文快速入门.md') ($banner+$quick)
 $configuration=@'
-# PaneBind V1 便携配置说明
+# PaneBind V1 配置格式技术附录（普通使用无需手工编辑）
 
 portable.flag 与 panebind.exe 同目录，运行时在该目录使用 settings.ini。初次启动使用内置默认；不要复制开发宿主的个人配置。删除便携标记后改用当前用户 LOCALAPPDATA\PaneBind，不能把本行为误记为配置已迁移。
 
-优先用托盘“设置”编辑。六页全部为草稿；保存成功才生效，取消／关闭不保存。导入只更新草稿；导出是经过验证的草稿。活动手势固定起手配置，下次手势采用新值。登录启动默认关闭，不由包生成脚本启用。
+普通使用直接从可见设置窗口编辑：键盘／鼠标列表、应用规则列表和颜色选择器会自动生成下述格式。运行条提供立即暂停／恢复、帮助与正常退出；托盘仍单独验收。六页为草稿；保存成功才生效，取消／关闭不保存，即时运行控制不回滚。导入只更新草稿；导出是经过验证的草稿。活动手势固定起手配置，下次手势采用新值。登录启动默认关闭，不由包生成脚本启用。
 
 配置为 UTF-8 key=value，schema=1；generation 由产品保存时推进。必须包含完整标量、dock.0…7 和每组 count／连续索引，不支持未知字段／重复键／模糊通配符；完整文件不超过 256 KiB。损坏备份和保存失败需检查实际提示，不能据文件存在判为成功。
 
@@ -136,11 +136,11 @@ portable.flag 与 panebind.exe 同目录，运行时在该目录使用 settings.
 
 键盘：hotkey_count=N；hotkey.0=修饰键,虚拟键十进制,动作名。例 hotkey.0=3,67,Center。修饰键 Alt=1、Ctrl=2、Shift=4、Win=8，可相加；F12 保留，Ctrl+Shift+F11 紧急暂停不可覆盖。冲突注册失败应保留原映射。
 
-鼠标：mouse_count=N；mouse.0=区域,按键,次数,修饰键,动作名。区域 标题0、左1、右2、上3、下4、左上5、右上6、左下7、右下8；按键 左1、右2、中3、X1=4、X2=5；次数 1 或2。删除映射时删除条目并修正 count／连续索引。客户区／系统按钮不由区域映射整体接管；实际硬件覆盖另行验收。
+鼠标：mouse_count=N；mouse.0=区域,按键,次数,修饰键,动作名。区域 标题0、左1、右2、上3、下4、左上5、右上6、左下7、右下8；按键 左1、右2、中3、X1=4、X2=5；次数 1 或2。在图形界面删除映射时，程序自动生成 count／连续索引；本段只解释文件格式。客户区／系统按钮不由区域映射整体接管；实际硬件覆盖另行验收。
 
 应用：rule_count=N；rule.0=exe|可选窗口类|excluded|feature_mask。例 rule.0=notepad.exe||true|4294967295。exe 可用名称或完整路径；路径可统一斜线，类名不是路径，/ 与 \ 不等价。不采集窗口标题。空格、%、|、=、# 按 UTF-8 字节 %HH 转义。excluded=true 为完全排除；false 时 feature_mask 按位允许：1 磁吸、2 联动、4 停靠、8 拉伸、16 窗口命令、32 视觉增强；4294967295 保留全部。多条匹配规则取允许位交集，排除优先。
 
-动作名与中文解释以当前设置“快捷键／鼠标”页的同源动作表为准，不从旧验收命令复制 RunId／token。默认 Windows+方向键不变。退出使用托盘“退出”；强杀、崩溃恢复、普通 Medium 兼容及完整连续操作仍须实际验收。
+动作名与中文解释以当前设置“快捷键／鼠标”页的同源动作表为准，不从旧验收命令复制 RunId／token。默认 Windows+方向键不变。正常退出使用设置顶部“退出程序”；×／取消只关闭设置。托盘、强杀／崩溃恢复、普通 Medium 兼容及完整连续操作继续按独立证据验收。
 '@
 Write-NewText (Join-Path $payload '配置说明.md') $configuration
 Write-NewText (Join-Path $payload '已知问题.md') ("# PaneBind V1 集中已知问题与验证边界`n`n本包源码 $head；便携包独立验收 NOT_RUN，真人 UAT NOT_RUN。本文件保留打包输入报告中的集中缺口，不因生成 ZIP 关闭缺陷。普通权限 Release、连续混合操作、显示器／应用兼容及 32 必过能力需独立证据。历史 High guest 不等于当前产品通过。`n`n"+$issues.Groups[1].Value)
