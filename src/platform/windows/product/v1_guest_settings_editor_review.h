@@ -160,10 +160,39 @@ void review_editor_combo(State& s,const SettingsGui& gui,const ReviewEditor& edi
     if(count>512)throw std::runtime_error("settings_review_combo_count_over_bound");
     for(DWORD_PTR i=0;i<count;++i)if(static_cast<LRESULT>(review_editor_read(s,gui,editor,h,CB_GETITEMDATA,i))==data){wanted=static_cast<LRESULT>(i);break;}
     if(wanted<0)throw std::runtime_error("settings_review_required_combo_item_not_present");
-    review_editor_key(s,gui,editor,VK_HOME);
-    for(LRESULT i=0;i<wanted;++i)review_editor_key(s,gui,editor,VK_DOWN);
-    s.log.check("settings_review_combo_actual_keys",wait([&]{return review_editor_read(s,gui,editor,h,CB_GETCURSEL)==static_cast<DWORD_PTR>(wanted);}),
-        "\"id\":"+std::to_string(id)+",\"item_data\":"+std::to_string(data));
+    unsigned home_pairs{},down_pairs{},pair_attempts{};bool progressed{};
+    std::string stage="HOME",failure;
+    try{
+        ++pair_attempts;review_editor_key(s,gui,editor,VK_HOME);++home_pairs;
+        progressed=wait([&]{return review_editor_focus(editor)==h&&GetForegroundWindow()==editor.root&&
+            review_editor_read(s,gui,editor,h,CB_GETCURSEL)==0;},1000);
+        for(LRESULT i=1;progressed&&i<=wanted;++i){
+            stage="DOWN_to_"+std::to_string(i);
+            ++pair_attempts;review_editor_key(s,gui,editor,VK_DOWN);++down_pairs;
+            progressed=wait([&]{return review_editor_focus(editor)==h&&GetForegroundWindow()==editor.root&&
+                review_editor_read(s,gui,editor,h,CB_GETCURSEL)==static_cast<DWORD_PTR>(i);},1000);
+        }
+        if(!progressed)failure="actual_selection_did_not_reach_exact_next_index";
+    }catch(const std::exception& error){failure=error.what();}
+    DWORD_PTR selection{},item_data{};bool selection_known{},item_known{};
+    if(review_editor_identity(s,gui,editor,h)){
+        selection_known=SendMessageTimeoutW(h,CB_GETCURSEL,0,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&selection)!=FALSE;
+        if(selection_known&&static_cast<LRESULT>(selection)>=0&&selection<count)
+            item_known=SendMessageTimeoutW(h,CB_GETITEMDATA,selection,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&item_data)!=FALSE;
+    }
+    const auto focus=review_editor_focus(editor),foreground=GetForegroundWindow();
+    const bool exact=review_editor_identity(s,gui,editor,h);
+    s.log.check("settings_review_combo_actual_keys",failure.empty()&&progressed&&exact&&focus==h&&foreground==editor.root&&
+        selection_known&&static_cast<LRESULT>(selection)==wanted&&item_known&&static_cast<LRESULT>(item_data)==data,
+        "\"id\":"+std::to_string(id)+",\"item_data\":"+std::to_string(data)+",\"expected_selection\":"+std::to_string(wanted)+
+        ",\"final_selection\":"+(selection_known?std::to_string(static_cast<LRESULT>(selection)):"null")+
+        ",\"final_item_data\":"+(item_known?std::to_string(static_cast<LRESULT>(item_data)):"null")+
+        ",\"focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(focus))+",\"expected_focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+        ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+",\"expected_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(editor.root))+
+        ",\"exact_control_identity\":"+(exact?"true":"false")+",\"completed_HOME_key_pairs\":"+std::to_string(home_pairs)+
+        ",\"completed_DOWN_key_pairs\":"+std::to_string(down_pairs)+",\"key_pair_attempts\":"+std::to_string(pair_attempts)+
+        ",\"last_step\":"+quote(stage)+",\"failure\":"+(failure.empty()?"null":quote(failure))+
+        ",\"extra_or_repeated_key_pairs\":false,\"CB_SETCURSEL_used\":false");
 }
 void review_editor_check(State& s,const SettingsGui& gui,const ReviewEditor& editor,int id,bool desired){
     const auto h=GetDlgItem(editor.root,id);review_editor_tab(s,gui,editor,h);
