@@ -1290,7 +1290,7 @@
     "dock_commit_has_own_frame": true,
     "native_picker_and_HEX_verdicts_separate": true,
     "current_field_status": "NOT_RUN",
-    "driver_build_status": "PENDING_FORMAL_SOURCE_COMMIT",
+    "driver_build_status": "DEBUG_RELEASE_BUILD_OFFLINE_AND_HOST_GUARD_PASS",
     "current_availability": "AWAITING_CURRENT_NOTIFICATION",
     "current_resources": "NOT_CHECKED_THIS_ROUND",
     "historical_2049_snapshot_is_current": false,
@@ -1301,6 +1301,13 @@
     "fixed_denominators_unchanged": true,
     "all_T01_T10_PASS": false,
     "human_UAT": "PENDING",
-    "REA": "NOT_STARTED"
+    "REA": "NOT_STARTED",
+    "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+    "preparation_evidence": {
+      "path": "docs/reports/v1-ui-review/after/visible-delivery-preparation-3528059.json",
+      "bytes": 10573,
+      "sha256": "1B720E70F8D11604082711254F1A8317E9AB3332680A47D13791BA4D1BD94620"
+    },
+    "driver_release_sha256": "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7"
   }
 }

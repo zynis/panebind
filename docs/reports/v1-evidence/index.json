@@ -4,23 +4,23 @@
   "settings_ui_revision_20261105_files": [
     {
       "path": "docs/V1_QUICK_START.md",
-      "bytes": 11473,
-      "sha256": "BF3CC086E6EF1791ACF6878F1BB05159B5FB882D1A20D2CF20EDF0CE27FDC580"
+      "bytes": 11852,
+      "sha256": "2FCBA0EAB911C6A74DD0F0DB774D356710FA9F43A3DB8EE1647DF3D6A6AE678D"
     },
     {
       "path": "docs/reports/V1_ACCEPTANCE.json",
-      "bytes": 2188337,
-      "sha256": "E1DC695C46D257C837F98060201B8438FDD58CC8B13502E69279AB61D9463ED3"
+      "bytes": 2188821,
+      "sha256": "17D68EA07674B7764DAADDCCADD7442181F87F1FD23B3E452940CB8E96834A63"
     },
     {
       "path": "docs/reports/V1_DELIVERY_REPORT.md",
-      "bytes": 437382,
-      "sha256": "C4E412D110DDCFCB2C55E171B4F4F7BED7BCF79DA5A34AA48FC18E199FBB4209"
+      "bytes": 440635,
+      "sha256": "1782417B05E06A190EEB81A8192405156E02657C43168027A13503EAD75B6F51"
     },
     {
       "path": "docs/reports/v1-ui-review/README.md",
-      "bytes": 3943,
-      "sha256": "91E50D49A60204657A89747B36A29DDAEC83A462888D8890383F5C0E290A4E0D"
+      "bytes": 4483,
+      "sha256": "3C1FE9B53EA8D1C83E3A18DEE4A6E5AFAB8F9F52789AF6D11C23C96334AF5915"
     },
     {
       "path": "docs/reports/v1-ui-review/after/36f8-page-0-narrow-bottom.png",
@@ -333,6 +333,11 @@
       "sha256": "0CE7C4AB10D20E7AC0FE89337144FA0C5765103BAE8F9BB082CCBE22FDE238E7"
     },
     {
+      "path": "docs/reports/v1-ui-review/after/visible-delivery-preparation-3528059.json",
+      "bytes": 10573,
+      "sha256": "1B720E70F8D11604082711254F1A8317E9AB3332680A47D13791BA4D1BD94620"
+    },
+    {
       "path": "docs/reports/v1-ui-review/before/baseline465-captures.json",
       "bytes": 15660,
       "sha256": "892642514823D2594882C6D9E81FE1A64C846F9D7A1FEE9A27455CEFE43E5CBF"
@@ -399,13 +404,13 @@
     },
     {
       "path": "docs/reports/v1-ui-review/demo/README.md",
-      "bytes": 1088,
-      "sha256": "F4BF1C68F6B6B75F6E53A18E858E881625EBB37AE6D2BE87EAC84A5526B5798B"
+      "bytes": 1414,
+      "sha256": "0303ECE38137E79BE507A17E17F87CC95C52E4F94BF73F6F1A26F96EE2F56F0B"
     },
     {
       "path": "docs/reports/v1-ui-review/review.json",
-      "bytes": 60156,
-      "sha256": "94602FC444F6C1211C1F4A76FFB146FDF2D70ACAA6A27CC8106CBB232FE33AE5"
+      "bytes": 60574,
+      "sha256": "31895336C0ECE5ADD6B7141C960582C9603B4BAD10C86F20CC61C11F9907EAA5"
     }
   ],
   "single_screen_200_feasibility_20261104_files": [

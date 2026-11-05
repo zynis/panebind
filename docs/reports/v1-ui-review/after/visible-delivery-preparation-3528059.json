@@ -1,0 +1,265 @@
+{
+  "schema": "panebind-settings-visible-delivery-preparation/1",
+  "starting_sha": "2f5f836cce1190155fc1392abf60ccd156f0c62a",
+  "driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+  "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+  "actual_created_utc": "2026-11-05T14:57:52.7400397Z",
+  "product_rebuilt": false,
+  "portable_rebuilt": false,
+  "build_commands": [
+    {
+      "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+      "args": [
+        "-S",
+        ".",
+        "-B",
+        "out/v1-settings-ui-driver",
+        "-G",
+        "Visual Studio 18 2026",
+        "-A",
+        "x64",
+        "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+        "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /bigobj",
+        "-DBUILD_TESTING=ON"
+      ],
+      "exit": 0
+    },
+    {
+      "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+      "args": [
+        "--build",
+        "out/v1-settings-ui-driver",
+        "--config",
+        "Debug",
+        "--target",
+        "panebind-v1-guest-fixture",
+        "panebind-v1-guest-path-tests",
+        "--",
+        "/m:1",
+        "/p:CL_MPCount=1"
+      ],
+      "exit": 0
+    },
+    {
+      "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ctest.exe",
+      "args": [
+        "--test-dir",
+        "out/v1-settings-ui-driver",
+        "-C",
+        "Debug",
+        "-R",
+        "^v1-guest-path$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit": 0
+    },
+    {
+      "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+      "args": [
+        "--build",
+        "out/v1-settings-ui-driver",
+        "--config",
+        "Release",
+        "--target",
+        "panebind-v1-guest-fixture",
+        "panebind-v1-guest-path-tests",
+        "--",
+        "/m:1",
+        "/p:CL_MPCount=1"
+      ],
+      "exit": 0
+    },
+    {
+      "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ctest.exe",
+      "args": [
+        "--test-dir",
+        "out/v1-settings-ui-driver",
+        "-C",
+        "Release",
+        "-R",
+        "^v1-guest-path$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit": 0
+    }
+  ],
+  "artifacts": [
+    {
+      "configuration": "Debug",
+      "source": "3528059b33963afd1488f1c70445f770e9858dae",
+      "path": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+      "bytes": 11893760,
+      "sha256": "17D3BFEE9F1EF6BCF37F6857737DC33C4B735D9789C8CE3AF5F0E4C3FD2798FD",
+      "identity": {
+        "product": "PaneBind V1 guest fixture",
+        "source_commit": "3528059b33963afd1488f1c70445f770e9858dae",
+        "host_synthetic_input": "forbidden",
+        "requires_medium_guest": true,
+        "guest_contract": "panebind-v1-guest-contract/2",
+        "product_interface": "panebind-v1-product-guest-interface/1"
+      },
+      "exit": 0
+    },
+    {
+      "configuration": "Release",
+      "source": "3528059b33963afd1488f1c70445f770e9858dae",
+      "path": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+      "bytes": 5041664,
+      "sha256": "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+      "identity": {
+        "product": "PaneBind V1 guest fixture",
+        "source_commit": "3528059b33963afd1488f1c70445f770e9858dae",
+        "host_synthetic_input": "forbidden",
+        "requires_medium_guest": true,
+        "guest_contract": "panebind-v1-guest-contract/2",
+        "product_interface": "panebind-v1-product-guest-interface/1"
+      },
+      "exit": 0
+    }
+  ],
+  "host_guards": [
+    {
+      "configuration": "Debug",
+      "mode": "no_arguments",
+      "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+      "arguments": "",
+      "started_PID": 51024,
+      "exit": 78,
+      "elapsed_ms": 48.547200000000004,
+      "host_account_is_WDAG": false,
+      "requested_output": "D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\driver-3528059-build-20261105T145546376Z\\must-not-be-created-Debug",
+      "output_created": false,
+      "new_product_processes_observed": [],
+      "host_input_sent_by_probe": false,
+      "guest_tasks_created_by_probe": false,
+      "source_guard_returns_before_input_or_GUI": true,
+      "native_API_calls_traced": false,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "configuration": "Debug",
+      "mode": "complete_SettingsEditorsOnly",
+      "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+      "arguments": "--run-id 96152e9a5c044b25b72143a104b97cc1 --output \"D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\driver-3528059-build-20261105T145546376Z\\must-not-be-created-Debug\" --product \"D:\\repository\\panebind\\out\\v1-settings-ui-wrap-20261105\\src\\platform\\windows\\Debug\\panebind.exe\" --suite SettingsEditorsOnly",
+      "started_PID": 51092,
+      "exit": 78,
+      "elapsed_ms": 67.358,
+      "host_account_is_WDAG": false,
+      "requested_output": "D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\driver-3528059-build-20261105T145546376Z\\must-not-be-created-Debug",
+      "output_created": false,
+      "new_product_processes_observed": [],
+      "host_input_sent_by_probe": false,
+      "guest_tasks_created_by_probe": false,
+      "source_guard_returns_before_input_or_GUI": true,
+      "native_API_calls_traced": false,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "configuration": "Release",
+      "mode": "no_arguments",
+      "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+      "arguments": "",
+      "started_PID": 51024,
+      "exit": 78,
+      "elapsed_ms": 39.176300000000005,
+      "host_account_is_WDAG": false,
+      "requested_output": "D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\driver-3528059-build-20261105T145546376Z\\must-not-be-created-Release",
+      "output_created": false,
+      "new_product_processes_observed": [],
+      "host_input_sent_by_probe": false,
+      "guest_tasks_created_by_probe": false,
+      "source_guard_returns_before_input_or_GUI": true,
+      "native_API_calls_traced": false,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "configuration": "Release",
+      "mode": "complete_SettingsEditorsOnly",
+      "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+      "arguments": "--run-id faf14b07c5f54cd6a144dc07e62a6949 --output \"D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\driver-3528059-build-20261105T145546376Z\\must-not-be-created-Release\" --product \"D:\\repository\\panebind\\out\\v1-settings-ui-wrap-20261105\\src\\platform\\windows\\Debug\\panebind.exe\" --suite SettingsEditorsOnly",
+      "started_PID": 39648,
+      "exit": 78,
+      "elapsed_ms": 53.371100000000006,
+      "host_account_is_WDAG": false,
+      "requested_output": "D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\driver-3528059-build-20261105T145546376Z\\must-not-be-created-Release",
+      "output_created": false,
+      "new_product_processes_observed": [],
+      "host_input_sent_by_probe": false,
+      "guest_tasks_created_by_probe": false,
+      "source_guard_returns_before_input_or_GUI": true,
+      "native_API_calls_traced": false,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "frozen_artifacts": [
+    {
+      "role": "product_Debug",
+      "path": "D:\\repository\\panebind\\out\\v1-settings-ui-wrap-20261105\\src\\platform\\windows\\Debug\\panebind.exe",
+      "sha256": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46",
+      "bytes_before": 4477952,
+      "sha256_before": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46",
+      "bytes_after": 4477952,
+      "sha256_after": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46",
+      "unchanged": true
+    },
+    {
+      "role": "product_Release",
+      "path": "D:\\repository\\panebind\\out\\v1-settings-ui-wrap-20261105\\src\\platform\\windows\\Release\\panebind.exe",
+      "sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+      "bytes_before": 1303040,
+      "sha256_before": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+      "bytes_after": 1303040,
+      "sha256_after": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+      "unchanged": true
+    },
+    {
+      "role": "portable_a5dc_ZIP",
+      "path": "D:\\repository\\panebind\\uat\\v1-portable\\a5dcf5ef3c8847649f5212f9e331e7be\\PaneBindV1-Release-a5dcf5ef3c8847649f5212f9e331e7be.zip",
+      "sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
+      "bytes_before": 614076,
+      "sha256_before": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
+      "bytes_after": 614076,
+      "sha256_after": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
+      "unchanged": true
+    }
+  ],
+  "raw_build_receipt": {
+    "path": "uat/v1-control/settings-ui-followup-20261105/driver-3528059-build-20261105T145546376Z/build-and-guard-receipt.json",
+    "bytes": 15801,
+    "sha256": "84D50FE8B5783E15C9A4A8BC15EE8EC7FFCE541460F83ADE9094FE07B0EE4EF0"
+  },
+  "selected_summary_test": {
+    "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/check-v1-settings-selected-summary.ps1",
+    "checks": 17,
+    "result": "PASS",
+    "scope": "Production selected-phase converter and bounded reader, synthetic offline JSONL; actual UI NOT_RUN."
+  },
+  "offline_guest_path": {
+    "Debug": "1/1 PASS",
+    "Release": "1/1 PASS"
+  },
+  "selected_order": [
+    "T01",
+    "T02",
+    "T08",
+    "T09",
+    "T10",
+    "T07"
+  ],
+  "not_rerun_historical": [
+    "T03",
+    "T04",
+    "T05",
+    "T06"
+  ],
+  "demo_required_frames": 16,
+  "field_status": "NOT_RUN",
+  "human_UAT": "PENDING",
+  "REA": "NOT_STARTED"
+}

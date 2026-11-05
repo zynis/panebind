@@ -31,7 +31,7 @@
       "T01-T10_and_actual_images"
     ],
     "field_status": "PARTIAL_PRIOR_DA7_CURRENT_C77_NOT_RUN",
-    "reason": "最近DA7的T02–T06限定实证已核；T01窄说明视觉FAIL已修c77待测，T07部分，T08–T10未跑；a793两次资源门拒绝未Launch，不等待未知VM。",
+    "reason": "DA7 T02–T06限定实证保留；c77未重建。本轮352驱动按T01→T02→T08→T09→T10→T07构建并通过离线/宿主保护；现场尚未执行。历史20:49资源读数不代表当前。",
     "review_path": "docs/reports/v1-ui-review/README.md",
     "T01_T10": {
       "T01": "FAIL_VISUAL_NARROW_NOTES",
@@ -52,10 +52,10 @@
     "current_candidate_T01_T10": {
       "T01": "NOT_RUN",
       "T02": "NOT_RUN",
-      "T03": "NOT_RUN",
-      "T04": "NOT_RUN",
-      "T05": "NOT_RUN",
-      "T06": "NOT_RUN",
+      "T03": "NOT_RERUN_HISTORICAL_DA7_EVIDENCE_RETAINED",
+      "T04": "NOT_RERUN_HISTORICAL_DA7_EVIDENCE_RETAINED",
+      "T05": "NOT_RERUN_HISTORICAL_DA7_EVIDENCE_RETAINED",
+      "T06": "NOT_RERUN_HISTORICAL_DA7_EVIDENCE_RETAINED",
       "T07": "NOT_RUN",
       "T08": "NOT_RUN",
       "T09": "NOT_RUN",
@@ -68,8 +68,18 @@
     "visual_failure_evidence_path": "docs/reports/v1-ui-review/after/b453-visual-review.json",
     "current_images": "NOT_RUN_0_OF_6_C77",
     "last_field_images": "DA7_SIX_PAGES_PLUS_TWO_BOTTOMS_ORIGINAL_144_DPI",
-    "demo_frames": "NOT_RUN_0_OF_15",
-    "resource_gate_evidence_path": "docs/reports/v1-ui-review/after/a793-resource-gate.json"
+    "demo_frames": "NOT_RUN_0_OF_16",
+    "resource_gate_evidence_path": "docs/reports/v1-ui-review/after/a793-resource-gate.json",
+    "followup_driver_source_sha": "3528059b33963afd1488f1c70445f770e9858dae",
+    "followup_selected_order": [
+      "T01",
+      "T02",
+      "T08",
+      "T09",
+      "T10",
+      "T07"
+    ],
+    "followup_preparation_evidence_path": "docs/reports/v1-ui-review/after/visible-delivery-preparation-3528059.json"
   },
   "source_identity": {
     "previous_settings_ui_candidate_1f94_20261105": {
