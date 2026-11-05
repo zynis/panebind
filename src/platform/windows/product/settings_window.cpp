@@ -211,9 +211,9 @@ struct SettingsWindow::Impl {
         SetWindowTextW(pause_button,runtime_enabled?L"立即暂停":L"立即恢复");
         EnableWindow(pause_button,static_cast<bool>(toggle_pause));EnableWindow(help_button,static_cast<bool>(help));EnableWindow(exit_button,static_cast<bool>(exit));
     }
-    void sync_runtime(bool enabled,bool healthy) {
-        if(runtime_enabled==enabled&&runtime_healthy==healthy)return;
-        if(runtime_enabled!=enabled){draft.enabled=enabled;baseline.enabled=enabled;for(const auto& f:fields)if(f.boolean==&v::Settings::enabled)SendMessageW(f.control,BM_SETCHECK,enabled?BST_CHECKED:BST_UNCHECKED,0);}
+    void sync_runtime(bool enabled,bool healthy,bool acknowledge_control=false) {
+        if(!acknowledge_control&&runtime_enabled==enabled&&runtime_healthy==healthy)return;
+        if(acknowledge_control||runtime_enabled!=enabled){draft.enabled=enabled;baseline.enabled=enabled;for(const auto& f:fields)if(f.boolean==&v::Settings::enabled)SendMessageW(f.control,BM_SETCHECK,enabled?BST_CHECKED:BST_UNCHECKED,0);}
         runtime_enabled=enabled;runtime_healthy=healthy;if(window)refresh_runtime();
     }
     void request_exit() {
@@ -577,7 +577,14 @@ struct SettingsWindow::Impl {
             case id_rule_add:case id_rule_edit:case id_rule_delete:self->mapping_command(LOWORD(w));return 0;
             case id_choose_color:self->choose_color();return 0;
             case id_color:if(HIWORD(w)==EN_CHANGE)InvalidateRect(self->color_swatch,nullptr,TRUE);return 0;
-            case id_pause:if(self->toggle_pause)self->toggle_pause();return 0;
+            case id_pause:if(self->toggle_pause){
+                self->toggle_pause();
+                // The immediate command may be rejected (e.g. input restart
+                // or persistence failure). Acknowledge the actual state even
+                // when it stayed unchanged; do not retain a contrary enabled
+                // checkbox, and do not reload any other draft field.
+                self->sync_runtime(self->runtime_enabled,self->runtime_healthy,true);
+            }return 0;
             case id_help:if(self->help)self->help();return 0;
             case id_exit:self->request_exit();return 0;
             default:break;
