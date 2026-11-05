@@ -183,8 +183,17 @@ void review_editor_replace(State& s,const SettingsGui& gui,const ReviewEditor& e
 void review_editor_finish(State& s,const SettingsGui& gui,const ReviewEditor& editor,bool accept){
     const auto h=GetDlgItem(editor.root,accept?IDOK:IDCANCEL);review_editor_tab(s,gui,editor,h);
     review_editor_key(s,gui,editor,VK_RETURN);
-    s.log.check("settings_review_actual_editor_accept_or_cancel",wait([&]{return !IsWindow(editor.root)&&GetForegroundWindow()==gui.root;}),
-        std::string("\"accepted\":")+(accept?"true":"false"));
+    const bool returned=wait([&]{const auto focus=gui_focus(gui);return !IsWindow(editor.root)&&GetForegroundWindow()==gui.root&&
+        gui_identity(s,gui,gui.tab)&&gui_identity(s,gui,focus)&&IsWindowVisible(focus)&&IsWindowEnabled(focus);});
+    const auto focus=gui_focus(gui),foreground=GetForegroundWindow();DWORD focus_pid{};const auto focus_tid=GetWindowThreadProcessId(focus,&focus_pid);
+    s.log.check("settings_review_actual_editor_accept_or_cancel",returned,
+        std::string("\"accepted\":")+(accept?"true":"false")+",\"editor_destroyed\":"+(!IsWindow(editor.root)?"true":"false")+
+        ",\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+",\"root_exact\":"+(gui_identity(s,gui,gui.root)?"true":"false")+
+        ",\"tab_exact\":"+(gui_identity(s,gui,gui.tab)?"true":"false")+",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+
+        ",\"foreground_exact\":"+(foreground==gui.root?"true":"false")+",\"focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(focus))+
+        ",\"focus_exact\":"+(gui_identity(s,gui,focus)?"true":"false")+",\"focus_pid\":"+std::to_string(focus_pid)+",\"focus_tid\":"+std::to_string(focus_tid)+
+        ",\"focus_class\":"+quote(utf8(gui_class(focus)))+",\"focus_id\":"+std::to_string(GetDlgCtrlID(focus))+
+        ",\"focus_visible\":"+(IsWindowVisible(focus)?"true":"false")+",\"focus_enabled\":"+(IsWindowEnabled(focus)?"true":"false"));
 }
 HWND review_page_control(State& s,const SettingsGui& gui,int id){
     const auto h=GetDlgItem(gui_page(s,gui),id);

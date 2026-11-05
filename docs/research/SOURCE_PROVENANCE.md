@@ -3942,3 +3942,10 @@ external-code attribution is required by this documentation-only review.
 - 适用范围：TEST-only T01在真实键盘焦点到达后，等待原有屏幕矩形可达谓词稳定；不改变产品布局、控件状态、动作或窗口权限，不延伸输入机制。
 - 实际依据：36f8 seq179最后ComboBox回读高420px，而此前同列为35px；仅有focus和单次矩形不足以确认布局已完成。保留原FAIL，不预设系统原因。
 - 官方边界：CB_GETDROPPEDSTATE表示列表是否可见；COMBOBOXINFO说明edit/button矩形，却没有在该页明确坐标系。rcItem/rcButton只记原始诊断，不作未经确认的坐标偏移或放行依据。GetWindowRect屏幕矩形及原可达断言不变；500ms有界只读等待未满足仍FAIL。未检视/复制新的第三方实现，未修改产品EXE。
+
+### 2026-11-05：映射编辑器正常关闭与键盘焦点恢复
+
+- 来源：Microsoft Win32 官方文档 [EnableWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enablewindow)、[SetActiveWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setactivewindow) 和 [SetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setfocus)。仅核对平台契约，没有复制或改编外部实现。
+- EnableWindow 明确要求自有对话框销毁前先启用其被禁用的 owner，否则另一个窗口可能取得焦点并被激活；SetActiveWindow 的激活不等同于恢复一个可输入的 child。禁用控件不能取得键盘焦点。
+- af10 保留的真实失败：接受 J 编辑后主设置重新处于前台，但紧接的精确键盘目标守卫失败；保存文件仍为 generation 2、原 C 映射。原件没有记录失败瞬间的 focus HWND，不能把它写成父设置已保存退出或已确定的系统原因。生产源码同时存在先销毁再启用 owner，以及刷新列表清选择后禁用原 Edit 按钮的链路。
+- 修复限于本产品同线程 UI：统一关闭路径先恢复原 owner 启用状态，仍属本前台时恢复合法 child；列表刷新保留可用行并修复失效焦点。不会从外部应用抢回前台。定向驱动继续真实按键，记录 root/tab/focus 分项事实，不用测试 SetFocus 修补产品。旧 FAIL 保留，新实现须用新的产品身份现场复验。

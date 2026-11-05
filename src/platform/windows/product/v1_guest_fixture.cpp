@@ -2842,8 +2842,22 @@ void gui_click(State& s,const SettingsGui& gui,HWND control){
         ",\"hit_confirmed\":true,\"input_kind\":\"SendInput_LEFTDOWN_LEFTUP\"");
 }
 void gui_require_input(State& s,const SettingsGui& gui){
-    if(!gui_identity(s,gui,gui.tab)||GetForegroundWindow()!=gui.root||!gui_identity(s,gui,gui_focus(gui)))
+    const auto foreground=GetForegroundWindow(),focus=gui_focus(gui);
+    const bool tab_exact=gui_identity(s,gui,gui.tab),foreground_exact=foreground==gui.root,focus_exact=gui_identity(s,gui,focus);
+    if(!tab_exact||!foreground_exact||!focus_exact){
+        DWORD focus_pid{},foreground_pid{};
+        const auto focus_tid=GetWindowThreadProcessId(focus,&focus_pid),foreground_tid=GetWindowThreadProcessId(foreground,&foreground_pid);
+        s.log.emit("GUI_keyboard_context_rejected",
+            "\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+",\"root_exact\":"+(gui_identity(s,gui,gui.root)?"true":"false")+
+            ",\"tab\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.tab))+",\"tab_exact\":"+(tab_exact?"true":"false")+
+            ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+",\"foreground_exact\":"+(foreground_exact?"true":"false")+
+            ",\"foreground_pid\":"+std::to_string(foreground_pid)+",\"foreground_tid\":"+std::to_string(foreground_tid)+
+            ",\"focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(focus))+",\"focus_exact\":"+(focus_exact?"true":"false")+
+            ",\"focus_pid\":"+std::to_string(focus_pid)+",\"focus_tid\":"+std::to_string(focus_tid)+
+            ",\"focus_class\":"+quote(utf8(gui_class(focus)))+",\"focus_id\":"+std::to_string(GetDlgCtrlID(focus))+
+            ",\"focus_visible\":"+(IsWindowVisible(focus)?"true":"false")+",\"focus_enabled\":"+(IsWindowEnabled(focus)?"true":"false"));
         throw std::runtime_error("GUI_keyboard_target_no_longer_exact_product");
+    }
 }
 void gui_press(State& s,const SettingsGui& gui,WORD vk){gui_require_input(s,gui);key(s,vk,true);key(s,vk,false);}
 void gui_page_select(State& s,const SettingsGui& gui,unsigned wanted){

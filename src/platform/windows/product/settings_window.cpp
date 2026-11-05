@@ -177,12 +177,28 @@ struct SettingsWindow::Impl {
         for(std::size_t i=0;i<3;++i){const HWND h=i==0?hotkeys:i==1?mouse:rules;const bool chosen=ListView_GetNextItem(h,-1,LVNI_SELECTED)>=0;EnableWindow(row_actions[i*2],chosen);EnableWindow(row_actions[i*2+1],chosen);}
     }
     void refresh_lists() {
+        const HWND previous_focus=GetFocus();
+        const bool owned_focus=window&&GetForegroundWindow()==window&&GetActiveWindow()==window&&
+            (!previous_focus||previous_focus==window||IsChild(window,previous_focus));
+        const std::array lists{hotkeys,mouse,rules};
+        std::array<int,3> selections{};
+        for(std::size_t i=0;i<lists.size();++i)selections[i]=ListView_GetNextItem(lists[i],-1,LVNI_SELECTED);
         ListView_DeleteAllItems(hotkeys);ListView_DeleteAllItems(mouse);ListView_DeleteAllItems(rules);
         for(std::size_t i=0;i<draft.hotkeys.size();++i){const auto& h=draft.hotkeys[i];row(hotkeys,static_cast<int>(i),{(h.modifiers?ed::modifier_label(h.modifiers)+L"+":L"")+settings_key_label(h.key),std::wstring(ed::action_label(h.action))});}
         for(std::size_t i=0;i<draft.mouse_bindings.size();++i){const auto& m=draft.mouse_bindings[i];row(mouse,static_cast<int>(i),{std::wstring(ed::region_label(m.region)),std::wstring(ed::button_label(m.button)),m.clicks==1?L"单击":L"双击",ed::modifier_label(m.modifiers),std::wstring(ed::action_label(m.action))});}
         constexpr std::array names{L"磁吸",L"联动",L"停靠",L"拉伸",L"窗口命令",L"视觉效果"};
         for(std::size_t i=0;i<draft.rules.size();++i){const auto& r=draft.rules[i];std::wstring description=r.excluded?L"排除此应用":L"自定义：";if(!r.excluded){for(std::size_t b=0;b<6;++b)if(r.feature_mask&(1U<<b)){if(description.back()!=L'：')description+=L"、";description+=names[b];}if((r.feature_mask&63)==0)description+=L"不允许增强";}row(rules,static_cast<int>(i),{widen(r.exe),r.window_class.empty()?L"全部窗口类":widen(r.window_class),description});}
+        for(std::size_t i=0;i<lists.size();++i){const int count=ListView_GetItemCount(lists[i]);if(selections[i]>=0&&count>0)ListView_SetItemState(lists[i],std::min(selections[i],count-1),LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);}
         ShowWindow(hotkey_empty,draft.hotkeys.empty()?SW_SHOW:SW_HIDE);ShowWindow(mouse_empty,draft.mouse_bindings.empty()?SW_SHOW:SW_HIDE);ShowWindow(rules_empty,draft.rules.empty()?SW_SHOW:SW_HIDE);enable_row_actions();
+        const auto available=[&](HWND h){return h&&IsWindow(h)&&IsChild(window,h)&&IsWindowVisible(h)&&IsWindowEnabled(h);};
+        // Deleting/repopulating rows can disable the focused Edit/Delete
+        // button. Do not leave keyboard navigation on a disabled/empty HWND.
+        if(owned_focus&&GetForegroundWindow()==window&&GetActiveWindow()==window&&!available(GetFocus())){
+            const int previous_id=previous_focus?GetDlgCtrlID(previous_focus):0;
+            const HWND list_focus=selected==4?rules:selected==3?(previous_id>=id_mouse&&previous_id<=id_mouse_delete?mouse:hotkeys):tab;
+            const HWND next=available(previous_focus)?previous_focus:list_focus;
+            if(available(next))SetFocus(next);
+        }
     }
     void mapping_command(int id) {
         const int kind=id>=id_rule_add?2:id>=id_mouse_add?1:0;

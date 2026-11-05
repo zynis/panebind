@@ -26,11 +26,34 @@ std::optional<std::string> utf8(std::wstring_view s) {
 }
 std::wstring value(HWND h){std::wstring s(static_cast<std::size_t>(GetWindowTextLengthW(h))+1,0);s.resize(GetWindowTextW(h,s.data(),static_cast<int>(s.size())));return s;}
 struct Editor {
-    HWND owner{},window{},key{},action{},region{},button{},clicks{},exe{},cls{},mode{};
+    HWND owner{},window{},previous_focus{},key{},action{},region{},button{},clicks{},exe{},cls{},mode{};
     HFONT font{}; UINT dpi{96}; int kind{},y{16}; bool accepted{};
+    bool owner_was_enabled{},owner_restored{};
     std::array<HWND,4> modifiers{}; std::array<HWND,6> features{};
     v::Settings& draft; std::optional<std::size_t> index; v::Rule original;
     explicit Editor(v::Settings& d):draft(d){}
+    bool valid_owner()const {
+        DWORD pid{};
+        return IsWindow(owner)&&GetWindowThreadProcessId(owner,&pid)==GetCurrentThreadId()&&pid==GetCurrentProcessId();
+    }
+    bool valid_focus(HWND h)const {
+        return h&&IsWindow(h)&&IsChild(owner,h)&&IsWindowVisible(h)&&IsWindowEnabled(h);
+    }
+    void finish(){
+        const HWND closing=window;
+        const bool active=GetForegroundWindow()==closing||GetForegroundWindow()==owner;
+        // A disabled owner cannot receive activation when its modal closes.
+        // Restore its original state before DestroyWindow, including aborts.
+        if(!owner_restored){if(valid_owner())EnableWindow(owner,owner_was_enabled);owner_restored=true;}
+        if(window)DestroyWindow(window);
+        // Never recover focus from another foreground application. This is
+        // only the ordinary return from our own modal to its enabled owner.
+        if(active&&valid_owner()&&owner_was_enabled&&GetForegroundWindow()==owner){
+            SetActiveWindow(owner);
+            const HWND focus=valid_focus(previous_focus)?previous_focus:GetNextDlgTabItem(owner,nullptr,FALSE);
+            if(valid_focus(focus))SetFocus(focus);
+        }
+    }
     int px(int n)const{return MulDiv(n,static_cast<int>(dpi),96);}
     HWND add(const wchar_t* c,const wchar_t* label,DWORD style,int x,int yy,int width,int height,int id=0) {
         const HWND h=CreateWindowExW(std::wstring_view(c)==L"EDIT"?WS_EX_CLIENTEDGE:0,c,label,
@@ -103,15 +126,15 @@ struct Editor {
             auto rule=ed::rule_features(original,selected(mode)==0,known);const auto program=utf8(value(exe)),window_class=utf8(value(cls));if(!program||!window_class){MessageBoxW(window,L"程序或窗口类包含无效的文字编码，草稿未更改。",L"PaneBind",MB_OK|MB_ICONWARNING);return;}rule.exe=*program;rule.window_class=*window_class;failure=ed::put_rule(draft,index,std::move(rule));
         }
         if(!failure.empty()){MessageBoxW(window,wide(failure).c_str(),L"PaneBind：请检查此条目",MB_OK|MB_ICONWARNING);return;}
-        accepted=true;DestroyWindow(window);
+        accepted=true;finish();
     }
     static LRESULT CALLBACK proc(HWND h,UINT m,WPARAM w,LPARAM l){
         auto* self=reinterpret_cast<Editor*>(GetWindowLongPtrW(h,GWLP_USERDATA));
         if(m==WM_NCCREATE){self=static_cast<Editor*>(reinterpret_cast<CREATESTRUCTW*>(l)->lpCreateParams);self->window=h;SetWindowLongPtrW(h,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(self));}
         if(!self)return DefWindowProcW(h,m,w,l);
         if(m==WM_CREATE){self->create();return 0;}
-        if(m==WM_COMMAND){if(LOWORD(w)==IDOK){self->accept();return 0;}if(LOWORD(w)==IDCANCEL){DestroyWindow(h);return 0;}if(LOWORD(w)==1401){self->browse();return 0;}if(LOWORD(w)==1403&&HIWORD(w)==CBN_SELCHANGE){self->update_mode();return 0;}}
-        if(m==WM_CLOSE){DestroyWindow(h);return 0;}
+        if(m==WM_COMMAND){if(LOWORD(w)==IDOK){self->accept();return 0;}if(LOWORD(w)==IDCANCEL){self->finish();return 0;}if(LOWORD(w)==1401){self->browse();return 0;}if(LOWORD(w)==1403&&HIWORD(w)==CBN_SELCHANGE){self->update_mode();return 0;}}
+        if(m==WM_CLOSE){self->finish();return 0;}
         if(m==WM_NCDESTROY){self->window=nullptr;SetWindowLongPtrW(h,GWLP_USERDATA,0);}
         return DefWindowProcW(h,m,w,l);
     }
@@ -130,9 +153,10 @@ bool edit_settings_mapping(HWND owner,v::Settings& draft,int kind,std::optional<
     Editor editor(draft);editor.owner=owner;editor.kind=kind;editor.index=index;editor.dpi=GetDpiForWindow(owner);
     if(kind==2){editor.original=index?draft.rules[*index]:suggested.value_or(v::Rule{"","",true,0xffffffffU});}
     WNDCLASSW wc{};wc.lpfnWndProc=Editor::proc;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=editor_class;wc.hCursor=LoadCursorW(nullptr,IDC_ARROW);wc.hbrBackground=reinterpret_cast<HBRUSH>(COLOR_BTNFACE+1);RegisterClassW(&wc);
+    editor.previous_focus=GetFocus();editor.owner_was_enabled=IsWindowEnabled(owner)!=FALSE;
     EnableWindow(owner,FALSE);
     const auto h=CreateWindowExW(WS_EX_DLGMODALFRAME|WS_EX_CONTROLPARENT,editor_class,kind==0?L"编辑键盘快捷键":kind==1?L"编辑鼠标操作":L"编辑应用规则",WS_CAPTION|WS_SYSMENU|WS_POPUP,0,0,500,500,owner,nullptr,GetModuleHandleW(nullptr),&editor);
-    if(h){ShowWindow(h,SW_SHOW);SetFocus(GetNextDlgTabItem(h,nullptr,FALSE));MSG msg{};while(editor.window&&IsWindow(owner)){const auto n=GetMessageW(&msg,nullptr,0,0);if(n<=0){if(n==0)PostQuitMessage(static_cast<int>(msg.wParam));break;}if(!IsDialogMessageW(h,&msg)){TranslateMessage(&msg);DispatchMessageW(&msg);}}if(editor.window)DestroyWindow(editor.window);}
-    if(IsWindow(owner)){EnableWindow(owner,TRUE);SetActiveWindow(owner);}if(editor.font)DeleteObject(editor.font);return editor.accepted;
+    if(h){ShowWindow(h,SW_SHOW);SetFocus(GetNextDlgTabItem(h,nullptr,FALSE));MSG msg{};while(editor.window&&IsWindow(owner)){const auto n=GetMessageW(&msg,nullptr,0,0);if(n<=0){if(n==0)PostQuitMessage(static_cast<int>(msg.wParam));break;}if(!IsDialogMessageW(h,&msg)){TranslateMessage(&msg);DispatchMessageW(&msg);}}}
+    editor.finish();if(editor.font)DeleteObject(editor.font);return editor.accepted;
 }
 } // namespace panebind::platform::windows::product
