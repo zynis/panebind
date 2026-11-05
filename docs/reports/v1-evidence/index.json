@@ -4,18 +4,18 @@
   "settings_ui_revision_20261105_files": [
     {
       "path": "docs/V1_QUICK_START.md",
-      "bytes": 11852,
-      "sha256": "2FCBA0EAB911C6A74DD0F0DB774D356710FA9F43A3DB8EE1647DF3D6A6AE678D"
+      "bytes": 10817,
+      "sha256": "DF462C5B7AEE59AABCDD5528B6D4F693DD80579BACF0AFFAB6725F87278DBA9E"
     },
     {
       "path": "docs/reports/V1_ACCEPTANCE.json",
-      "bytes": 2189454,
-      "sha256": "955A3245A5B133C5ACA5180E579ADCBD8989675218F0FB0D6D54C9DB75D4C545"
+      "bytes": 2190309,
+      "sha256": "2EC699EC43C99A567171711323896EEEEBFF40B1E5F35E3430F6841EEB670F50"
     },
     {
       "path": "docs/reports/V1_DELIVERY_REPORT.md",
-      "bytes": 445896,
-      "sha256": "3CB23A64463B6D0D05C144F60473E771477E3727F4564D9CF7A5D9A79543D009"
+      "bytes": 447236,
+      "sha256": "79893776D2DD6106C46FD07B89CB850F8626AEFEED05110FA5D26727F1EE8A39"
     },
     {
       "path": "docs/reports/v1-ui-review/README.md",
@@ -463,6 +463,11 @@
       "sha256": "1B720E70F8D11604082711254F1A8317E9AB3332680A47D13791BA4D1BD94620"
     },
     {
+      "path": "docs/reports/v1-ui-review/after/visible-product-build-4d684.json",
+      "bytes": 13593,
+      "sha256": "06F8E4E8C9967E088768ADA7BBF7C117C823EBD25E35AEDB3B0EC23680C94CE4"
+    },
+    {
       "path": "docs/reports/v1-ui-review/before/baseline465-captures.json",
       "bytes": 15660,
       "sha256": "892642514823D2594882C6D9E81FE1A64C846F9D7A1FEE9A27455CEFE43E5CBF"
@@ -534,8 +539,8 @@
     },
     {
       "path": "docs/reports/v1-ui-review/review.json",
-      "bytes": 62652,
-      "sha256": "9E487494772FEDE5A3AFAC7E3DDF507DD841ECA51F3DD9622E25789A7C71752E"
+      "bytes": 63758,
+      "sha256": "7526D5581E3C103820449C15145834DD6813564E27416E2B0A04CA8220EC7D01"
     }
   ],
   "single_screen_200_feasibility_20261104_files": [

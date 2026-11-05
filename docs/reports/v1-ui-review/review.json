@@ -1352,5 +1352,25 @@
       "same_window_in_scope_repairs": "IN_PROGRESS_NO_NEW_RESULT_CLAIMED",
       "guest_and_own_task_cleaned_evidence_retained": true
     }
+  },
+  "active_candidate_repair_20261106": {
+    "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+    "product_release_sha256": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D",
+    "driver_source_sha": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+    "driver_build": "PENDING_FORMAL_BINARY",
+    "product_build_evidence": {
+      "path": "docs/reports/v1-ui-review/after/visible-product-build-4d684.json",
+      "bytes": 13593,
+      "sha256": "06F8E4E8C9967E088768ADA7BBF7C117C823EBD25E35AEDB3B0EC23680C94CE4"
+    },
+    "product_field_status": "NOT_RUN_NEW_IMPLEMENTATION",
+    "historical_last_observed_product": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+    "historical_last_observed_run": "e60f564f222441d6b52ab8b6cfb0fb25",
+    "planned_portable_id": "9498d52cda714a71b2a2d58748c14e81",
+    "planned_guest_run": "864324ae101c450baabf9b7eedd51f2a",
+    "planned_product_and_driver_contract_unchanged": true,
+    "older_package_e60f_and_a5_unmodified": true,
+    "field_UP_insertion_failure_case": "NOT_RUN_SOURCE_PATH_REVIEWED_ONLY",
+    "all_T01_T10_PASS": false
   }
 }

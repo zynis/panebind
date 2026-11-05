@@ -1,0 +1,321 @@
+{
+  "schema": "panebind-settings-visible-product-build/1",
+  "receipt": {
+    "source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+    "build_dir": "out/v1-settings-ui-visible-20261106",
+    "created_utc": "2026-11-05T16:29:01.8666070Z",
+    "log_root": "D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\visible-4d684-build-20261105T162324296Z",
+    "runtime": "MultiThreaded",
+    "parallelism": 1,
+    "commands": [
+      {
+        "exe": "powershell.exe",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "tests/check-v1-settings-selected-summary.ps1"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+        "args": [
+          "-S",
+          ".",
+          "-B",
+          "out/v1-settings-ui-visible-20261106",
+          "-G",
+          "Visual Studio 18 2026",
+          "-A",
+          "x64",
+          "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+          "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /bigobj",
+          "-DBUILD_TESTING=ON"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+        "args": [
+          "--build",
+          "out/v1-settings-ui-visible-20261106",
+          "--config",
+          "Debug",
+          "--target",
+          "panebind",
+          "panebind-v1-guest-fixture",
+          "panebind-v1-settings-tests",
+          "panebind-v1-settings-editor-tests",
+          "panebind-v1-input-route-tests",
+          "panebind-v1-catalog-rule-tests",
+          "panebind-v1-guest-path-tests",
+          "--",
+          "/m:1",
+          "/p:CL_MPCount=1"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ctest.exe",
+        "args": [
+          "--test-dir",
+          "out/v1-settings-ui-visible-20261106",
+          "-C",
+          "Debug",
+          "-R",
+          "^(v1-settings|v1-settings-editor|v1-input-route|v1-catalog-rules|v1-guest-path)$",
+          "--output-on-failure",
+          "-V"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+        "args": [
+          "--build",
+          "out/v1-settings-ui-visible-20261106",
+          "--config",
+          "Release",
+          "--target",
+          "panebind",
+          "panebind-v1-guest-fixture",
+          "panebind-v1-settings-tests",
+          "panebind-v1-settings-editor-tests",
+          "panebind-v1-input-route-tests",
+          "panebind-v1-catalog-rule-tests",
+          "panebind-v1-guest-path-tests",
+          "--",
+          "/m:1",
+          "/p:CL_MPCount=1"
+        ],
+        "exit": 0
+      },
+      {
+        "exe": "D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ctest.exe",
+        "args": [
+          "--test-dir",
+          "out/v1-settings-ui-visible-20261106",
+          "-C",
+          "Release",
+          "-R",
+          "^(v1-settings|v1-settings-editor|v1-input-route|v1-catalog-rules|v1-guest-path)$",
+          "--output-on-failure",
+          "-V"
+        ],
+        "exit": 0
+      }
+    ],
+    "artifacts": [
+      {
+        "role": "product",
+        "configuration": "Debug",
+        "source": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind.exe",
+        "bytes": 4484608,
+        "sha256": "4FF3CB6E930794915DD4F617811467C770C90D16A7738AEA67EACC58F7DA32DB",
+        "identity": {
+          "product": "PaneBind",
+          "version": "1.0.0-dev",
+          "source_commit": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+          "subsystem": "windows",
+          "requires_elevation": false
+        },
+        "exit": 0
+      },
+      {
+        "role": "driver",
+        "configuration": "Debug",
+        "source": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+        "bytes": 11926528,
+        "sha256": "0531E2624A359E95D4E3D8C67DB540A8620CC9AB5B9EEB7827B69B35E986944E",
+        "identity": {
+          "product": "PaneBind V1 guest fixture",
+          "source_commit": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+          "host_synthetic_input": "forbidden",
+          "requires_medium_guest": true,
+          "guest_contract": "panebind-v1-guest-contract/2",
+          "product_interface": "panebind-v1-product-guest-interface/1"
+        },
+        "exit": 0
+      },
+      {
+        "role": "product",
+        "configuration": "Release",
+        "source": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind.exe",
+        "bytes": 1305600,
+        "sha256": "6D9B5F1026985C27AB8E1879EF5AF12D1F86AD21848ED5EA39889F965E5C686D",
+        "identity": {
+          "product": "PaneBind",
+          "version": "1.0.0-dev",
+          "source_commit": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+          "subsystem": "windows",
+          "requires_elevation": false
+        },
+        "exit": 0
+      },
+      {
+        "role": "driver",
+        "configuration": "Release",
+        "source": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+        "bytes": 5060096,
+        "sha256": "F8F607EAD623728EAE306F369264FCD48448BAF8F30112D9FDC905373E45F305",
+        "identity": {
+          "product": "PaneBind V1 guest fixture",
+          "source_commit": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
+          "host_synthetic_input": "forbidden",
+          "requires_medium_guest": true,
+          "guest_contract": "panebind-v1-guest-contract/2",
+          "product_interface": "panebind-v1-product-guest-interface/1"
+        },
+        "exit": 0
+      }
+    ],
+    "host_guards": [
+      {
+        "configuration": "Debug",
+        "mode": "no_arguments",
+        "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+        "arguments": "",
+        "started_PID": 52220,
+        "exit": 78,
+        "elapsed_ms": 60.994600000000005,
+        "output_created": false,
+        "new_product_processes_observed": [],
+        "host_input_sent_by_probe": false,
+        "guest_tasks_created_by_probe": false,
+        "source_guard_returns_before_input_or_GUI": true,
+        "native_API_calls_traced": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "configuration": "Debug",
+        "mode": "complete_SettingsEditorsOnly",
+        "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+        "arguments": "--run-id 3b3425df0dd04579bbd7735423c53145 --output \"D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\visible-4d684-build-20261105T162324296Z\\must-not-be-created-Debug\" --product \"D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Debug\\panebind.exe\" --suite SettingsEditorsOnly",
+        "started_PID": 3384,
+        "exit": 78,
+        "elapsed_ms": 83.50880000000001,
+        "output_created": false,
+        "new_product_processes_observed": [],
+        "host_input_sent_by_probe": false,
+        "guest_tasks_created_by_probe": false,
+        "source_guard_returns_before_input_or_GUI": true,
+        "native_API_calls_traced": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "configuration": "Release",
+        "mode": "no_arguments",
+        "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+        "arguments": "",
+        "started_PID": 33352,
+        "exit": 78,
+        "elapsed_ms": 82.6823,
+        "output_created": false,
+        "new_product_processes_observed": [],
+        "host_input_sent_by_probe": false,
+        "guest_tasks_created_by_probe": false,
+        "source_guard_returns_before_input_or_GUI": true,
+        "native_API_calls_traced": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "configuration": "Release",
+        "mode": "complete_SettingsEditorsOnly",
+        "exe": "D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+        "arguments": "--run-id 83e56a6c2e0d411cac246cb816ea6314 --output \"D:\\repository\\panebind\\uat\\v1-control\\settings-ui-followup-20261105\\visible-4d684-build-20261105T162324296Z\\must-not-be-created-Release\" --product \"D:\\repository\\panebind\\out\\v1-settings-ui-visible-20261106\\src\\platform\\windows\\Release\\panebind.exe\" --suite SettingsEditorsOnly",
+        "started_PID": 45300,
+        "exit": 78,
+        "elapsed_ms": 67.5913,
+        "output_created": false,
+        "new_product_processes_observed": [],
+        "host_input_sent_by_probe": false,
+        "guest_tasks_created_by_probe": false,
+        "source_guard_returns_before_input_or_GUI": true,
+        "native_API_calls_traced": false,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "old_artifacts_and_symbols": [
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-wrap-20261105\\src\\platform\\windows\\Debug\\panebind.exe",
+        "bytes_before": 4477952,
+        "sha256_before": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46",
+        "bytes_after": 4477952,
+        "sha256_after": "183476F3C53CED09EF5FF2FA20A6A1AB6E8C80E50D63989370233D1CD8EE1A46",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-wrap-20261105\\src\\platform\\windows\\Debug\\panebind.pdb",
+        "bytes_before": 25587712,
+        "sha256_before": "E20D498DF1E7DB732A3C37E76B7D7883BBCD6B91ED1E9244E75A45A83EB6D978",
+        "bytes_after": 25587712,
+        "sha256_after": "E20D498DF1E7DB732A3C37E76B7D7883BBCD6B91ED1E9244E75A45A83EB6D978",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-wrap-20261105\\src\\platform\\windows\\Release\\panebind.exe",
+        "bytes_before": 1303040,
+        "sha256_before": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+        "bytes_after": 1303040,
+        "sha256_after": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.exe",
+        "bytes_before": 11893760,
+        "sha256_before": "17D3BFEE9F1EF6BCF37F6857737DC33C4B735D9789C8CE3AF5F0E4C3FD2798FD",
+        "bytes_after": 11893760,
+        "sha256_after": "17D3BFEE9F1EF6BCF37F6857737DC33C4B735D9789C8CE3AF5F0E4C3FD2798FD",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Debug\\panebind-v1-guest-fixture.pdb",
+        "bytes_before": 61730816,
+        "sha256_before": "7676ACAB8CFEC5DA784B2A8C47F63DC697784DFDF25CB8034B08EC6265389264",
+        "bytes_after": 61730816,
+        "sha256_after": "7676ACAB8CFEC5DA784B2A8C47F63DC697784DFDF25CB8034B08EC6265389264",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\out\\v1-settings-ui-driver\\src\\platform\\windows\\Release\\panebind-v1-guest-fixture.exe",
+        "bytes_before": 5041664,
+        "sha256_before": "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+        "bytes_after": 5041664,
+        "sha256_after": "836F42D363F79E9454DF1D7253204B63241DEF2F0FF4F798EF1F6ECEA0A16DB7",
+        "unchanged": true
+      },
+      {
+        "path": "D:\\repository\\panebind\\uat\\v1-portable\\a5dcf5ef3c8847649f5212f9e331e7be\\PaneBindV1-Release-a5dcf5ef3c8847649f5212f9e331e7be.zip",
+        "bytes_before": 614076,
+        "sha256_before": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
+        "bytes_after": 614076,
+        "sha256_after": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
+        "unchanged": true
+      }
+    ],
+    "summary_test_script": "tests/check-v1-settings-selected-summary.ps1",
+    "offline_scope": "exact five existing tests, Debug and Release",
+    "interactive_tests_run": false,
+    "field_run": "NOT_RUN_for_this_source"
+  },
+  "raw_receipt": {
+    "path": "uat/v1-control/settings-ui-followup-20261105/visible-4d684-build-20261105T162324296Z/build-test-guard-receipt.json",
+    "bytes": 12388,
+    "sha256": "5C4220721ED168FEB7D622BC435685FC0B4979BE81D60B4AB63FB7BEE3454203"
+  },
+  "product_field": "NOT_RUN_NEW_IMPLEMENTATION",
+  "older_c77_e60f_images_not_rebound": true,
+  "subsequent_driver_only_fix": "2f2b5bd704582a4d51abb1f2c503fbd640ff62f4",
+  "subsequent_driver_actual_build": "PENDING",
+  "product_rebuild_after_driver_fix": false
+}
