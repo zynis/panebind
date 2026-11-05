@@ -229,7 +229,15 @@ void review_editor_activate_combo(State& s,const SettingsGui& gui,const ReviewEd
             if(s.suite=="SettingsEditorsOnly")s.settings_input_route_unknown=true;
             throw std::runtime_error("settings_review_combo_UP_route_changed_no_input_sent");
         }
-        up_attempted=true;button(s,false);
+        up_attempted=true;
+        try{button(s,false);}
+        catch(...){
+            // A confirmed route does not prove that the single UP insertion
+            // or its receipt completed. Preserve button()'s actual ledger and
+            // forbid global cleanup from starting a replacement input chain.
+            if(s.suite=="SettingsEditorsOnly")s.settings_input_route_unknown=true;
+            throw;
+        }
     };
     try{button(s,true);release_once();}
     catch(...){if(s.left&&!release_considered&&!up_attempted)release_once();throw;}

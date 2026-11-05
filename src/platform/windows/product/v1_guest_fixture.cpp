@@ -330,7 +330,7 @@ struct State{
     // physical button state. A separate product hook receipt proves receipt.
     bool left{},control{},left_up_attempted{};std::uint64_t left_down_send_qpc{},left_up_send_qpc{};
     std::array<bool,256> settings_test_keys_used{},settings_test_keys_down{};
-    bool settings_input_route_unknown{}; // Guard refusal, never a fabricated UP attempt/delivery.
+    bool settings_input_route_unknown{}; // Refused route or unconfirmed UP attempt; never fabricates its ledger.
     std::array<std::unique_ptr<ExplorerTarget>,3> explorer;
     std::vector<std::unique_ptr<ExplorerTarget>> retired_explorers;
     std::unique_ptr<product::Catalog> target_catalog;
@@ -2674,7 +2674,7 @@ void cleanup(State& s){
     const bool settings_route_refused=s.suite=="SettingsEditorsOnly"&&s.settings_input_route_unknown;
     if(settings_route_refused){
         s.log.failed=true;
-        s.log.emit("settings_review_input_cleanup_refused","\"reason\":\"exact_combo_UP_route_was_rejected\",\"input_release\":\"NOT_ATTEMPTED_UNKNOWN_ROUTE\""
+        s.log.emit("settings_review_input_cleanup_refused","\"reason\":\"exact_combo_release_route_or_attempt_unconfirmed\",\"input_release\":\"NO_FURTHER_INPUT_AFTER_UNCONFIRMED_RELEASE\""
             ",\"driver_left_ledger_down\":"+std::string(s.left?"true":"false")+",\"driver_Control_ledger_down\":"+(s.control?"true":"false")+
             ",\"actual_prior_LEFTUP_attempted\":"+(s.left_up_attempted?"true":"false")+
             ",\"new_LEFTUP_or_ControlUP_sent\":false,\"post_stop_click_allowed\":false,\"NormalUp\":\"UNKNOWN\",\"product_cleanup_PASS_inferred\":false");
@@ -2704,7 +2704,7 @@ void cleanup(State& s){
     // An earlier independent application failure remains a failure, but does
     // not prevent observation of this instance's actual input-resource exit.
     bool delivered=false;const bool check_delivery=current_stop_confirmed&&s.suite!="DriverDisconnectOnly"&&!settings_route_refused;Frame* selected{};std::string candidates="[",
-        why=settings_route_refused?"settings_input_route_unknown_no_cleanup_input":s.suite=="DriverDisconnectOnly"?
+        why=settings_route_refused?"settings_release_route_or_attempt_unconfirmed_no_cleanup_input":s.suite=="DriverDisconnectOnly"?
             "driver_disconnect_no_extra_post_stop_input":check_delivery?"no_exact_owned_candidate":"current_product_stop_not_confirmed";
     for(std::size_t n=0;n<s.frames.size();++n){auto& f=s.frames[n];const bool exact=own(s,f.hwnd),shown=exact&&IsWindowVisible(f.hwnd)!=FALSE;
         if(n)candidates+=',';candidates+="{\"member\":"+std::to_string(n)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(f.hwnd))+
