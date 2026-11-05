@@ -551,15 +551,41 @@ void owned_settings_ui_color_case(State& s){
     gui=gui_open(s);gui_page_select(s,gui,2);const auto second_color=review_page_control(s,gui,1230);
     const auto open_picker=review_page_control(s,gui,1231);review_tab_to(s,gui,open_picker);gui_press(s,gui,VK_SPACE);
     const auto picker=settings_guest_modal(s,gui,L"颜色");
+    const auto focus_picker=[&](HWND target,int target_id){
+        GUITHREADINFO initial{sizeof(initial)};const bool initial_known=GetGUIThreadInfo(picker.tid,&initial)!=FALSE;
+        HWND before=initial.hwndFocus;unsigned tabs{};bool reached{};std::string failure;
+        for(;tabs<64;){
+            GUITHREADINFO context{sizeof(context)};
+            if(!settings_guest_modal_identity(s,gui,picker)||GetForegroundWindow()!=picker.root||
+               !GetGUIThreadInfo(picker.tid,&context)){failure="exact_modal_focus_context_unknown";break;}
+            if(context.hwndFocus==target){reached=true;break;}
+            before=context.hwndFocus;settings_guest_modal_press(s,gui,picker,VK_TAB);++tabs;
+            const bool changed=wait([&]{GUITHREADINFO after{sizeof(after)};return settings_guest_modal_identity(s,gui,picker)&&
+                GetForegroundWindow()==picker.root&&GetGUIThreadInfo(picker.tid,&after)&&after.hwndFocus&&
+                after.hwndFocus!=before&&IsChild(picker.root,after.hwndFocus);},500);
+            if(!changed){failure="actual_Tab_focus_change_not_observed";break;}
+        }
+        GUITHREADINFO final{sizeof(final)};const bool final_known=GetGUIThreadInfo(picker.tid,&final)!=FALSE;
+        DWORD pid{};const auto target_tid=GetWindowThreadProcessId(target,&pid);const auto foreground=GetForegroundWindow();
+        reached=reached||(tabs==64&&final_known&&final.hwndFocus==target);
+        s.log.check("T07_ChooseColor_actual_Tab_reaches_target",reached&&final_known&&final.hwndFocus==target&&
+            settings_guest_modal_identity(s,gui,picker)&&foreground==picker.root&&target_tid==picker.tid&&pid==s.product_pid&&
+            GetDlgItem(picker.root,target_id)==target&&IsWindowVisible(target)&&IsWindowEnabled(target),
+            "\"target_id\":"+std::to_string(target_id)+",\"target\":"+std::to_string(reinterpret_cast<std::uintptr_t>(target))+
+            ",\"initial_focus_known\":"+(initial_known?"true":"false")+",\"initial_focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(initial.hwndFocus))+
+            ",\"before_last_Tab_focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(before))+",\"final_focus_known\":"+(final_known?"true":"false")+
+            ",\"final_focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(final.hwndFocus))+",\"final_focus_id\":"+std::to_string(GetDlgCtrlID(final.hwndFocus))+
+            ",\"actual_Tab_key_pairs\":"+std::to_string(tabs)+",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+
+            ",\"expected_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(picker.root))+",\"failure\":"+(failure.empty()?"null":quote(failure))+
+            ",\"extra_Tab_or_SetFocus_used\":false");
+    };
     // Actual SDK 10.0.26100.0/um/ColorDlg.h identifiers, not guessed IDs.
     // The dialog is also checked as the exact product-owned native modal.
     for(const auto& channel:std::array<std::pair<int,unsigned>,3>{{{COLOR_RED,215},{COLOR_GREEN,40},{COLOR_BLUE,70}}}){
         const auto edit=GetDlgItem(picker.root,channel.first);
         if(!edit||gui_class(edit)!=L"Edit"||!IsWindowVisible(edit)||!IsWindowEnabled(edit)||!IsChild(picker.root,edit))
             throw std::runtime_error("settings_review_ChooseColor_actual_SDK_RGB_edit_missing");
-        unsigned tabs{};for(;tabs<64;++tabs){GUITHREADINFO context{sizeof(context)};
-            if(!GetGUIThreadInfo(picker.tid,&context))throw std::runtime_error("settings_review_ChooseColor_focus_unknown");
-            if(context.hwndFocus==edit)break;settings_guest_modal_press(s,gui,picker,VK_TAB);}
+        focus_picker(edit,channel.first);
         const auto focused=[&]{GUITHREADINFO context{sizeof(context)};DWORD pid{};
             return settings_guest_modal_identity(s,gui,picker)&&GetForegroundWindow()==picker.root&&GetGUIThreadInfo(picker.tid,&context)&&
                 context.hwndFocus==edit&&GetWindowThreadProcessId(edit,&pid)==picker.tid&&pid==s.product_pid&&IsChild(picker.root,edit)&&IsWindowEnabled(edit);};
@@ -567,14 +593,16 @@ void owned_settings_ui_color_case(State& s){
         key(s,VK_CONTROL,true);settings_guest_modal_press(s,gui,picker,'A');key(s,VK_CONTROL,false);
         const auto desired=std::to_wstring(channel.second);settings_guest_unicode(s,desired,focused);
         std::array<wchar_t,16> value{};DWORD_PTR copied{};
-        s.log.check("T07_ChooseColor_actual_RGB_keys",wait([&]{return focused()&&SendMessageTimeoutW(edit,WM_GETTEXT,value.size(),reinterpret_cast<LPARAM>(value.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&copied)&&
-            copied<value.size()&&std::wstring_view(value.data(),copied)==desired;}),
-            "\"SDK_control_id\":"+std::to_string(channel.first)+",\"actual_channel_value\":"+std::to_string(channel.second)+",\"private_mutation_message_used\":false");
+        const bool matched=wait([&]{return focused()&&SendMessageTimeoutW(edit,WM_GETTEXT,value.size(),reinterpret_cast<LPARAM>(value.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&copied)&&
+            copied<value.size()&&std::wstring_view(value.data(),copied)==desired;});
+        const bool read_known=settings_guest_modal_identity(s,gui,picker)&&SendMessageTimeoutW(edit,WM_GETTEXT,value.size(),
+            reinterpret_cast<LPARAM>(value.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&copied)&&copied<value.size();
+        s.log.check("T07_ChooseColor_actual_RGB_keys",matched&&read_known&&std::wstring_view(value.data(),copied)==desired,
+            "\"SDK_control_id\":"+std::to_string(channel.first)+",\"expected_channel_value\":"+std::to_string(channel.second)+
+            ",\"actual_text\":"+(read_known?quote(utf8(std::wstring(value.data(),copied))):"null")+
+            ",\"actual_text_sampled_after_wait\":true,\"private_mutation_message_used\":false");
     }
-    const auto picker_ok=GetDlgItem(picker.root,IDOK);unsigned confirm_tabs{};
-    for(;confirm_tabs<64;++confirm_tabs){GUITHREADINFO context{sizeof(context)};
-        if(!GetGUIThreadInfo(picker.tid,&context))throw std::runtime_error("settings_review_ChooseColor_OK_focus_unknown");
-        if(context.hwndFocus==picker_ok)break;settings_guest_modal_press(s,gui,picker,VK_TAB);}
+    const auto picker_ok=GetDlgItem(picker.root,IDOK);focus_picker(picker_ok,IDOK);
     GUITHREADINFO confirm{sizeof(confirm)};
     if(!GetGUIThreadInfo(picker.tid,&confirm)||confirm.hwndFocus!=picker_ok)throw std::runtime_error("settings_review_ChooseColor_OK_not_reached");
     settings_guest_modal_press(s,gui,picker,VK_RETURN);
