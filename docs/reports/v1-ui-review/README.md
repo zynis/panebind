@@ -4,6 +4,11 @@
 
 产品源码 `1aabd344ad88bfcf36d7d611ee809a6da1e10ea1`，Release EXE SHA-256 `11F5C3C7DA297AED7D9DDEB7215371F5C96F852ACC376B844C453BFD547D9A82`。产品、驱动、包和运行各自绑定，详见[复核元数据](review.json)及[集中报告](../V1_DELIVERY_REPORT.md)。普通宿主试用未开放，真人UAT PENDING、REA NOT_STARTED。
 
+
+**最终候选与接续入口（已封包、已部署，未启动）：** 产品1a / 驱动a65，便携包 [8c1795 ZIP](<D:/repository/panebind/uat/v1-portable/8c17956609ce4867b34ac945ac2780f3/PaneBindV1-Release-8c17956609ce4867b34ac945ac2780f3.zip>)，SHA-256 `45789B9502CC4324CF788726552D78A6A3D94AB5E06195ED29EF17EE7489CD4D`。对应guest Run `36f81b0bccf641a6b48d4411b6c05bdd`已在`I:\PaneBindMVP1Runs\36f81b0bccf641a6b48d4411b6c05bdd`逐文件核验；其只读input含相同便携ZIP，唯一可写映射为同批output。未批准外部分发渠道，不公开发布EXE/ZIP。
+
+普通启动/停止方法仅供该授权guest：从新ZIP解压目录无参运行`panebind.exe`，顶部运行条暂停/恢复、帮助、退出；有草稿默认“返回设置”，可明确“放弃修改并退出”；×/取消不退出程序。T09会自动在中文空格目录执行该入口，用户不需搬文件或逐项实验。**这些新入口现场NOT_RUN，不能称已可试用。** 等释放通知及一次新资源核验后，按需先68fb历史取证，再36f8同一次六页/长页与T01–T10，复用这些已核包，不重建、不轮询。当前没有本任务live资源，cleanup不适用而非PASS；最后占用观察仍为08:38Z，没有把它冒称后续实时状态。
+
 ## 新界面（after）
 
 [尚缺的六页实际图片](after/README.md)明确为0/6；不能据源码或构建推断文字、裁切、焦点、点击和颜色预览通过。

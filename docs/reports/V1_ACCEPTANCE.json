@@ -75,7 +75,12 @@
       "field_status": "NOT_RUN_SANDBOX_OTHER_PROJECT_OCCUPIED",
       "evidence_path": "docs/reports/v1-ui-review/review.json",
       "historical_runtime_evidence_rebound": false,
-      "new_feature_PASS_awarded": 0
+      "new_feature_PASS_awarded": 0,
+      "portable_package_id": "8c17956609ce4867b34ac945ac2780f3",
+      "portable_zip_sha256": "45789B9502CC4324CF788726552D78A6A3D94AB5E06195ED29EF17EE7489CD4D",
+      "guest_run_id": "36f81b0bccf641a6b48d4411b6c05bdd",
+      "guest_zip_sha256": "BB2AE02EB792E4995C4DDE8FCD659904143200BA5099EA8EFEAFB330E5C9B01D",
+      "deploy_status": "VERIFIED_NOT_STARTED"
     },
     "local_hc_safe_preflight_driver": {
       "driver_source_sha": "03e5ae7d7390ceeae1394b7ca682ca59a87476e0",

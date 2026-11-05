@@ -82,22 +82,22 @@
   "implementation": {
     "U1": {
       "source_status": "IMPLEMENTED",
-      "offline_status": "PASS_SCOPED_CORE_AND_BUILD",
+      "offline_status": "PASS_CORE_EDITOR_MUTATIONS_SCHEMA_DEDUP; GUI_NOT_RUN",
       "field_status": "NOT_RUN"
     },
     "U2": {
       "source_status": "IMPLEMENTED",
-      "offline_status": "PASS_SCOPED_CORE_AND_BUILD",
+      "offline_status": "PASS_CORE_MASK_UTF8_ROUNDTRIP; GUI_NOT_RUN",
       "field_status": "NOT_RUN"
     },
     "U3": {
       "source_status": "IMPLEMENTED",
-      "offline_status": "PASS_SCOPED_CORE_AND_BUILD",
+      "offline_status": "PASS_CORE_RGB_COLORREF; NATIVE_PICKER_AND_PREVIEW_NOT_RUN",
       "field_status": "NOT_RUN"
     },
     "U4": {
       "source_status": "IMPLEMENTED",
-      "offline_status": "PASS_SCOPED_CORE_AND_BUILD",
+      "offline_status": "DEBUG_RELEASE_BUILD_PASS; BAR_INTERACTION_AND_NORMAL_EXIT_NOT_RUN",
       "field_status": "NOT_RUN"
     }
   },
@@ -251,11 +251,6 @@
       "sha256": "0AD756CC5EBFD1684F3DAA7A59DAEB06637D6A9F6A183365D0C056311E070D5A"
     },
     {
-      "path": "uat/v1-control/ui-review-controller-20261105-6d281c4a/deployment-checkpoint.json",
-      "bytes": 1661,
-      "sha256": "E3BDF1FFBC1FD7FA35A16F9782BA27B52FEF08211D7A1437FF5315DD1022A095"
-    },
-    {
       "path": "uat/v1-control/ui-review-controller-20261105-6d281c4a/e4f8612b2a624f92967d97272de58671/deploy-receipt.json",
       "bytes": 2664,
       "sha256": "B784DD136E1CC112156552AAFC0A1632F20CD9DC169B511749D28F0423EF45F6"
@@ -274,6 +269,31 @@
       "path": "uat/v1-control/ui-review-controller-20261105-6d281c4a/historical-before-package.json",
       "bytes": 1162,
       "sha256": "8CA242A26BF37BB5EFD0B1E0DD520FFB8EB612E753C41697D64D1BF376CA1CBE"
+    },
+    {
+      "path": "uat/v1-portable/8c17956609ce4867b34ac945ac2780f3/package-receipt.json",
+      "bytes": 3652,
+      "sha256": "F1E050D633F46BD0ABE37E2BBFB506B05D121B27FE97BAD8C11DF292C4B1D4ED"
+    },
+    {
+      "path": "uat/v1-sandbox/36f81b0bccf641a6b48d4411b6c05bdd/package-receipt.json",
+      "bytes": 13538,
+      "sha256": "33D023B8DB659D79064ADC706F7ECF50F7874EDFFC6D721ED79507AF0386E8DF"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/36f81b0bccf641a6b48d4411b6c05bdd/deploy-receipt.json",
+      "bytes": 2919,
+      "sha256": "056F34F054C39B78DC94DA803669E48EB98EEBBB3B5ED6AFA0A43B826205029D"
+    },
+    {
+      "path": "uat/v1-control/ui-editors-controller-20261105-e772105a/controller-static-check.json",
+      "bytes": 12714,
+      "sha256": "15554B6131F9FD79954C2B2A51A79C674DE2734350796DF8633D446DDDFD0B52"
+    },
+    {
+      "path": "uat/v1-control/ui-review-controller-20261105-6d281c4a/deployment-checkpoint.json",
+      "bytes": 4692,
+      "sha256": "A1E5CE558E05334CA08DD6C1AC87FE9E39FB477AA47971A556153D11707A3E82"
     }
   ],
   "previous_candidates": [
@@ -389,5 +409,48 @@
   "test_tool_commits": [
     "a65b3bfce57146cb75d4eba6e2bc90567a348f27"
   ],
-  "six_new_pages_and_T01_T10_same_run": true
+  "six_new_pages_and_T01_T10_same_run": true,
+  "delivery": {
+    "portable": {
+      "package_id": "8c17956609ce4867b34ac945ac2780f3",
+      "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+      "packaging_head": "6639229987666b1ed935663812d624c337ff3409",
+      "zip": "D:\\repository\\panebind\\uat\\v1-portable\\8c17956609ce4867b34ac945ac2780f3\\PaneBindV1-Release-8c17956609ce4867b34ac945ac2780f3.zip",
+      "zip_sha256": "45789B9502CC4324CF788726552D78A6A3D94AB5E06195ED29EF17EE7489CD4D",
+      "manifest_sha256": "53D1433675C6442DE6F017362A76E950B480494B0170324AD9F9A96A5E06586E",
+      "standalone_entry_result": "NOT_RUN",
+      "public_release": false,
+      "external_distribution_channel": "NOT_APPROVED"
+    },
+    "guest": {
+      "run_id": "36f81b0bccf641a6b48d4411b6c05bdd",
+      "suite": "SettingsEditorsOnly",
+      "product_source_sha": "1aabd344ad88bfcf36d7d611ee809a6da1e10ea1",
+      "driver_source_sha": "a65b3bfce57146cb75d4eba6e2bc90567a348f27",
+      "zip": "D:\\repository\\panebind\\uat\\v1-sandbox\\36f81b0bccf641a6b48d4411b6c05bdd\\36f81b0bccf641a6b48d4411b6c05bdd.zip",
+      "zip_sha256": "BB2AE02EB792E4995C4DDE8FCD659904143200BA5099EA8EFEAFB330E5C9B01D",
+      "manifest_sha256": "E8704C47F7DC6B7B9FCF3257A0E727EB22C616724750C8B17B7F9C86E8160D55",
+      "wsb_sha256": "5EBBDD54E2FCC366EE5B59E64226DFBF92871ACAF70B369DE513C1B8D8EC5C48",
+      "remote_root": "I:\\PaneBindMVP1Runs\\36f81b0bccf641a6b48d4411b6c05bdd",
+      "deployed": true,
+      "deploy_utc": "2026-11-05T09:40:33.0019018Z",
+      "guest_started": false,
+      "launch_authority": "Wait for turn notification, then one fresh occupancy/resources gate",
+      "field_status": "NOT_RUN",
+      "collect_controller": "uat/v1-control/ui-editors-controller-20261105-e772105a/run-control.ps1",
+      "startup_command_in_guest": "driver automatically extracts verified portable ZIP into its new Chinese/space path; ordinary EXE no arguments",
+      "normal_stop": "settings runtime bar: 退出程序; dirty draft defaults 返回设置",
+      "emergency_pause": "Ctrl+Shift+F11",
+      "product_cleanup": "NOT_APPLICABLE_NOT_STARTED"
+    },
+    "resume_order": [
+      "68fbaf3de9244490835ff09a1df45ceb historical UI0 if before pages needed",
+      "36f81b0bccf641a6b48d4411b6c05bdd current six pages/T01-T10 in one run"
+    ],
+    "superseded_runs_retained": [
+      "e4f8612b2a624f92967d97272de58671 KNOWN_UI_WIRING_DEFECT_NOT_RUN",
+      "04e8281565b44627b8860b658e1f6c64 product1f SUPERSEDED_NOT_RUN",
+      "f3736cb15af34932b0a84692ffccbf78 product1f SUPERSEDED_NOT_RUN"
+    ]
+  }
 }
