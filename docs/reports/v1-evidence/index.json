@@ -194,8 +194,8 @@
     },
     {
       "path": "docs/reports/v1-ui-review/after/a793-resource-gate.json",
-      "bytes": 5150,
-      "sha256": "C0EAB9A37E820766CD81357ABEA3FC4780C2D108AB15A2E94420945B47998BB3"
+      "bytes": 5509,
+      "sha256": "078089C834267CD8C3422CFBC96602894BBDB8A645C278F82F2060B1E8343C34"
     },
     {
       "path": "docs/reports/v1-ui-review/after/af10-validation.json",
@@ -404,8 +404,8 @@
     },
     {
       "path": "docs/reports/v1-ui-review/review.json",
-      "bytes": 57525,
-      "sha256": "907F2488BB1F294189B21709AC40FBD4797808EFF91D348E739F9C80BE3ECD56"
+      "bytes": 60156,
+      "sha256": "94602FC444F6C1211C1F4A76FFB146FDF2D70ACAA6A27CC8106CBB232FE33AE5"
     }
   ],
   "single_screen_200_feasibility_20261104_files": [

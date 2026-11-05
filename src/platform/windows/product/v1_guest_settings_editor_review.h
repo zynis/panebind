@@ -533,6 +533,9 @@ void review_preview_fill(State& s,COLORREF expected,std::string_view label){
 }
 void owned_settings_ui_color_case(State& s){
     settings_guest_scope(s);const auto before=chain_settings(s);const auto bytes=read(s.product.parent_path()/L"settings.ini");
+    s.log.emit("settings_ui_T07_baseline","\"actual_saved_generation\":"+std::to_string(before.generation)+
+        ",\"actual_saved_file_sha256\":"+quote(hash(s.product.parent_path()/L"settings.ini"))+
+        ",\"baseline_read_after_previous_selected_phases\":true,\"C_or_J_not_assumed\":true");
     auto gui=gui_open(s);gui_page_select(s,gui,2);const auto color=review_page_control(s,gui,1230);
     const auto initial=gui_text(s,gui,color);
     s.log.check("T07_existing_COLORREF_uses_correct_RGB_order",initial==review_hex(before.preview_color));
@@ -549,8 +552,11 @@ void owned_settings_ui_color_case(State& s){
     s.log.check("T07_default_blue_saved_without_red_blue_swap",chain_settings(s).preview_color==0xd77800&&chain_settings(s).preview_alpha==255);
     review_preview_fill(s,RGB(0,120,215),"T07_blue");
     gui=gui_open(s);gui_page_select(s,gui,2);const auto second_color=review_page_control(s,gui,1230);
+    const auto blue=chain_settings(s);SettingsGuestModal picker{};bool native_returned{};
+    s.log.emit("settings_ui_T07_route","\"route\":\"system_picker\",\"status\":\"STARTED\"");
+    try{
     const auto open_picker=review_page_control(s,gui,1231);review_tab_to(s,gui,open_picker);gui_press(s,gui,VK_SPACE);
-    const auto picker=settings_guest_modal(s,gui,L"颜色");
+    picker=settings_guest_modal(s,gui,L"颜色");
     const auto focus_picker=[&](HWND target,int target_id){
         GUITHREADINFO initial{sizeof(initial)};const bool initial_known=GetGUIThreadInfo(picker.tid,&initial)!=FALSE;
         HWND before=initial.hwndFocus;unsigned tabs{};bool reached{};std::string failure;
@@ -608,9 +614,37 @@ void owned_settings_ui_color_case(State& s){
     settings_guest_modal_press(s,gui,picker,VK_RETURN);
     s.log.check("T07_ChooseColor_actual_OK_changes_only_draft",wait([&]{return !IsWindow(picker.root)&&GetForegroundWindow()==gui.root&&gui_text(s,gui,second_color)==L"#D72846";})&&
         chain_settings(s).preview_color==0xd77800, "\"actual_native_RGB_selection\":\"215,40,70\",\"saved_blue_unchanged_until_Save\":true");
-    gui_save_enter(s,gui);
-    s.log.check("T07_second_RGB_saved_in_COLORREF_order",chain_settings(s).preview_color==static_cast<int>(RGB(215,40,70)));
-    review_preview_fill(s,RGB(215,40,70),"T07_red");
+    native_returned=true;
+    }catch(const std::exception& error){
+        s.log.failed=true;const std::string reason=error.what();
+        s.log.emit("settings_ui_T07_route","\"route\":\"system_picker\",\"status\":\"FAILED\",\"reason\":"+quote(reason)+",\"original_failure_preserved\":true");
+        const bool recoverable=reason=="T07_ChooseColor_actual_Tab_reaches_target"||reason=="T07_ChooseColor_actual_RGB_keys"||
+            reason=="settings_review_ChooseColor_RGB_target_not_reached"||reason=="settings_review_ChooseColor_OK_not_reached"||
+            reason=="T07_ChooseColor_actual_OK_changes_only_draft";
+        if(!recoverable)throw;
+        std::string keys;const bool released=settings_review_input_clear(s,keys);
+        s.log.check("T07_picker_failure_all_test_keys_released_before_cleanup",released,"\"driver_keys\":"+keys);
+        if(IsWindow(picker.root)){
+            if(!settings_guest_modal_identity(s,gui,picker)||GetForegroundWindow()!=picker.root)
+                throw std::runtime_error("T07_failed_picker_not_exact_foreground_no_HEX_continuation");
+            settings_guest_modal_press(s,gui,picker,VK_ESCAPE);
+        }
+        const bool closed=wait([&]{const auto focus=gui_focus(gui);return !IsWindow(picker.root)&&GetForegroundWindow()==gui.root&&
+            gui_identity(s,gui,gui.tab)&&gui_identity(s,gui,focus)&&IsWindowVisible(focus)&&IsWindowEnabled(focus);});
+        s.log.check("T07_failed_picker_actually_closed_and_saved_blue_unchanged",closed&&chain_settings(s)==blue,
+            "\"exact_picker_destroyed\":"+std::string(!IsWindow(picker.root)?"true":"false")+",\"fake_close_or_SetFocus_used\":false");
+        settings_review_safe_idle(s,&gui,"T07_failed_native_picker_before_HEX_route");
+    }
+    const char* route=native_returned?"system_picker":"HEX_second_color";
+    if(!native_returned)s.log.emit("settings_ui_T07_route","\"route\":\"HEX_second_color\",\"status\":\"STARTED\",\"native_failure_preserved\":true");
+    else s.log.emit("settings_ui_T07_route","\"route\":\"HEX_second_color\",\"status\":\"NOT_EXECUTED\",\"reason\":\"system_picker_confirmed_the_second_color\"");
+    try{
+        if(!native_returned)review_root_replace(s,gui,second_color,L"#D72846");
+        gui_save_enter(s,gui);
+        s.log.check("T07_second_RGB_saved_in_COLORREF_order",chain_settings(s).preview_color==static_cast<int>(RGB(215,40,70)),"\"input_route\":"+quote(route));
+        review_preview_fill(s,RGB(215,40,70),"T07_red");
+        s.log.emit("settings_ui_T07_route","\"route\":"+quote(route)+",\"status\":\"RETURNED\",\"actual_preview_pixel_checked\":true,\"return_not_combined_T07_PASS\":true");
+    }catch(const std::exception& error){s.log.emit("settings_ui_T07_route","\"route\":"+quote(route)+",\"status\":\"FAILED\",\"reason\":"+quote(error.what()));throw;}
     gui=gui_open(s);gui_page_select(s,gui,2);const auto old_hex=review_hex(before.preview_color);
     review_root_replace(s,gui,review_page_control(s,gui,1230),old_hex);
     gui_edit_number(s,gui,gui_number(s,gui,L"预览不透明度"),static_cast<unsigned>(before.preview_alpha));

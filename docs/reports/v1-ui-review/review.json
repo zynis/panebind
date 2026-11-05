@@ -325,7 +325,7 @@
     "evidence": "after/a793-resource-gate.json",
     "measurements": [
       {
-        "trigger": "?????????????",
+        "trigger": "本批首次部署后的启动前检查",
         "raw": {
           "machine": "ZS-WORKSTATION",
           "user": "ZS-Workstation\\zs",
@@ -338,7 +338,7 @@
         }
       },
       {
-        "trigger": "???????????????????",
+        "trigger": "用户另行通知资源已恢复后的一次有界复查",
         "raw": {
           "machine": "ZS-WORKSTATION",
           "user": "ZS-Workstation\\zs",
@@ -517,8 +517,8 @@
     },
     {
       "path": "docs/reports/v1-ui-review/after/a793-resource-gate.json",
-      "bytes": 5150,
-      "sha256": "C0EAB9A37E820766CD81357ABEA3FC4780C2D108AB15A2E94420945B47998BB3"
+      "bytes": 5509,
+      "sha256": "078089C834267CD8C3422CFBC96602894BBDB8A645C278F82F2060B1E8343C34"
     },
     {
       "path": "uat/v1-control/settings-ui-review-20261105/driver-d8a1-retained/retention-receipt.json",
@@ -1238,5 +1238,69 @@
         }
       ]
     }
-  ]
+  ],
+  "resource_description_text_repair_20261105": {
+    "scope": "Six human-readable strings only, before adding this round's execution contract; original resource values/times/raw receipts/verdicts unchanged.",
+    "previous_curated_metadata_pin": {
+      "path": "docs/reports/v1-ui-review/after/a793-resource-gate.json",
+      "bytes": 5150,
+      "sha256": "C0EAB9A37E820766CD81357ABEA3FC4780C2D108AB15A2E94420945B47998BB3"
+    },
+    "corrected_curated_metadata_pin": {
+      "path": "docs/reports/v1-ui-review/after/a793-resource-gate.json",
+      "bytes": 5509,
+      "sha256": "078089C834267CD8C3422CFBC96602894BBDB8A645C278F82F2060B1E8343C34"
+    },
+    "source_round_sha": "2f5f836cce1190155fc1392abf60ccd156f0c62a",
+    "original_raw_receipts_rewritten": false,
+    "check_receipt": "uat/v1-control/settings-ui-review-draft/garbled-strings-repair-check.json"
+  },
+  "visible_delivery_followup_20261105": {
+    "starting_sha": "2f5f836cce1190155fc1392abf60ccd156f0c62a",
+    "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
+    "product_release_sha256": "6CDB9462BC9801F035341B5678E346CAE648D97F32AFF07D4297D7B0D271A92F",
+    "product_rebuilt": false,
+    "portable_package_id": "a5dcf5ef3c8847649f5212f9e331e7be",
+    "portable_zip_sha256": "DD677463F8059AFABF31CD985471C73334E749C31862C4C3A61E8089694F81BF",
+    "selected_order": [
+      "T01",
+      "T02",
+      "T08",
+      "T09",
+      "T10",
+      "T07"
+    ],
+    "subphase_order": [
+      "T01_six_original_size_pages",
+      "T01_narrow_real_controls",
+      "T02_structured_hotkey",
+      "T08_immediate_runtime_controls",
+      "T09_ordinary_ZIP_and_UI_exit",
+      "T10_five_finite_actual_demonstrations",
+      "T07_RGB_picker_and_preview"
+    ],
+    "not_rerun_historical_ids": [
+      "T03",
+      "T04",
+      "T05",
+      "T06"
+    ],
+    "historical_DA7_results_rebound": false,
+    "expected_demo_frames": 16,
+    "dock_commit_has_own_frame": true,
+    "native_picker_and_HEX_verdicts_separate": true,
+    "current_field_status": "NOT_RUN",
+    "driver_build_status": "PENDING_FORMAL_SOURCE_COMMIT",
+    "current_availability": "AWAITING_CURRENT_NOTIFICATION",
+    "current_resources": "NOT_CHECKED_THIS_ROUND",
+    "historical_2049_snapshot_is_current": false,
+    "planned_guest_run_id": "e60f564f222441d6b52ab8b6cfb0fb25",
+    "new_guest_generated": false,
+    "new_guest_deployed": false,
+    "old_e549_unmodified_and_not_started": true,
+    "fixed_denominators_unchanged": true,
+    "all_T01_T10_PASS": false,
+    "human_UAT": "PENDING",
+    "REA": "NOT_STARTED"
+  }
 }

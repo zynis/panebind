@@ -235,6 +235,134 @@ function Fixture-ExitReason([uint32]$Code) {
     else{$reason=@('unmapped_fixture_exit_status',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('KmcgZgRchHYgAGYAaQB4AHQAdQByAGUAIAAAkPpRtnIBYAz/AJfAaOVnn1PLWcGLbmM='))))}
     [ordered]@{code=$Code;reason_en=$reason[0];reason_zh=$reason[1];feature_pass_inferred=$false}
 }
+function Convert-SettingsEditorsPhaseEvidence([object[]]$Rows) {
+    # One bounded driver log, not a common Raw/WinEvent native clock. This
+    # records execution and actual assertions; a function return is not UI PASS.
+    $names=@('T01_six_original_size_pages','T01_narrow_real_controls','T02_structured_hotkey',
+        'T08_immediate_runtime_controls','T09_ordinary_ZIP_and_UI_exit','T10_five_finite_actual_demonstrations','T07_RGB_picker_and_preview')
+    $ids=@('T01','T01','T02','T08','T09','T10','T07')
+    $phases=@(for($n=0;$n -lt $names.Count;$n++){
+        [ordered]@{phase_id=$ids[$n];name=$names[$n];order=$n+1;selected=$false;executed=$false;
+            execution='UNKNOWN';returned=$false;failed=$false;not_executed=$false;
+            case_PASS=0;case_FAIL=0;case_UNKNOWN=0;events=@();errors=@();return_is_ui_PASS=$false}
+    })
+    $routes=@(foreach($route in @('system_picker','HEX_second_color')){
+        [ordered]@{route=$route;execution='UNKNOWN';executed=$false;returned=$false;failed=$false;events=@();return_is_ui_PASS=$false}
+    })
+    $errors=@();$failures=@();$active=-1;$lastStarted=0;$lastSequence=[uint64]0;$driverSummary=$null;$hexSafety=$null;$colorBaseline=$null
+    if($Rows.Count -gt 100000){throw 'Settings editor evidence exceeds bounded row count.'}
+    foreach($row in $Rows){
+        if($null -eq $row.sequence -or [uint64]$row.sequence -ne $lastSequence+1){$errors+='driver_sequence_missing_or_not_contiguous_from_one'}
+        if($null -ne $row.sequence){$lastSequence=[uint64]$row.sequence}
+        if($row.type -ceq 'settings_ui_targeted_phase'){
+            if($row.phase_id -cin @('T03','T04','T05','T06')){
+                if($row.selected -ne $false -or $row.status -cne 'NOT_SELECTED_HISTORICAL_NOT_RERUN'){$errors+='historical_phase_was_not_explicitly_excluded'}
+                continue
+            }
+            $index=[array]::IndexOf($names,[string]$row.name)
+            if($index -lt 0 -or $row.phase_id -cne $ids[$index] -or $row.order -ne $index+1 -or $row.selected -ne $true){
+                $errors+='selected_phase_identity_or_order_mismatch';continue
+            }
+            $phase=$phases[$index]
+            $phase.events+=,$row
+            switch -CaseSensitive ([string]$row.status){
+                'SELECTED' {if($phase.selected){$errors+='phase_selected_twice'};$phase.selected=$true}
+                'STARTED' {
+                    if($phase.executed -or -not $phase.selected -or $index+1 -ne $lastStarted+1){$errors+='phase_start_missing_selection_or_out_of_order'}
+                    $phase.executed=$true;$active=$index;$lastStarted=$index+1
+                }
+                'RETURNED' {
+                    if(-not $phase.executed -or $phase.returned -or $row.return_not_ui_PASS -ne $true){$errors+='phase_return_without_unique_start_or_return_scope'}
+                    $phase.returned=$true;$active=-1
+                }
+                'FAILED' {
+                    if(-not $phase.executed){$errors+='phase_failure_without_start'}
+                    $phase.failed=$true;$phase.errors+=,$row;$active=-1
+                }
+                'NOT_EXECUTED' {
+                    if($phase.executed){$errors+='executed_phase_also_marked_not_executed'}
+                    $phase.not_executed=$true
+                }
+                default {$errors+='unexpected_phase_status'}
+            }
+        }elseif($row.type -ceq 'case'){
+            if($row.case -ceq 'settings_review_actual_safe_idle_before_continuation' -and
+               $row.stage -ceq 'T07_failed_native_picker_before_HEX_route'){
+                if($active -ne 6){$errors+='T07_HEX_safety_gate_outside_active_phase'}else{$hexSafety=$row}
+            }
+            if($active -ge 0){
+                switch -CaseSensitive ([string]$row.result){
+                    'PASS' {$phases[$active].case_PASS++}
+                    'FAIL' {$phases[$active].case_FAIL++}
+                    default {$phases[$active].case_UNKNOWN++}
+                }
+            }
+        }elseif($row.type -ceq 'settings_ui_T07_route'){
+            if($active -ne 6){$errors+='T07_route_outside_active_phase'}
+            $routeIndex=[array]::IndexOf(@('system_picker','HEX_second_color'),[string]$row.route)
+            if($routeIndex -lt 0){$errors+='unexpected_T07_route';continue}
+            $route=$routes[$routeIndex];$route.events+=,$row
+            switch -CaseSensitive ([string]$row.status){
+                'STARTED' {
+                    if($route.executed){$errors+='T07_route_started_twice'}
+                    if($routeIndex -eq 1 -and ($null -eq $hexSafety -or $hexSafety.result -cne 'PASS')){$errors+='T07_HEX_safety_gate_unknown_or_failed'}
+                    $route.executed=$true
+                }
+                'RETURNED' {if(-not $route.executed){$errors+='T07_route_return_without_start'};$route.returned=$true}
+                'FAILED' {if(-not $route.executed){$errors+='T07_route_failure_without_start'};$route.failed=$true}
+                'NOT_EXECUTED' {if($route.executed){$errors+='T07_route_executed_and_not_executed'}}
+                default {$errors+='unexpected_T07_route_status'}
+            }
+        }elseif($row.type -cin @('settings_editors_failure','settings_editors_cleanup_failure')){$failures+=,$row}
+        elseif($row.type -ceq 'settings_ui_T07_baseline'){$colorBaseline=$row}
+        elseif($row.type -ceq 'settings_editors_summary'){
+            if($null -ne $driverSummary){$errors+='duplicate_driver_summary'};$driverSummary=$row
+        }
+    }
+    foreach($phase in $phases){
+        if(-not $phase.selected){$errors+='selected_phase_event_missing'}
+        if($phase.case_UNKNOWN -gt 0){$errors+='phase_assertion_result_unknown'}
+        $phase.execution=if($phase.failed -or $phase.case_FAIL -gt 0){'FAILED'}
+            elseif($phase.returned){'RETURNED_REQUIRES_REVIEW'}
+            elseif($phase.executed){'STARTED_NOT_COMPLETED'}
+            elseif($phase.not_executed){'NOT_EXECUTED'}else{'UNKNOWN'}
+        if($phase.execution -cin @('UNKNOWN','STARTED_NOT_COMPLETED')){$errors+='phase_execution_incomplete'}
+    }
+    foreach($route in $routes){
+        $route.execution=if($route.failed){'FAILED'}elseif($route.returned){'RETURNED_REQUIRES_REVIEW'}
+            elseif($route.executed){'STARTED_NOT_COMPLETED'}elseif(@($route.events|Where-Object {$_.status -ceq 'NOT_EXECUTED'}).Count){'NOT_EXECUTED'}else{'UNKNOWN'}
+        if($phases[6].not_executed -and -not $route.events.Count){$route.execution='NOT_EXECUTED_PHASE_NOT_EXECUTED'}
+    }
+    if($phases[6].returned -and @($routes|Where-Object {$_.execution -cin @('UNKNOWN','STARTED_NOT_COMPLETED')}).Count){$errors+='T07_return_missing_route_outcome'}
+    if($null -eq $driverSummary){$errors+='driver_summary_missing'}
+    elseif(($driverSummary.selected_ids -join ',') -cne 'T01,T02,T08,T09,T10,T07' -or
+           ($driverSummary.not_rerun_historical_ids -join ',') -cne 'T03,T04,T05,T06' -or
+           $driverSummary.whole_contract_PASS -ne $false){$errors+='driver_summary_selection_or_scope_mismatch'}
+    [ordered]@{schema='panebind-v1-settings-selected-phase-evidence/1';selected_order=@('T01','T02','T08','T09','T10','T07');
+        not_selected_historical=@('T03','T04','T05','T06');historical_results_not_rebound=$true;
+        phases=$phases;T07_routes=$routes;T07_actual_saved_baseline=$colorBaseline;T07_HEX_safe_continuation=$hexSafety;
+        tool_exceptions=$failures;driver_summary=$driverSummary;
+        evidence_status=$(if($errors.Count){'INCOMPLETE'}elseif(@($phases|Where-Object {$_.failed -or $_.case_FAIL}).Count -or $driverSummary.result -ceq 'FAIL'){'RECORDED_WITH_FAILURES'}else{'RECORDED_SELECTED_EXECUTION_REQUIRES_REVIEW'});
+        evidence_errors=@($errors|Select-Object -Unique);all_T01_T10_PASS=$false;visual_review='NOT_RUN';human_UAT='NOT_RUN';
+        timeline_scope='single_driver_sequence_not_shared_native_input_order'}
+}
+function Read-SettingsEditorsPhaseEvidence([string]$Path,[string]$ExpectedDriverSource) {
+    # Called after the fixture exits, including failures, before launch.json is
+    # persisted. It does not block an input/resource thread or issue test input.
+    try{
+        $item=Get-Item -LiteralPath $Path -Force -ErrorAction Stop
+        if($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $item.Length -gt 8MB){throw 'driver_log_not_plain_or_over_8MiB'}
+        $rows=@(Get-Content -LiteralPath $Path -Encoding UTF8 -ErrorAction Stop|ForEach-Object{$_|ConvertFrom-Json -ErrorAction Stop})
+        if(-not $rows.Count -or @($rows|Where-Object {$_.source_sha -cne $ExpectedDriverSource -or $_.automated_guest_driver -ne $true}).Count){throw 'driver_log_empty_or_source_identity_mismatch'}
+        $result=Convert-SettingsEditorsPhaseEvidence $rows
+        $result['raw_log']=$Path;$result['raw_log_sha256']=(Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
+        return $result
+    }catch{
+        return [ordered]@{evidence_status='INCOMPLETE';error=$_.Exception.Message;raw_log=$Path;
+            selected_order=@('T01','T02','T08','T09','T10','T07');not_selected_historical=@('T03','T04','T05','T06');
+            all_T01_T10_PASS=$false;visual_review='NOT_RUN';human_UAT='NOT_RUN'}
+    }
+}
 function Read-TestApplicationAvailability {
     # Guest-only, bounded known executable/package lookups. No directory
     # traversal, installation, launch, user documents or settings inspection.
@@ -1187,6 +1315,13 @@ public static class PaneBindV1MediumGuest {
             $stage['fixture_exit_reason']=Fixture-ExitReason ([uint32]$stage.actual_result['fixture_exit_code'])
         }
         $stageFailed=$stage.actual_result.status -cne 'FIXTURE_EXITED_ZERO_EVIDENCE_REQUIRED' -or $stage.actual_result.forced_test_cleanup
+        if($Suite -ceq 'SettingsEditorsOnly'){
+            $selectedDriverPath=Join-Path $outputDir ($RunId+'-'+$configuration.ToLowerInvariant()+'-fixture.jsonl')
+            $stage['settings_selected_execution']=Read-SettingsEditorsPhaseEvidence $selectedDriverPath $manifest.driver_source_commit
+            # Missing/invalid phase evidence must survive the failure path and
+            # cannot turn a process exit of zero into selected UI acceptance.
+            if($stage.settings_selected_execution.evidence_status -cin @('INCOMPLETE','RECORDED_WITH_FAILURES')){$stageFailed=$true}
+        }
         $stage['safe_to_continue_independent_release']=$false
         if($stageFailed -and $configuration -ceq 'Debug' -and
            $stage.actual_result.status -ceq 'FIXTURE_FAILED' -and

@@ -96,6 +96,7 @@ void owned_settings_ui_demo_case(State& s){
         const auto committed=placement(s,g.offset,g.generation,half,true);
         s.log.check("T10_actual_NormalUp_dock_commit",!committed.empty()&&committed.find("\"intent_reason\":\"normal_up_dock\"")!=committed.npos,
             "\"receipt\":"+quote(committed));
+        review_capture_scene(s,"04-dock-preview","committed",roots(),exact);
         chain_hotkey_exact(set,'U',raw,"T10_actual_Undo_of_dock_commit");
         review_capture_scene(s,"04-dock-preview","after",roots(),exact);
         gui=gui_open(s);gui_page_select(s,gui,1);chain_checkbox(s,gui,L"移动时磁吸",baseline.magnet_move);
@@ -115,7 +116,8 @@ void owned_settings_ui_demo_case(State& s){
         chain_hotkey_exact(set,'K',centered,"T10_new_structured_editor_key_K_actual_Center");
         review_capture_scene(s,"05-hotkey-editor","after",roots(),exact);
         s.log.check("T10_all_owned_demo_windows_closed",set.close());
-        s.log.emit("settings_ui_T10_scope","\"five_demonstration_segments_returned\":true,\"original_size_frames_and_actual_geometry_receipts\":true,\"I02_I03_or_app_matrix_PASS_inferred\":false,\"human_UAT\":\"NOT_RUN\"");
+        settings_review_safe_idle(s,nullptr,"T10_closed_demo_windows_before_independent_T07");
+        s.log.emit("settings_ui_T10_scope","\"five_demonstration_segments_returned\":true,\"original_size_frames_and_actual_geometry_receipts\":true,\"expected_original_frames\":16,\"dock_commit_and_Undo_have_separate_frames\":true,\"I02_I03_or_app_matrix_PASS_inferred\":false,\"human_UAT\":\"NOT_RUN\"");
     }catch(...){pause_routing_failed_case_input(s);try{if(!set.closed)set.close();}catch(...){}throw;}
 }
 

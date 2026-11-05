@@ -329,6 +329,7 @@ struct State{
     // Driver send ledger only: successful insertion is not native delivery or
     // physical button state. A separate product hook receipt proves receipt.
     bool left{},control{},left_up_attempted{};std::uint64_t left_down_send_qpc{},left_up_send_qpc{};
+    std::array<bool,256> settings_test_keys_used{},settings_test_keys_down{};
     std::array<std::unique_ptr<ExplorerTarget>,3> explorer;
     std::vector<std::unique_ptr<ExplorerTarget>> retired_explorers;
     std::unique_ptr<product::Catalog> target_catalog;
@@ -660,6 +661,9 @@ void key(State& s,WORD code,bool pressed){
     const UINT inserted=desktop_before?SendInput(1,&packet,sizeof(packet)):0;
     const DWORD error=inserted==1?0:GetLastError();QueryPerformanceCounter(&send_after);
     if(inserted==1&&code==VK_CONTROL)s.control=pressed;
+    if(inserted==1&&s.suite=="SettingsEditorsOnly"&&code<s.settings_test_keys_used.size()){
+        s.settings_test_keys_used[code]=true;s.settings_test_keys_down[code]=pressed;
+    }
     HWND changed_foreground{};DWORD changed_pid{},changed_tid{};std::array<wchar_t,128> changed_class{};bool class_known=false,foreground_changed=false;
     const bool observed=inserted==1&&wait([&]{
         ++observations;last=GetAsyncKeyState(code);if(observations==1)first=last;const auto foreground_now=GetForegroundWindow();
@@ -2861,6 +2865,38 @@ void gui_require_input(State& s,const SettingsGui& gui){
     }
 }
 void gui_press(State& s,const SettingsGui& gui,WORD vk){gui_require_input(s,gui);key(s,vk,true);key(s,vk,false);}
+bool settings_review_input_clear(State& s,std::string& keys){
+    bool keys_clear=!s.left&&!s.control;keys="[";
+    for(unsigned code=0;code<s.settings_test_keys_used.size();++code)if(s.settings_test_keys_used[code]||code==VK_PACKET||code==VK_LBUTTON){
+        const bool down=(GetAsyncKeyState(static_cast<int>(code))&0x8000)!=0;
+        keys_clear=keys_clear&&!s.settings_test_keys_down[code]&&!down;
+        if(keys.size()>1)keys+=',';keys+="{\"VK\":"+std::to_string(code)+",\"driver_send_ledger_down\":"+
+            (s.settings_test_keys_down[code]?"true":"false")+",\"actual_async_down\":"+(down?"true":"false")+"}";
+    }keys+=']';return keys_clear;
+}
+void settings_review_safe_idle(State& s,const SettingsGui* gui,std::string_view stage){
+    std::string keys;const bool keys_clear=settings_review_input_clear(s,keys);
+    if(!desktop()||!s.process||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT||!keys_clear)
+        s.log.check("settings_review_safe_idle_input_precondition",false,"\"stage\":"+quote(stage)+",\"only_driver_used_VK_and_PACKET_left_sampled\":"+keys);
+    const auto mark=read_product(s).size();
+    if(!launch(s,L"--status",true))throw std::runtime_error("settings_review_safe_idle_status_command_failed");
+    std::string status;const bool received=wait([&]{status=record(s,mark,"status");return number(status,"\"process_id\":")==s.product_pid&&
+        status.find("\"source_sha\":"+quote(s.product_source))!=status.npos;});
+    const HWND app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD pid{};const auto tid=GetWindowThreadProcessId(app,&pid);
+    GUITHREADINFO native{sizeof(native)};const bool native_known=app&&pid==s.product_pid&&GetGUIThreadInfo(tid,&native);
+    const bool parent_ready=!gui||(gui_identity(s,*gui,gui->tab)&&GetForegroundWindow()==gui->root&&IsWindowEnabled(gui->root)&&
+        gui_identity(s,*gui,gui_focus(*gui))&&IsWindowVisible(gui_focus(*gui))&&IsWindowEnabled(gui_focus(*gui)));
+    s.log.check("settings_review_actual_safe_idle_before_continuation",received&&keys_clear&&parent_ready&&native_known&&
+        !native.hwndCapture&&!native.hwndMoveSize&&!native.hwndMenuOwner&&
+        status.find("\"enabled\":true")!=status.npos&&status.find("\"hook_owner_running\":true")!=status.npos&&
+        status.find("\"gesture_active\":false")!=status.npos&&status.find("\"native_move_handoff_pending\":false")!=status.npos&&
+        status.find("\"native_operation_pending\":false")!=status.npos&&status.find("\"native_completion_unknown\":false")!=status.npos&&
+        status.find("\"visual_restore_pending\":false")!=status.npos,
+        "\"stage\":"+quote(stage)+",\"driver_keys\":"+keys+",\"actual_product_status\":"+quote(status)+
+        ",\"actual_GUI_known\":"+(native_known?"true":"false")+",\"actual_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndCapture))+
+        ",\"actual_movesize\":"+std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndMoveSize))+",\"parent_ready_if_required\":"+(parent_ready?"true":"false")+
+        ",\"input_replayed_or_focus_forced\":false");
+}
 void gui_page_select(State& s,const SettingsGui& gui,unsigned wanted){
     if(wanted>=6||gui_read(s,gui,gui.tab,TCM_GETITEMCOUNT)!=6)throw std::runtime_error("GUI_six_production_pages_required");
     bool changed=false;
@@ -4086,27 +4122,40 @@ void drive(State& s){
                 "\"owned_Core_I11\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"whole_version_acceptance\":\"NOT_GRANTED\",\"human_uat\":\"NOT_RUN\"");
         }else if(s.suite=="SettingsEditorsOnly"){
             bool demo_completed=false;
-            const auto phase=[&](const char* name,void(*run)(State&)){
-                s.log.emit("settings_ui_targeted_phase","\"name\":"+quote(name)+",\"status\":\"STARTED\"");
-                run(s);
-                s.log.emit("settings_ui_targeted_phase","\"name\":"+quote(name)+",\"status\":\"RETURNED\",\"return_not_ui_PASS\":true");
+            constexpr std::array<const char*,7> names{"T01_six_original_size_pages","T01_narrow_real_controls","T02_structured_hotkey",
+                "T08_immediate_runtime_controls","T09_ordinary_ZIP_and_UI_exit","T10_five_finite_actual_demonstrations","T07_RGB_picker_and_preview"};
+            constexpr std::array<const char*,7> ids{"T01","T01","T02","T08","T09","T10","T07"};
+            std::array<bool,7> started{},returned{},failed{};
+            const auto event=[&](std::size_t n,const char* status,std::string fields={}){
+                s.log.emit("settings_ui_targeted_phase","\"name\":"+quote(names[n])+",\"phase_id\":"+quote(ids[n])+",\"order\":"+std::to_string(n+1)+
+                    ",\"selected\":true,\"status\":"+quote(status)+(fields.empty()?"":","+fields));
+            };
+            for(std::size_t n=0;n<names.size();++n)event(n,"SELECTED");
+            for(const auto id:{"T03","T04","T05","T06"})s.log.emit("settings_ui_targeted_phase","\"phase_id\":"+quote(id)+
+                ",\"selected\":false,\"status\":\"NOT_SELECTED_HISTORICAL_NOT_RERUN\",\"historical_results_not_rebound\":true");
+            const auto phase=[&](std::size_t n,void(*run)(State&)){
+                started[n]=true;event(n,"STARTED");const bool previously_failed=s.log.failed;
+                try{run(s);}catch(const std::exception& error){failed[n]=true;event(n,"FAILED","\"reason\":"+quote(error.what()));throw;}
+                returned[n]=true;event(n,"RETURNED","\"return_not_ui_PASS\":true");
+                if(s.log.failed&&!previously_failed){failed[n]=true;event(n,"FAILED","\"retained_subtest_failure\":true,\"function_returned_after_safe_recovery\":true");}
             };
             try{
-                phase("T01_six_original_size_pages",owned_settings_ui_review_capture);
-                phase("T01_narrow_real_controls",owned_settings_ui_narrow_case);
-                phase("T02_structured_hotkey",owned_settings_ui_hotkey_case);
-                phase("T03_actual_conflicts",owned_settings_ui_conflicts_case);
-                phase("T04_structured_mouse",owned_settings_ui_mouse_case);
-                phase("T05_structured_rules",owned_settings_ui_rules_case);
-                phase("T05_T06_roundtrip_defaults_restart",owned_settings_ui_roundtrip_case);
-                phase("T07_RGB_picker_and_preview",owned_settings_ui_color_case);
-                phase("T08_immediate_runtime_controls",owned_settings_runtime_bar_review);
-                phase("T09_ordinary_ZIP_and_UI_exit",owned_settings_portable_runtime_review);
-                phase("T10_five_finite_actual_demonstrations",owned_settings_ui_demo_after_portable);demo_completed=true;
+                phase(0,owned_settings_ui_review_capture);phase(1,owned_settings_ui_narrow_case);
+                phase(2,owned_settings_ui_hotkey_case);phase(3,owned_settings_runtime_bar_review);
+                phase(4,owned_settings_portable_runtime_review);phase(5,owned_settings_ui_demo_after_portable);demo_completed=true;
+                phase(6,owned_settings_ui_color_case);
             }catch(const std::exception& error){s.log.failed=true;
                 s.log.emit("settings_editors_failure","\"reason\":"+quote(error.what())+",\"original_failure_preserved\":true");}
-            if(s.process)cleanup(s);s.result=s.log.failed?1:0;
-            s.log.emit("settings_editors_summary","\"suite\":\"SettingsEditorsOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS_SCOPED_ACTUAL_UI")+
+            std::string outcomes="[";for(std::size_t n=0;n<names.size();++n){
+                if(!started[n])event(n,"NOT_EXECUTED","\"earlier_phase_failed\":true");
+                if(n)outcomes+=',';outcomes+="{\"phase_id\":"+quote(ids[n])+",\"name\":"+quote(names[n])+",\"order\":"+std::to_string(n+1)+
+                    ",\"started\":"+(started[n]?"true":"false")+",\"returned\":"+(returned[n]?"true":"false")+",\"failed\":"+(failed[n]?"true":"false")+"}";
+            }outcomes+=']';
+            try{if(s.process)cleanup(s);}catch(const std::exception& error){s.log.failed=true;
+                s.log.emit("settings_editors_cleanup_failure","\"reason\":"+quote(error.what())+",\"functional_results_not_erased\":true");}
+            s.result=s.log.failed?1:0;
+            s.log.emit("settings_editors_summary","\"suite\":\"SettingsEditorsOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS_SELECTED_SCOPE_NOT_ALL_T01_T10")+
+                ",\"selected_ids\":[\"T01\",\"T02\",\"T08\",\"T09\",\"T10\",\"T07\"],\"not_rerun_historical_ids\":[\"T03\",\"T04\",\"T05\",\"T06\"],\"phase_outcomes\":"+outcomes+
                 ",\"five_T10_segments_returned_not_visual_PASS\":"+(demo_completed?"true":"false")+",\"visual_review\":\"NOT_RUN\",\"whole_contract_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
         }else if(s.suite=="SettingsUiReviewOnly"){
             bool completed=false;

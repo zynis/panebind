@@ -34,11 +34,11 @@
     "physical_requirement_met": false,
     "CIM_FreeVirtualMemory_requirement_met": false,
     "mechanism": "本次远端控制调用中的内联启动前资源门；不是 run-control.ps1 的既有功能。",
-    "threshold_provenance": "??????????????????????? prelaunch-after-resource-restored.json ????????????????????????? prelaunch.ps1?",
+    "threshold_provenance": "首次内联启动前资源门的阈值由执行控制器交接记录给出；第二次原始 prelaunch-after-resource-restored.json 同时记录阈值与实测值。资源门不是 run-control.ps1 的既有功能，未生成独立 prelaunch.ps1。",
     "latest_measurement_still_rejected": true
   },
   "actions_after_refusal": {
-    "source": "??????????????????????????????????",
+    "source": "两次执行控制器交接记录均为启动前资源门拒绝，与两份原件及部署 guest_started=false 一致；两次均未请求 Launch、创建任务或发送测试输入。",
     "new_task_created": false,
     "new_guest_created": false,
     "synthetic_input_sent": false,
@@ -92,7 +92,7 @@
   ],
   "measurements": [
     {
-      "trigger": "?????????????",
+      "trigger": "本批首次部署后的启动前检查",
       "raw": {
         "machine": "ZS-WORKSTATION",
         "user": "ZS-Workstation\\zs",
@@ -105,7 +105,7 @@
       }
     },
     {
-      "trigger": "???????????????????",
+      "trigger": "用户另行通知资源已恢复后的一次有界复查",
       "raw": {
         "machine": "ZS-WORKSTATION",
         "user": "ZS-Workstation\\zs",
