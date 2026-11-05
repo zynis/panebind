@@ -3949,3 +3949,10 @@ external-code attribution is required by this documentation-only review.
 - EnableWindow 明确要求自有对话框销毁前先启用其被禁用的 owner，否则另一个窗口可能取得焦点并被激活；SetActiveWindow 的激活不等同于恢复一个可输入的 child。禁用控件不能取得键盘焦点。
 - af10 保留的真实失败：接受 J 编辑后主设置重新处于前台，但紧接的精确键盘目标守卫失败；保存文件仍为 generation 2、原 C 映射。原件没有记录失败瞬间的 focus HWND，不能把它写成父设置已保存退出或已确定的系统原因。生产源码同时存在先销毁再启用 owner，以及刷新列表清选择后禁用原 Edit 按钮的链路。
 - 修复限于本产品同线程 UI：统一关闭路径先恢复原 owner 启用状态，仍属本前台时恢复合法 child；列表刷新保留可用行并修复失效焦点。不会从外部应用抢回前台。定向驱动继续真实按键，记录 root/tab/focus 分项事实，不用测试 SetFocus 修补产品。旧 FAIL 保留，新实现须用新的产品身份现场复验。
+
+### 2026-11-05：窄窗说明文字的测量与绘制一致
+
+- 已目视保留的 da7 产品 b453 原图：常规页窄窗说明右侧截尾，没有相应续行。seq113 的说明 STATIC 实际宽为 739px；动画段高 75px、资格段高 96px。宽窗同段为 1069px 且可读。这是当前 T01 的具体视觉缺陷；控件可达结果不等于文字完整通过。
+- 官方依据：[Static Control Styles](https://learn.microsoft.com/en-us/windows/win32/controls/static-control-styles) 的 SS_LEFT 词间换行与超宽词截断、SS_EDITCONTROL 的有限含义；[DrawTextW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-drawtextw) 的 DT_WORDBREAK/DT_CALCRECT；[WM_PAINT](https://learn.microsoft.com/en-us/windows/win32/gdi/wm-paint) 的 BeginPaint/EndPaint 配对；[WM_PRINTCLIENT](https://learn.microsoft.com/en-us/windows/win32/gdi/wm-printclient) 使用调用方 DC、无需 BeginPaint/EndPaint；[SaveDC](https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-savedc) 与 [RestoreDC](https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-restoredc) 的 DC 状态保护。仅平台文档核对，无外部样例或实现复制/改编。
+- 原件未记录该时刻的运行时 STATIC style、font 或原生内部文字绘制参数，不能据此宣布系统原因或推断加 SS_EDITCONTROL 就能修复。局部实现让已有 flow_text 说明的测量与 WM_PAINT/WM_PRINTCLIENT 共用同字体、实际客户区宽及 DT_LEFT|DT_TOP|DT_WORDBREAK|DT_NOPREFIX；测量仅另加 DT_CALCRECT。保留 SS_LEFT、原 HWND/标题和原生可访问角色，不改成 owner-draw style、不增加文字副本；使用动态系统文字/背景色并还原 DC 状态。
+- 该改动不影响其它控件、输入、草稿、保存和移动语义。构建/离线检查不能证明窄窗续行、焦点、辅助访问或高对比已通过；新产品身份仍须在合法 guest 可用后定向复验，b453 原图与失败保留原身份。当前现场资源不足不以销毁其它项目资源解决。

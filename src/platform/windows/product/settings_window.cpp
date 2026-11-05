@@ -75,6 +75,7 @@ std::optional<std::wstring> select_file(HWND owner,bool save) {
 }
 
 struct SettingsWindow::Impl {
+    static constexpr UINT flow_text_format=DT_LEFT|DT_TOP|DT_WORDBREAK|DT_NOPREFIX;
     struct Field { HWND control{}; int page{}; bool v::Settings::* boolean{}; int v::Settings::* number{}; };
     struct Control { HWND hwnd{}; int x{},y{},width{},height{}; bool right_stretch{},pair_label{},pair_edit{},flow_text{}; };
     struct Page {
@@ -454,8 +455,34 @@ struct SettingsWindow::Impl {
         else return;
         arrange_page(page);
     }
+    void paint_flow_text(HWND child,HDC dc) const {
+        RECT bounds{};if(!dc||!GetClientRect(child,&bounds))return;
+        const auto label=text(child);
+        const int saved=SaveDC(dc);if(!saved)return;
+        FillRect(dc,&bounds,GetSysColorBrush(COLOR_WINDOW));
+        SetTextColor(dc,GetSysColor(IsWindowEnabled(child)?COLOR_WINDOWTEXT:COLOR_GRAYTEXT));
+        SetTextAlign(dc,TA_LEFT|TA_TOP|TA_NOUPDATECP);
+        SetBkMode(dc,TRANSPARENT);
+        SelectObject(dc,font?font:static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT)));
+        // Use the same font, actual width and wrapping flags as measurement.
+        // The native STATIC caption remains the single accessible text source.
+        DrawTextW(dc,label.c_str(),static_cast<int>(label.size()),&bounds,flow_text_format);
+        RestoreDC(dc,saved);
+    }
     static LRESULT CALLBACK control_proc(HWND child,UINT message,WPARAM w,LPARAM l,UINT_PTR id,DWORD_PTR data) {
         auto* page=reinterpret_cast<Page*>(data);
+        if(page&&page->owner&&(message==WM_PAINT||message==WM_PRINTCLIENT)){
+            const auto known=std::find_if(page->controls.begin(),page->controls.end(),[&](const Control& c){return c.hwnd==child;});
+            if(known!=page->controls.end()&&known->flow_text){
+                if(message==WM_PRINTCLIENT){
+                    if(!(l&PRF_CHECKVISIBLE)||IsWindowVisible(child))page->owner->paint_flow_text(child,reinterpret_cast<HDC>(w));
+                }else{
+                    PAINTSTRUCT paint{};const HDC dc=BeginPaint(child,&paint);
+                    page->owner->paint_flow_text(child,dc);EndPaint(child,&paint);
+                }
+                return 0;
+            }
+        }
         if(message==WM_SETFOCUS&&page&&page->owner)page->owner->reveal(*page,child);
         if(message==WM_NCDESTROY)RemoveWindowSubclass(child,control_proc,id);
         return DefSubclassProc(child,message,w,l);
@@ -465,7 +492,7 @@ struct SettingsWindow::Impl {
         RECT client{};GetClientRect(page.hwnd,&client);
         const bool narrow=client.right<px(550);
         std::vector<RECT> positions;positions.reserve(page.controls.size());
-        HDC dc=GetDC(page.hwnd);HGDIOBJ old_font=dc?SelectObject(dc,font):nullptr;
+        HDC dc=GetDC(page.hwnd);HGDIOBJ old_font=dc?SelectObject(dc,font?font:static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT))):nullptr;
         int extra{};
         for(const auto& c:page.controls) {
             int x=c.x,y=px(c.y)+extra,width=c.width,height=px(c.height);
@@ -475,7 +502,7 @@ struct SettingsWindow::Impl {
             const int actual_width=stretch?std::max(px(80),static_cast<int>(client.right)-px(x)-px(12)):
                 std::min(px(width),std::max(px(24),static_cast<int>(client.right)-px(x)-px(12)));
             if(c.flow_text&&dc){RECT needed{0,0,actual_width,0};const auto label=text(c.hwnd);
-                DrawTextW(dc,label.c_str(),static_cast<int>(label.size()),&needed,DT_CALCRECT|DT_WORDBREAK|DT_NOPREFIX);
+                DrawTextW(dc,label.c_str(),static_cast<int>(label.size()),&needed,flow_text_format|DT_CALCRECT);
                 const int measured=needed.bottom-needed.top+px(4);
                 if(measured>height){extra+=measured-height;height=measured;}}
             positions.push_back({px(x),y,px(x)+actual_width,y+height});
@@ -608,7 +635,8 @@ struct SettingsWindow::Impl {
         case WM_DRAWITEM:{const auto* item=reinterpret_cast<DRAWITEMSTRUCT*>(l);if(item->hwndItem==self->color_swatch){const auto raw=narrow(text(self->color_text));const auto color=raw?ed::parse_color_hex(*raw):std::nullopt;const auto brush=CreateSolidBrush(color?static_cast<COLORREF>(*color):GetSysColor(COLOR_BTNFACE));FillRect(item->hDC,&item->rcItem,brush);DeleteObject(brush);FrameRect(item->hDC,&item->rcItem,GetSysColorBrush(COLOR_WINDOWTEXT));return TRUE;}break;}
         case WM_MOUSEWHEEL:return SendMessageW(self->pages[static_cast<std::size_t>(self->selected)].hwnd,message,w,l);
         case WM_SETTINGCHANGE:case WM_SYSCOLORCHANGE:case WM_THEMECHANGED:
-            InvalidateRect(hwnd,nullptr,TRUE);for(auto& page:self->pages)InvalidateRect(page.hwnd,nullptr,TRUE);return 0;
+            InvalidateRect(hwnd,nullptr,TRUE);for(auto& page:self->pages){InvalidateRect(page.hwnd,nullptr,TRUE);
+                for(const auto& c:page.controls)if(c.flow_text)InvalidateRect(c.hwnd,nullptr,TRUE);}return 0;
         case WM_CLOSE:self->close();return 0;
         case WM_NCDESTROY:self->window=nullptr;self->tab=nullptr;self->fields.clear();for(auto& page:self->pages){page.hwnd=nullptr;page.controls.clear();page.next_y=12;page.scroll=0;}if(self->font){DeleteObject(self->font);self->font=nullptr;}SetWindowLongPtrW(hwnd,GWLP_USERDATA,0);break;
         default:break;
