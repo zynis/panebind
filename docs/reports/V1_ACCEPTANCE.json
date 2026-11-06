@@ -31,7 +31,7 @@
       "T01-T10_and_actual_images"
     ],
     "field_status": "PARTIAL_C77_OBSERVED_NEW_4D_BLOCKED_BEFORE_LAUNCH",
-    "reason": "c77/e60f真实六页、T02限定实证及T01视觉/T08工具FAIL保留；已完成4d产品+2f2驱动构建及9498/8643新包部署。8643单次门观察到象流占用及CIM FreeVirtualMemory低于原5GiB，未启动、不轮询或抢占。",
+    "reason": "新通知后单次核验：物理18,389,240 KiB、CIM FreeVirtualMemory16,485,688 KiB均达原门，旧内存阻断本次解除；仍见具名象流viewer PID57992，因此未Launch。不能据viewer存在推定象流仍在测试，需其项目方核正常退出或残留；PaneBind未重查、关闭或改变该实例。同4d/2f2/9498/8643包和所有现场NOT_RUN保持。",
     "review_path": "docs/reports/v1-ui-review/README.md",
     "T01_T10": {
       "T01": "FAIL_VISUAL_NARROW_NOTES_C77_E60F",
@@ -48,7 +48,7 @@
     "current_candidate_does_not_inherit_historical_PASS": true,
     "deferred_order": "200%/100%、双屏/混合DPI、真实虚拟桌面/会话、原生Shake、真实应用初始化、托盘相同UIA前置、NF02与无关Full/900秒均为开发顺序暂缓，最后由产品经理统一安排攻坚；原BLOCKED/FAIL/NOT_RUN和最终门槛不变。",
     "current_candidate_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
-    "current_candidate_field_status": "NOT_RUN_8643_PRELAUNCH_GATE_REFUSED",
+    "current_candidate_field_status": "NOT_RUN_8643_FOREIGN_VIEWER_PRESENT_MEMORY_GATES_PASSED",
     "current_candidate_T01_T10": {
       "T01": "NOT_RUN",
       "T02": "NOT_RUN",
@@ -104,7 +104,7 @@
       "followup_field_evidence_path": "docs/reports/v1-ui-review/after/e60f-validation.json"
     },
     "followup_product_build_evidence_path": "docs/reports/v1-ui-review/after/visible-product-build-4d684.json",
-    "followup_resource_gate_evidence_path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
+    "followup_resource_gate_evidence_path": "docs/reports/v1-ui-review/after/8643-resource-recheck-20261106.json",
     "historical_DA7_last_field_summary": {
       "last_field_product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
       "last_field_product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
@@ -125,7 +125,8 @@
         "T10": "NOT_RUN"
       }
     },
-    "T01_T10_scope": "Most recent executed scoped results per item, mixed historical identities explicitly retained; NOT current 4d candidate verdicts."
+    "T01_T10_scope": "Most recent executed scoped results per item, mixed historical identities explicitly retained; NOT current 4d candidate verdicts.",
+    "historical_8643_resource_gate_evidence_path": "docs/reports/v1-ui-review/after/8643-resource-gate.json"
   },
   "source_identity": {
     "previous_settings_ui_candidate_1f94_20261105": {

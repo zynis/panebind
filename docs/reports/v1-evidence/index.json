@@ -4,23 +4,23 @@
   "settings_ui_revision_20261105_files": [
     {
       "path": "docs/V1_QUICK_START.md",
-      "bytes": 10940,
-      "sha256": "946E1F1DE44A8D6F1FF10C568F5D579040A4EB49E54051EFD99E5CCA45BA2944"
+      "bytes": 10967,
+      "sha256": "C8A0AD1F6006FAAFA32E0479782DD42B55102D88529A8A9E1FFBCD0A1579974D"
     },
     {
       "path": "docs/reports/V1_ACCEPTANCE.json",
-      "bytes": 2191840,
-      "sha256": "05CA319E850F30AB87654BE6AC391652E63DD71EEE46ABA281231DBD8C98070F"
+      "bytes": 2192116,
+      "sha256": "E11D0AB7BA0471C22607426DDB32A39FF854AE9C0C25431FB78EEEC0360047C1"
     },
     {
       "path": "docs/reports/V1_DELIVERY_REPORT.md",
-      "bytes": 451203,
-      "sha256": "43C9BABBCDBDB1CCCEE34A0E7AD91B741D7DAADC73A8AD9678004A21CF490F54"
+      "bytes": 451642,
+      "sha256": "FCA08FCDF2106B160758BC9BE7404D022F2DEF4E1B2F3D9A75DDB8886E8112C2"
     },
     {
       "path": "docs/reports/v1-ui-review/README.md",
-      "bytes": 5540,
-      "sha256": "66FCB2409E361A07E86B1256ADA7D4F5372CEF94DB18B498E8CAE1699034F85D"
+      "bytes": 5561,
+      "sha256": "DEAA4FB8DB4D5C7C780B8541FFCAB1EC3CC1D8E16E36DB9944D0A4AAFCCB964E"
     },
     {
       "path": "docs/reports/v1-ui-review/after/36f8-page-0-narrow-bottom.png",
@@ -191,6 +191,11 @@
       "path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
       "bytes": 1728,
       "sha256": "182F325138E0BFB47120749B3888EDB2F7B4D711C42C6FA75A7C7305C5C22366"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/after/8643-resource-recheck-20261106.json",
+      "bytes": 2445,
+      "sha256": "8339FC26E80075CEA72FE49A40DA618A30B17A7E52AD589E715B41FEDFF450D6"
     },
     {
       "path": "docs/reports/v1-ui-review/after/README.md",
@@ -554,8 +559,8 @@
     },
     {
       "path": "docs/reports/v1-ui-review/review.json",
-      "bytes": 88818,
-      "sha256": "0D5E4CB25059537425EEE50C897DE8D0C00374FDEF044AC61398E2914965C842"
+      "bytes": 90515,
+      "sha256": "C1909CA49592679A20264950DD108B9206A4D876AAE9A6D3F02D579FA108B896"
     }
   ],
   "single_screen_200_feasibility_20261104_files": [

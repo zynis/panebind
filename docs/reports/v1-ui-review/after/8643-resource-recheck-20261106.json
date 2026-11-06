@@ -1,0 +1,50 @@
+{
+  "schema": "panebind-settings-notified-resource-recheck/1",
+  "run_id": "864324ae101c450baabf9b7eedd51f2a",
+  "trigger": "User newly confirmed normal Sandbox release and resources recovered; one fresh check",
+  "actual_utc": "2026-11-06T01:40:34.6783402Z",
+  "actual_Asia_Shanghai": "2026-11-06 09:40:34 +08:00",
+  "machine": "ZS-WORKSTATION",
+  "user": "zs",
+  "measurements": {
+    "FreePhysicalMemory_KiB": 18389240,
+    "FreeVirtualMemory_KiB": 16485688,
+    "physical_min_KiB": 6291456,
+    "CIM_FreeVirtualMemory_min_KiB": 5242880,
+    "guest_MiB": 4096
+  },
+  "physical_gate_pass": true,
+  "CIM_FreeVirtualMemory_gate_pass": true,
+  "previous_memory_blocker_resolved_at_this_observation": true,
+  "busy": [
+    {
+      "Name": "WindowsSandboxRemoteSession.exe",
+      "ProcessId": 57992,
+      "SessionId": 1,
+      "CommandLine": "\"C:\\Users\\zs\\AppData\\Local\\Microsoft\\WindowsApps\\WindowsSandboxRemoteSession.exe\" \"I:\\XiangFlowValidation\\e4382b2ac16546fbb2294eb1b6784493\\XiangFlow.wsb\" ",
+      "CreationDate": "/Date(1793895091565)/"
+    }
+  ],
+  "occupancy_gate_pass": false,
+  "allowed": false,
+  "remaining_observed_blocker": "The named XiangFlow viewer process is still present.",
+  "other_project_test_active": "UNKNOWN_NOT_INFERRED_FROM_VIEWER",
+  "other_project_guest_finished": "UNKNOWN",
+  "resource_retries_after_notice": 0,
+  "launch_attempted": false,
+  "temporary_task_created": false,
+  "remote_operations_after_refusal": "NONE",
+  "FreeVirtualMemory_meaning": "Original CIM field; not an independently measured commit-limit counter.",
+  "original_new_receipt": {
+    "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/864324ae101c450baabf9b7eedd51f2a/prelaunch-after-new-release-20261106T014029716Z-158f48888ad44554ad24a1a543e2adb7.json",
+    "bytes": 3953,
+    "sha256": "D2D51D8CED9421D774059B33C4E33A69F557DF3FF8B2E04ABA227D4C321659D5"
+  },
+  "previous_refusal_curated_unchanged": {
+    "path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
+    "bytes": 1728,
+    "sha256": "182F325138E0BFB47120749B3888EDB2F7B4D711C42C6FA75A7C7305C5C22366"
+  },
+  "field_result": "NOT_RUN_VIEWER_OCCUPANCY_GATE_REFUSED_MEMORY_PASSED",
+  "next_action": "The other project owner checks this exact viewer and closes its own instance normally, or identifies any residual resource; PaneBind does not close it. After a new notice, one current launch gate; reuse the same deployed package."
+}

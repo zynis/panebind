@@ -24,7 +24,7 @@
       "id": "T01",
       "name": "六页、窄窗、滚动与键盘焦点",
       "status": "NOT_RUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
@@ -54,7 +54,7 @@
       "id": "T02",
       "name": "C→J映射、取消草稿与真实居中",
       "status": "NOT_RUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
@@ -80,7 +80,7 @@
       "id": "T03",
       "name": "重复/保留键及实际注册占用",
       "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
@@ -96,7 +96,7 @@
       "id": "T04",
       "name": "Ctrl+中键映射的添加/生效/删除",
       "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
@@ -112,7 +112,7 @@
       "id": "T05",
       "name": "排除规则、恢复及中文路径/高位",
       "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
@@ -128,7 +128,7 @@
       "id": "T06",
       "name": "页默认、导入/导出、取消及重启",
       "status": "NOT_SELECTED_HISTORICAL_NOT_RERUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
@@ -144,7 +144,7 @@
       "id": "T07",
       "name": "系统选色/HEX与真实预览像素",
       "status": "NOT_RUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
@@ -172,7 +172,7 @@
       "id": "T08",
       "name": "即时暂停/恢复、草稿及外部状态",
       "status": "NOT_RUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "product_source_sha": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
@@ -195,7 +195,7 @@
       "id": "T09",
       "name": "新ZIP普通入口/单实例/正常退出",
       "status": "NOT_RUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "status": "NOT_RUN",
@@ -208,7 +208,7 @@
       "id": "T10",
       "name": "五段真实动作及原尺寸帧",
       "status": "NOT_RUN",
-      "reason": "New 4d/2f2 candidate not launched: 8643 one-shot resource and foreign-project Sandbox gate refused. No older result rebound.",
+      "reason": "New 4d/2f2 candidate not launched: both memory gates passed at the new notified sample, but the named XiangFlow viewer remained present. Other project actual activity UNKNOWN; no older UI result rebound.",
       "product_source_sha": "4d684e3ca1b708b397dd9808fd38ff9b6657d9fe",
       "last_field": {
         "status": "NOT_RUN",
@@ -375,20 +375,22 @@
   },
   "blocking_fact": {
     "host": "ZS-WORKSTATION",
-    "status": "FOREIGN_SANDBOX_OCCUPIED_AND_CIM_FREEVIRTUAL_BELOW_ORIGINAL_GATE",
+    "status": "NAMED_FOREIGN_VIEWER_PRESENT_MEMORY_GATES_PASSED",
     "run_id": "864324ae101c450baabf9b7eedd51f2a",
-    "utc": "2026-11-05T16:45:40.5705914Z",
-    "evidence": "after/8643-resource-gate.json",
+    "utc": "2026-11-06T01:40:34.6783402Z",
+    "Asia_Shanghai": "2026-11-06 09:40:34 +08:00",
+    "evidence": "after/8643-resource-recheck-20261106.json",
     "allowed": false,
-    "resource_retries": 0,
+    "resource_retries_after_notice": 0,
     "launch_attempted": false,
-    "historical_values_not_used_as_current": true
+    "other_project_actual_test_activity": "UNKNOWN",
+    "previous_memory_blocker_resolved_at_this_observation": true
   },
   "historical_images": "before/historical-captures.json",
   "new_product_images": [],
   "new_demo_frames": [],
   "pending": [
-    "Wait for a new normal-release/resource-availability notification; do not poll, close another project or reduce the gate.",
+    "The XiangFlow owner checks the exact viewer PID57992/configuration e4382b2a, closes its own instance normally or identifies any residual resource. PaneBind does not stop it; do not keep asking generically whether memory recovered.",
     "Reuse deployed 8643/9498 and frozen 4d product + 2f2 driver; no rebuild or repack required.",
     "After one successful current launch gate, execute T01 -> T02 -> T08 -> T09 -> T10 -> T07; T03-T06 are not selected.",
     "Verify actual new-candidate six pages/narrow text and 16 demo frames; keep native-picker and HEX verdicts separate, unknown input/cleanup stops that Run."
@@ -1500,7 +1502,7 @@
     "integration": "5/12",
     "current_UI_work_awards_no_whole_contract_PASS": true
   },
-  "current_candidate_field_status": "NOT_RUN_8643_RESOURCE_AND_OTHER_PROJECT_OCCUPANCY_GATE_REFUSED",
+  "current_candidate_field_status": "NOT_RUN_8643_FOREIGN_VIEWER_PRESENT_MEMORY_GATES_PASSED",
   "historical_blocking_facts": [
     {
       "utc": "2026-11-05T08:38:17.3174707Z",
@@ -1563,6 +1565,17 @@
       "polling": false,
       "system_changes": [],
       "note": "这是该两次启动前实际资源门拒绝，不是新建VM要求，也不推翻已结束批次的真实功能结果。"
+    },
+    {
+      "host": "ZS-WORKSTATION",
+      "status": "FOREIGN_SANDBOX_OCCUPIED_AND_CIM_FREEVIRTUAL_BELOW_ORIGINAL_GATE",
+      "run_id": "864324ae101c450baabf9b7eedd51f2a",
+      "utc": "2026-11-05T16:45:40.5705914Z",
+      "evidence": "after/8643-resource-gate.json",
+      "allowed": false,
+      "resource_retries": 0,
+      "launch_attempted": false,
+      "historical_values_not_used_as_current": true
     }
   ],
   "baseline_images": "before/baseline465-captures.json",
@@ -1800,7 +1813,7 @@
       "bytes": 13593,
       "sha256": "06F8E4E8C9967E088768ADA7BBF7C117C823EBD25E35AEDB3B0EC23680C94CE4"
     },
-    "product_field_status": "NOT_RUN_RESOURCE_AND_OTHER_PROJECT_OCCUPANCY_GATE_REFUSED",
+    "product_field_status": "NOT_RUN_FOREIGN_VIEWER_PRESENT_MEMORY_GATES_PASSED",
     "historical_last_observed_product": "c77b2c85bcdced06afc5fcce4d7043b7fe83255a",
     "historical_last_observed_run": "e60f564f222441d6b52ab8b6cfb0fb25",
     "planned_portable_id": "9498d52cda714a71b2a2d58748c14e81",
@@ -1823,13 +1836,19 @@
       "sha256": "C974A8E65C9202E33CF81EBA9F1F02DEB337139A3632D52F1C3FD21A83245E6E"
     },
     "resource_gate": {
-      "path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
-      "bytes": 1728,
-      "sha256": "182F325138E0BFB47120749B3888EDB2F7B4D711C42C6FA75A7C7305C5C22366"
+      "path": "docs/reports/v1-ui-review/after/8643-resource-recheck-20261106.json",
+      "bytes": 2445,
+      "sha256": "8339FC26E80075CEA72FE49A40DA618A30B17A7E52AD589E715B41FEDFF450D6"
     },
     "guest_deployed": true,
     "guest_started": false,
     "new_candidate_page_images": 0,
-    "new_candidate_demo_frames": 0
+    "new_candidate_demo_frames": 0,
+    "prior_resource_gate": {
+      "path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
+      "bytes": 1728,
+      "sha256": "182F325138E0BFB47120749B3888EDB2F7B4D711C42C6FA75A7C7305C5C22366"
+    },
+    "new_notification_recheck_only": true
   }
 }
