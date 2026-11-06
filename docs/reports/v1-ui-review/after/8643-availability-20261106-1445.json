@@ -1,0 +1,50 @@
+{
+  "schema": "panebind-settings-current-availability/1",
+  "run_id": "864324ae101c450baabf9b7eedd51f2a",
+  "trigger": "User explicitly requested a new current availability check because the existing Sandbox route is still needed",
+  "actual_utc": "2026-11-06T06:45:46.2417147Z",
+  "actual_Asia_Shanghai": "2026-11-06 14:45:46 +08:00",
+  "machine": "ZS-WORKSTATION",
+  "user": "zs",
+  "measurements": {
+    "FreePhysicalMemory_KiB": 18170996,
+    "FreeVirtualMemory_KiB": 11294596,
+    "physical_min_KiB": 6291456,
+    "CIM_FreeVirtualMemory_min_KiB": 5242880,
+    "guest_MiB": 4096
+  },
+  "physical_gate_pass": true,
+  "CIM_FreeVirtualMemory_gate_pass": true,
+  "busy": [
+    {
+      "Name": "WindowsSandboxRemoteSession.exe",
+      "ProcessId": 59700,
+      "ParentProcessId": 39300,
+      "SessionId": 1,
+      "CommandLine": "\"C:\\Users\\zs\\AppData\\Local\\Microsoft\\WindowsApps\\WindowsSandboxRemoteSession.exe\" \"I:\\XiangFlowValidation\\cf18a670e62f45078c4e9b84f9604028\\XiangFlow.wsb\" ",
+      "CreationDate": "/Date(1793947470002)/"
+    }
+  ],
+  "current_viewer_is_not_previous_PID57992": true,
+  "occupancy_gate_pass": false,
+  "allowed": false,
+  "other_project_actual_test_activity": "UNKNOWN_NOT_INFERRED_FROM_VIEWER",
+  "other_project_guest_completion": "UNKNOWN",
+  "resource_retries_after_this_request": 0,
+  "launch_attempted": false,
+  "temporary_task_created": false,
+  "collection_created": false,
+  "remote_operations_after_refusal": "NONE",
+  "package_or_binary_changed": false,
+  "original_receipt": {
+    "path": "uat/v1-control/settings-visible-controller-20261105-6c4e0cc9/864324ae101c450baabf9b7eedd51f2a/prelaunch-current-user-request-20261106T064541148Z-b09f9419c43147579decff612800db2c.json",
+    "bytes": 4152,
+    "sha256": "AB21C356EEA776F1AADB56BB07025EEA2263688C19E180C993BCCED1FF22E1FE"
+  },
+  "previous_observation_evidence": [
+    "docs/reports/v1-ui-review/after/8643-resource-recheck-20261106.json",
+    "docs/reports/v1-ui-review/after/8643-resource-gate.json"
+  ],
+  "field_result": "NOT_RUN_FOREIGN_VIEWER_PRESENT_MEMORY_GATES_PASSED",
+  "next_action": "Wait for the other project to release its own cf18a670 instance normally; no polling, takeover, termination or second Sandbox. Reuse deployed 8643 after one new authorized current gate."
+}

@@ -31,7 +31,7 @@
       "T01-T10_and_actual_images"
     ],
     "field_status": "PARTIAL_C77_OBSERVED_NEW_4D_BLOCKED_BEFORE_LAUNCH",
-    "reason": "新通知后单次核验：物理18,389,240 KiB、CIM FreeVirtualMemory16,485,688 KiB均达原门，旧内存阻断本次解除；仍见具名象流viewer PID57992，因此未Launch。不能据viewer存在推定象流仍在测试，需其项目方核正常退出或残留；PaneBind未重查、关闭或改变该实例。同4d/2f2/9498/8643包和所有现场NOT_RUN保持。",
+    "reason": "用户要求查看当前可用性后单次核验：2026-11-06 14:45:46北京时间，物理18,170,996 KiB、CIM FreeVirtualMemory11,294,596 KiB均达原门；当前另见象流viewer PID59700/cf18a670配置，不能继续把旧PID57992当当前。未Launch、未重查或操作他项；新4d/2f2/9498/8643原包和全部现场NOT_RUN保持。",
     "review_path": "docs/reports/v1-ui-review/README.md",
     "T01_T10": {
       "T01": "FAIL_VISUAL_NARROW_NOTES_C77_E60F",
@@ -104,7 +104,7 @@
       "followup_field_evidence_path": "docs/reports/v1-ui-review/after/e60f-validation.json"
     },
     "followup_product_build_evidence_path": "docs/reports/v1-ui-review/after/visible-product-build-4d684.json",
-    "followup_resource_gate_evidence_path": "docs/reports/v1-ui-review/after/8643-resource-recheck-20261106.json",
+    "followup_resource_gate_evidence_path": "docs/reports/v1-ui-review/after/8643-availability-20261106-1445.json",
     "historical_DA7_last_field_summary": {
       "last_field_product_source_sha": "da7a858f24e1baba6c06aac3dd317db5043ca871",
       "last_field_product_exe_sha256": "EB76FE74E9A96D891972928B1399E5247AD1F5779A598A99003D8BACBA2726B9",
@@ -126,7 +126,8 @@
       }
     },
     "T01_T10_scope": "Most recent executed scoped results per item, mixed historical identities explicitly retained; NOT current 4d candidate verdicts.",
-    "historical_8643_resource_gate_evidence_path": "docs/reports/v1-ui-review/after/8643-resource-gate.json"
+    "historical_8643_resource_gate_evidence_path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
+    "prior_notified_recheck_evidence_path": "docs/reports/v1-ui-review/after/8643-resource-recheck-20261106.json"
   },
   "source_identity": {
     "previous_settings_ui_candidate_1f94_20261105": {

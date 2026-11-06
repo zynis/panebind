@@ -9,18 +9,18 @@
     },
     {
       "path": "docs/reports/V1_ACCEPTANCE.json",
-      "bytes": 2192116,
-      "sha256": "E11D0AB7BA0471C22607426DDB32A39FF854AE9C0C25431FB78EEEC0360047C1"
+      "bytes": 2192200,
+      "sha256": "21E05F094B43E296B70C649817B3A2B6D6C3F0C9BC62C60D3E1F12A087D85341"
     },
     {
       "path": "docs/reports/V1_DELIVERY_REPORT.md",
-      "bytes": 451642,
-      "sha256": "FCA08FCDF2106B160758BC9BE7404D022F2DEF4E1B2F3D9A75DDB8886E8112C2"
+      "bytes": 451471,
+      "sha256": "B257654D16943C9ACBC54E61E2AB667AB6B647FB6ACE01B39E18B0834D94D948"
     },
     {
       "path": "docs/reports/v1-ui-review/README.md",
-      "bytes": 5561,
-      "sha256": "DEAA4FB8DB4D5C7C780B8541FFCAB1EC3CC1D8E16E36DB9944D0A4AAFCCB964E"
+      "bytes": 5566,
+      "sha256": "94F5556313EB42B66559CB5E6EB08088935E0A83B3E43898657810833A0D463F"
     },
     {
       "path": "docs/reports/v1-ui-review/after/36f8-page-0-narrow-bottom.png",
@@ -186,6 +186,11 @@
       "path": "docs/reports/v1-ui-review/after/6b4-page-5-top.png",
       "bytes": 128604,
       "sha256": "CE83C9F554C0D4BCAC1B468FD5BA43D1080FF25164062254FC731C3A2D9AC614"
+    },
+    {
+      "path": "docs/reports/v1-ui-review/after/8643-availability-20261106-1445.json",
+      "bytes": 2291,
+      "sha256": "3FE57FBBE4729F15EEECBE470E27569C2A80336193A4DE4175C700AB3D94DBB8"
     },
     {
       "path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
@@ -559,8 +564,8 @@
     },
     {
       "path": "docs/reports/v1-ui-review/review.json",
-      "bytes": 90515,
-      "sha256": "C1909CA49592679A20264950DD108B9206A4D876AAE9A6D3F02D579FA108B896"
+      "bytes": 91566,
+      "sha256": "1515BF5E9D1D272B3F4F41486805ACAB0D096F06773DD032AE0A13D305A9833C"
     }
   ],
   "single_screen_200_feasibility_20261104_files": [

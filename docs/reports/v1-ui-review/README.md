@@ -1,6 +1,6 @@
 # PaneBind V1 设置界面与演示复核（2026-11-05）
 
-当前待测为4d产品／2f2驱动／9498便携包，8643已部署；新通知后的内存两门通过，但仍见具名象流viewer PID57992，未启动；[新包及实际门](after/visible-delivery-package-8643.json)。下方c77/e60f是真实最近图，保其FAIL，不能改绑新候选。新候选六页0/6、演示0/16，T08/T09/T10/T07仍未完成。
+当前待测为4d产品／2f2驱动／9498便携包，8643已部署；14:45本次内存两门通过，但见另一个象流viewer PID59700/cf18a670，未启动；[新包及实际门](after/visible-delivery-package-8643.json)。下方c77/e60f是真实最近图，保其FAIL，不能改绑新候选。新候选六页0/6、演示0/16，T08/T09/T10/T07仍未完成。
 
 当前实测为c77／e60f／144 DPI：六页、两张长页下半部、十二张窄图已取得。[六页原图](after/after-captures-e60f.json)、[实际范围](after/e60f-validation.json)、[窄说明视觉FAIL](after/e60f-visual-review.json)。T02限定通过，T08工具前置失败，T09/T10/T07未执行、0/16帧。原失败与DA7历史保留；正在范围内修复，不以阶段返回或CLI收尾授UI退出通过。以下e60f之前的0图/等待通知描述保留历史时点。
 

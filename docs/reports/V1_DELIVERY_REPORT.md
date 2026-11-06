@@ -16,7 +16,7 @@
 
 [![诊断／外观：c77/e60f/144 DPI](v1-ui-review/after/e60f-page-5-top.png)](v1-ui-review/after/e60f-page-5-top.png)
 
-8643已部署并逐文件核验。**最新一次通知后的核验为2026-11-06 09:40:34（北京时间；原回执01:40:34Z）**：物理18,389,240 KiB、CIM FreeVirtualMemory16,485,688 KiB均通过原6GiB／5GiB门，旧内存阻断在本次观察已解除；仍观察到同一个象流viewer PID57992/session1，配置指向`I:\XiangFlowValidation\e4382b2ac16546fbb2294eb1b6784493\XiangFlow.wsb`，所以只剩具名viewer存在这一门未通过。[本次原始读数与回执](v1-ui-review/after/8643-resource-recheck-20261106.json)。这不能证明象流仍在执行测试，也不能证明其guest已完全退出；需象流任务方核对正常退出或残留，PaneBind不自行结束它。未Launch、未建任务、未发送输入，拒绝后没有再次查询。原16:45占用加内存两项拒绝[保留历史原件](v1-ui-review/after/8643-resource-gate.json)，不再当作当前内存不足。收到该具名实例正常退出的通知后复用本包单次核验，不重建、不封包、不搬文件。
+8643已部署并逐文件核验。**最新一次用户请求后的核验为2026-11-06 14:45:46（北京时间；原回执06:45:46Z）**：物理18,170,996 KiB、CIM FreeVirtualMemory11,294,596 KiB均通过原6GiB／5GiB门，但当前观察到另一个象流viewer PID59700（parent39300/session1），配置为`I:\XiangFlowValidation\cf18a670e62f45078c4e9b84f9604028\XiangFlow.wsb`，所以占用门仍未通过。[本次原始读数与回执](v1-ui-review/after/8643-availability-20261106-1445.json)。不能据viewer存在推断象流正在测试或其guest完成状态。没有启动PaneBind、接管/关闭该实例或拒绝后重查；不启动第二Sandbox。09:40的旧PID57992/e4382b2a及更早内存不足只保留各自历史，不当当前对象。待该项目正常释放后复用本包单次核验，无需重建、封包或搬文件。
 
 | 当前身份 | 准确绑定 |
 | --- | --- |

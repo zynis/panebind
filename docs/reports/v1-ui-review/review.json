@@ -375,22 +375,30 @@
   },
   "blocking_fact": {
     "host": "ZS-WORKSTATION",
-    "status": "NAMED_FOREIGN_VIEWER_PRESENT_MEMORY_GATES_PASSED",
+    "status": "DIFFERENT_NAMED_FOREIGN_VIEWER_PRESENT_MEMORY_GATES_PASSED",
     "run_id": "864324ae101c450baabf9b7eedd51f2a",
-    "utc": "2026-11-06T01:40:34.6783402Z",
-    "Asia_Shanghai": "2026-11-06 09:40:34 +08:00",
-    "evidence": "after/8643-resource-recheck-20261106.json",
+    "utc": "2026-11-06T06:45:46.2417147Z",
+    "Asia_Shanghai": "2026-11-06 14:45:46 +08:00",
+    "observed_viewer": {
+      "Name": "WindowsSandboxRemoteSession.exe",
+      "ProcessId": 59700,
+      "ParentProcessId": 39300,
+      "SessionId": 1,
+      "CommandLine": "\"C:\\Users\\zs\\AppData\\Local\\Microsoft\\WindowsApps\\WindowsSandboxRemoteSession.exe\" \"I:\\XiangFlowValidation\\cf18a670e62f45078c4e9b84f9604028\\XiangFlow.wsb\" ",
+      "CreationDate": "/Date(1793947470002)/"
+    },
+    "previous_PID57992_not_used_as_current": true,
+    "evidence": "after/8643-availability-20261106-1445.json",
     "allowed": false,
-    "resource_retries_after_notice": 0,
+    "resource_retries_after_request": 0,
     "launch_attempted": false,
-    "other_project_actual_test_activity": "UNKNOWN",
-    "previous_memory_blocker_resolved_at_this_observation": true
+    "other_project_actual_test_activity": "UNKNOWN"
   },
   "historical_images": "before/historical-captures.json",
   "new_product_images": [],
   "new_demo_frames": [],
   "pending": [
-    "The XiangFlow owner checks the exact viewer PID57992/configuration e4382b2a, closes its own instance normally or identifies any residual resource. PaneBind does not stop it; do not keep asking generically whether memory recovered.",
+    "Wait for the XiangFlow owner to release its cf18a670 viewer PID59700 normally. This is a different observed instance from the historical e4382b2a/PID57992; do not stop it or poll.",
     "Reuse deployed 8643/9498 and frozen 4d product + 2f2 driver; no rebuild or repack required.",
     "After one successful current launch gate, execute T01 -> T02 -> T08 -> T09 -> T10 -> T07; T03-T06 are not selected.",
     "Verify actual new-candidate six pages/narrow text and 16 demo frames; keep native-picker and HEX verdicts separate, unknown input/cleanup stops that Run."
@@ -1576,6 +1584,19 @@
       "resource_retries": 0,
       "launch_attempted": false,
       "historical_values_not_used_as_current": true
+    },
+    {
+      "host": "ZS-WORKSTATION",
+      "status": "NAMED_FOREIGN_VIEWER_PRESENT_MEMORY_GATES_PASSED",
+      "run_id": "864324ae101c450baabf9b7eedd51f2a",
+      "utc": "2026-11-06T01:40:34.6783402Z",
+      "Asia_Shanghai": "2026-11-06 09:40:34 +08:00",
+      "evidence": "after/8643-resource-recheck-20261106.json",
+      "allowed": false,
+      "resource_retries_after_notice": 0,
+      "launch_attempted": false,
+      "other_project_actual_test_activity": "UNKNOWN",
+      "previous_memory_blocker_resolved_at_this_observation": true
     }
   ],
   "baseline_images": "before/baseline465-captures.json",
@@ -1836,19 +1857,21 @@
       "sha256": "C974A8E65C9202E33CF81EBA9F1F02DEB337139A3632D52F1C3FD21A83245E6E"
     },
     "resource_gate": {
-      "path": "docs/reports/v1-ui-review/after/8643-resource-recheck-20261106.json",
-      "bytes": 2445,
-      "sha256": "8339FC26E80075CEA72FE49A40DA618A30B17A7E52AD589E715B41FEDFF450D6"
+      "path": "docs/reports/v1-ui-review/after/8643-availability-20261106-1445.json",
+      "bytes": 2291,
+      "sha256": "3FE57FBBE4729F15EEECBE470E27569C2A80336193A4DE4175C700AB3D94DBB8"
     },
     "guest_deployed": true,
     "guest_started": false,
     "new_candidate_page_images": 0,
     "new_candidate_demo_frames": 0,
     "prior_resource_gate": {
-      "path": "docs/reports/v1-ui-review/after/8643-resource-gate.json",
-      "bytes": 1728,
-      "sha256": "182F325138E0BFB47120749B3888EDB2F7B4D711C42C6FA75A7C7305C5C22366"
+      "path": "docs/reports/v1-ui-review/after/8643-resource-recheck-20261106.json",
+      "bytes": 2445,
+      "sha256": "8339FC26E80075CEA72FE49A40DA618A30B17A7E52AD589E715B41FEDFF450D6"
     },
-    "new_notification_recheck_only": true
+    "new_notification_recheck_only": true,
+    "current_viewer_PID": 59700,
+    "current_viewer_configuration": "I:\\XiangFlowValidation\\cf18a670e62f45078c4e9b84f9604028\\XiangFlow.wsb"
   }
 }
